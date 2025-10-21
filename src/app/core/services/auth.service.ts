@@ -31,14 +31,33 @@ export class AuthService {
         localStorage.setItem(this.NAME_KEY, response.name);
         localStorage.setItem(this.USERNAME_KEY, response.username);
         this.userSubject.next(response.user);
-        localStorage.setItem('userRoles', response.roles.join(','));
+        
+        // FIX: Store as JSON array, not comma-separated string
+        // Also strip "ROLE_" prefix for cleaner frontend usage
+        const cleanRoles = (response.roles || []).map((role: string) => 
+          role.replace('ROLE_', '')
+        );
+        localStorage.setItem('userRoles', JSON.stringify(cleanRoles));
+        this.currentUserRoles.next(cleanRoles);
       })
     );
   }
 
   private loadUserRoles(): void {
-    const roles = JSON.parse(localStorage.getItem('userRoles') || '[]');
-    this.currentUserRoles.next(roles);
+    // FIX: Parse JSON array correctly
+    const rolesString = localStorage.getItem('userRoles');
+    if (rolesString) {
+      try {
+        const roles = JSON.parse(rolesString);
+        // Ensure it's an array
+        this.currentUserRoles.next(Array.isArray(roles) ? roles : []);
+      } catch (e) {
+        console.error('Error parsing user roles:', e);
+        this.currentUserRoles.next([]);
+      }
+    } else {
+      this.currentUserRoles.next([]);
+    }
   }
 
   getUserRoles(): string[] {
@@ -69,7 +88,11 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+    localStorage.removeItem(this.NAME_KEY);
+    localStorage.removeItem(this.USERNAME_KEY);
+    localStorage.removeItem('userRoles'); // Clear roles on logout
     this.userSubject.next(null);
+    this.currentUserRoles.next([]);
     this.router.navigate(['/login']);
   }
 

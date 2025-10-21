@@ -1,3 +1,4 @@
+<ng-container *ngIf="isAuthenticated; else noSidebar">
 <mat-sidenav-container class="h-screen">
   <!-- Left Sidebar - Compact Width -->
   <mat-sidenav #sidenav mode="side" opened class="w-56 bg-black border-r border-gray-800">
@@ -71,3 +72,11 @@
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
+</ng-container>
+
+
+<ng-template #noSidebar>
+  <div class="h-screen bg-gray-100">
+    <router-outlet></router-outlet>
+  </div>
+</ng-template>

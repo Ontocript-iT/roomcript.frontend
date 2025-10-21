@@ -6,6 +6,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
 import { RoomListComponent } from './features/rooms/room-list/room-list';
+import { UserManagement } from './features/user-management/user-management';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -24,6 +25,11 @@ export const routes: Routes = [
   { 
     path: 'reservations', 
     component: ReservationListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'userManagement',
+    component: UserManagement,
     canActivate: [authGuard]
   }
 ];

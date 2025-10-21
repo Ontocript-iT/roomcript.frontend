@@ -1,31 +1,117 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>Hotel PMS Login</mat-card-title>
-      
-    </mat-card-header>
+<div class="min-h-screen flex">
+  <!-- Left Side - 70% Brand Section -->
+  <div class="hidden lg:flex lg:w-[70%] bg-gradient-to-br from-[#131c36] via-[#1a2744] to-[#131c36] relative overflow-hidden">
+    <!-- Decorative Background Elements -->
+    <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
     
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Username</mat-label>
-          <input matInput formControlName="usernameOrEmail" placeholder="Enter username">
-          <mat-icon matPrefix>person</mat-icon>
+    <!-- Content -->
+    <div class="relative z-10 flex flex-col justify-center items-center w-full px-16 text-white">
+      <!-- Logo -->
+      <div class="mb-8">
+        <div class="w-32 h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
+          <mat-icon class="!w-20 !h-20 !text-[80px] text-white">hotel</mat-icon>
+        </div>
+      </div>
+      
+      <!-- Brand Name -->
+      <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+        Hotel PMS
+      </h1>
+      
+      <!-- Tagline -->
+      <p class="text-xl text-gray-300 mb-12 text-center max-w-md">
+        Complete Property Management Solution
+      </p>
+      
+      <!-- Features -->
+      <div class="space-y-6 max-w-lg">
+        <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+          <div class="w-12 h-12 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+            <mat-icon class="!text-indigo-400">dashboard</mat-icon>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg mb-1">Real-time Dashboard</h3>
+            <p class="text-sm text-gray-400">Monitor occupancy, revenue, and operations at a glance</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+          <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+            <mat-icon class="!text-purple-400">book_online</mat-icon>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg mb-1">Smart Reservations</h3>
+            <p class="text-sm text-gray-400">Manage bookings, check-ins, and guest preferences effortlessly</p>
+          </div>
+        </div>
+        
+        <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
+          <div class="w-12 h-12 rounded-lg bg-pink-500/20 flex items-center justify-center flex-shrink-0">
+            <mat-icon class="!text-pink-400">analytics</mat-icon>
+          </div>
+          <div>
+            <h3 class="font-semibold text-lg mb-1">Advanced Analytics</h3>
+            <p class="text-sm text-gray-400">Data-driven insights for better business decisions</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer Text -->
+      <div class="mt-16 text-center text-gray-500 text-sm">
+        <p>Trusted by 500+ properties worldwide</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side - 30% Login Form -->
+  <div class="w-full lg:w-[30%] flex items-center justify-center bg-white px-8 py-12">
+    <div class="w-full max-w-md">
+      <!-- Mobile Logo (shown only on small screens) -->
+      <div class="lg:hidden flex justify-center mb-8">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!w-10 !h-10 !text-[40px] text-white">hotel</mat-icon>
+        </div>
+      </div>
+      
+      <!-- Login Header -->
+      <div class="mb-8">
+        <h2 class="text-3xl font-bold text-[#131c36] mb-2">Welcome Back</h2>
+        <p class="text-gray-500">Sign in to access your dashboard</p>
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+        <!-- Username Field -->
+        <mat-form-field appearance="outline" class="!w-full">
+          <mat-label>Username or Email</mat-label>
+          <input 
+            matInput 
+            formControlName="usernameOrEmail" 
+            placeholder="Enter your username"
+            class="!text-[#131c36]">
+          <mat-icon matPrefix class="!text-gray-400">person_outline</mat-icon>
           <mat-error *ngIf="loginForm.get('usernameOrEmail')?.hasError('required')">
             Username is required
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
+        <!-- Password Field -->
+        <mat-form-field appearance="outline" class="!w-full">
           <mat-label>Password</mat-label>
-          <input matInput 
-                 [type]="hidePassword ? 'password' : 'text'" 
-                 formControlName="password" 
-                 placeholder="Enter password">
-          <mat-icon matPrefix>lock</mat-icon>
-          <button mat-icon-button matSuffix 
-                  type="button" 
-                  (click)="hidePassword = !hidePassword">
+          <input 
+            matInput 
+            [type]="hidePassword ? 'password' : 'text'" 
+            formControlName="password" 
+            placeholder="Enter your password"
+            class="!text-[#131c36]">
+          <mat-icon matPrefix class="!text-gray-400">lock_outline</mat-icon>
+          <button 
+            mat-icon-button 
+            matSuffix 
+            type="button" 
+            (click)="hidePassword = !hidePassword"
+            class="!text-gray-400 hover:!text-[#131c36]">
             <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
@@ -36,18 +122,30 @@
           </mat-error>
         </mat-form-field>
 
-        <div *ngIf="errorMessage" class="error-message">
-          {{ errorMessage }}
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between text-sm">
+          <mat-checkbox class="text-gray-600">Remember me</mat-checkbox>
+          <a href="#" class="text-indigo-600 hover:text-indigo-700 font-medium">Forgot password?</a>
         </div>
 
-        <button mat-raised-button color="primary" type="submit" class="full-width">
-          Login
+        <!-- Error Message -->
+        <div 
+          *ngIf="errorMessage" 
+          class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <mat-icon class="!w-5 !h-5 !text-[20px]">error_outline</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
+
+        <!-- Login Button -->
+        <button 
+          mat-raised-button 
+          type="submit" 
+          [disabled]="loginForm.invalid"
+          class="!w-full !h-12 !bg-[#131c36] !text-white !rounded-lg !font-semibold !text-base hover:!bg-[#1a2744] !transition-all !duration-300 !shadow-lg hover:!shadow-xl disabled:!bg-gray-300 disabled:!text-gray-500">
+          <span *ngIf="!isLoading">Sign In</span>
+          <mat-spinner *ngIf="isLoading" diameter="24" class="!mx-auto"></mat-spinner>
         </button>
-
-        <div class="register-link">
-          Don't have an account? <a routerLink="/register">Register here</a>
-        </div>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </div>
 </div>

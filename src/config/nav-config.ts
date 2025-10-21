@@ -19,80 +19,92 @@ export const NAV_ITEMS: NavItem[] = [
     title: 'Dashboard',
     icon: 'dashboard',
     route: '/dashboard',
-    roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
+    roles: ['ADMIN','SUPER_ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
+  },
+    {
+    title: 'User',
+    icon: 'dashboard',
+    roles: ['ADMIN','SUPER_ADMIN'],
+     subItems: [
+      {
+        title: 'User Management',
+        route: '/userManagement',
+        icon: 'view_list',
+        roles: ['SUPER_ADMIN', 'ADMIN']
+      },]
   },
   {
     title: 'Rooms',
     icon: 'meeting_room',
-    roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK'],
+    roles: ['ADMIN', 'MANAGER', 'FRONT_DESK'],
     subItems: [
       {
         title: 'All Rooms',
         route: '/rooms/all',
         icon: 'view_list',
-        roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK']
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'Add Room',
         route: '/rooms/add',
         icon: 'add',
-        roles: ['ROLE_ADMIN', 'MANAGER']
+        roles: ['ADMIN', 'MANAGER']
       },
       {
         title: 'Room Types',
         route: '/rooms/types',
         icon: 'category',
-        roles: ['ROLE_ADMIN', 'MANAGER']
+        roles: ['ADMIN', 'MANAGER']
       },
       {
         title: 'Room Status',
         route: '/rooms/status',
         icon: 'info',
-        roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
       },
       {
         title: 'Maintenance',
         route: '/rooms/maintenance',
         icon: 'build',
-        roles: ['ROLE_ADMIN', 'MANAGER', 'HOUSEKEEPING']
+        roles: ['ADMIN', 'MANAGER', 'HOUSEKEEPING']
       }
     ]
   },
   {
     title: 'Reservations',
     icon: 'book_online',
-    roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK'],
+    roles: ['ADMIN', 'MANAGER', 'FRONT_DESK'],
     subItems: [
       {
         title: 'All Reservations',
         route: '/reservations/all',
         icon: 'list',
-        roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK']
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'New Reservation',
         route: '/reservations/new',
         icon: 'add_circle',
-        roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK']
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'Check-In',
         route: '/reservations/check-in',
         icon: 'login',
-        roles: ['ROLE_ADMIN', 'FRONT_DESK']
+        roles: ['ADMIN', 'FRONT_DESK']
       },
       {
         title: 'Check-Out',
         route: '/reservations/check-out',
         icon: 'logout',
-        roles: ['ROLE_ADMIN', 'FRONT_DESK']
+        roles: ['ADMIN', 'FRONT_DESK']
       }
     ]
   },
   {
     title: 'Guests',
     icon: 'people',
-    roles: ['ROLE_ADMIN', 'MANAGER', 'FRONT_DESK'],
+    roles: ['ADMIN', 'MANAGER', 'FRONT_DESK'],
     subItems: [
       {
         title: 'All Guests',

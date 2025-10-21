@@ -27,13 +27,18 @@ import { MatExpansionModule } from '@angular/material/expansion';
 export class Sidebar implements OnInit {
   navItems: NavItem[] = [];
   userRoles: string[] = [];
+  isAuthenticated = false;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.userRoles = this.authService.getUserRoles();
-    this.navItems = this.getAuthorizedNavItems();
-    console.log(this.navItems);
+     this.isAuthenticated = this.authService.isAuthenticated();
+      if (this.isAuthenticated) {
+      this.userRoles = this.authService.getUserRoles();
+      this.navItems = this.getAuthorizedNavItems();
+      console.log('Navigation items:', this.navItems);
+      console.log('User roles:', this.userRoles);
+    }
   }
   @ViewChild('sidenav') sidenav: any;
 
