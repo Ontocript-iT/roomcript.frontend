@@ -34,6 +34,18 @@ export const NAV_ITEMS: NavItem[] = [
       },]
   },
   {
+    title: 'Property Management',
+    icon: 'dashboard',
+    roles: ['SUPER_ADMIN'],
+     subItems: [
+      {
+        title: 'Property Add',
+        route: '/propertyAdd',
+        icon: 'view_list',
+        roles: ['SUPER_ADMIN']
+      },]
+  },
+  {
     title: 'Rooms',
     icon: 'meeting_room',
     roles: ['ADMIN', 'MANAGER', 'FRONT_DESK'],
