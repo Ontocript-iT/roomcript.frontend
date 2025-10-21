@@ -1,0 +1,59 @@
+<div class="reservation-list-container">
+  <div class="header">
+    <h1>Reservations</h1>
+    <button mat-raised-button color="primary" (click)="addReservation()">
+      <mat-icon>add</mat-icon> New Reservation
+    </button>
+  </div>
+
+  <table mat-table [dataSource]="reservations" class="mat-elevation-z8">
+    <ng-container matColumnDef="guestName">
+      <th mat-header-cell *matHeaderCellDef>Guest Name</th>
+      <td mat-cell *matCellDef="let res">{{ res.guestName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="guestEmail">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let res">{{ res.guestEmail }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="checkInDate">
+      <th mat-header-cell *matHeaderCellDef>Check-In</th>
+      <td mat-cell *matCellDef="let res">{{ res.checkInDate | date }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="checkOutDate">
+      <th mat-header-cell *matHeaderCellDef>Check-Out</th>
+      <td mat-cell *matCellDef="let res">{{ res.checkOutDate | date }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="totalPrice">
+      <th mat-header-cell *matHeaderCellDef>Total</th>
+      <td mat-cell *matCellDef="let res">${{ res.totalPrice }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let res">
+        <mat-chip [color]="getStatusColor(res.status)">
+          {{ res.status }}
+        </mat-chip>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let res">
+        <button mat-icon-button color="primary" (click)="editReservation(res.id)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteReservation(res.id)">
+          <mat-icon>cancel</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>

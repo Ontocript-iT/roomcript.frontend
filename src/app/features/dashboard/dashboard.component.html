@@ -1,0 +1,39 @@
+<div class="dashboard-container">
+  <h1>Welcome, {{ username }}!</h1>
+  
+  <mat-grid-list cols="2" rowHeight="200px" gutterSize="20px">
+    <mat-grid-tile>
+      <mat-card class="dashboard-card">
+        <mat-card-header>
+          <mat-icon class="card-icon">meeting_room</mat-icon>
+          <mat-card-title>Rooms</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Manage hotel rooms and availability</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" (click)="navigateTo('/rooms')">
+            View Rooms
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-grid-tile>
+
+    <mat-grid-tile>
+      <mat-card class="dashboard-card">
+        <mat-card-header>
+          <mat-icon class="card-icon">book_online</mat-icon>
+          <mat-card-title>Reservations</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Manage guest reservations</p>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button color="primary" (click)="navigateTo('/reservations')">
+            View Reservations
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </mat-grid-tile>
+  </mat-grid-list>
+</div>

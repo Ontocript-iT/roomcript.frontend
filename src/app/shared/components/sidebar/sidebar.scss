@@ -1,0 +1,67 @@
+// Compact list items
+::ng-deep .mat-mdc-list-item {
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+// Reduce padding between icon and text
+::ng-deep .mat-mdc-list-item-icon {
+  margin-right: 12px !important;
+}
+
+// Compact list content padding
+::ng-deep .mat-mdc-list-item-content {
+  padding: 0 8px !important;
+}
+
+::ng-deep .mat-drawer {
+  background-color: #131c36 !important;
+  width: 280px;
+}
+
+
+// Expansion panel customization
+::ng-deep .mat-expansion-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+  
+  &.expanded {
+    .mat-expansion-panel-header {
+      background-color: rgba(0, 75, 196, 0.5) !important;
+    }
+  }
+}
+
+::ng-deep .mat-expansion-panel-header {
+  padding: 0 12px !important;
+  height: 40px !important;
+  
+  &:hover {
+    background-color: rgba(31, 41, 55, 1) !important;
+  }
+}
+
+::ng-deep .mat-expansion-panel-body {
+  padding: 4px 0 8px 0 !important;
+}
+
+::ng-deep .mat-expansion-indicator {
+  &::after {
+    color: white !important;
+  }
+}
+
+// Submenu styling
+.submenu-container {
+  padding: 4px;
+  
+  a {
+    border-radius: 6px;
+    margin-bottom: 2px;
+  }
+}
+
+::ng-deep .mat-mdc-list-item {
+  height: 40px !important;
+  min-height: 40px !important;
+}

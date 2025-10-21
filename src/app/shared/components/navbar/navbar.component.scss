@@ -1,0 +1,34 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+
+/* Material Menu Panel Customization */
+::ng-deep .user-dropdown.mat-mdc-menu-panel {
+  min-width: 320px;
+  max-width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+::ng-deep .user-dropdown .mat-mdc-menu-content {
+  padding: 0 !important;
+}
+
+/* Smooth animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::ng-deep .user-dropdown.mat-mdc-menu-panel {
+  animation: slideDown 0.2s ease-out;
+}
