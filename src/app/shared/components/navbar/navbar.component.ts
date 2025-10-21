@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -27,6 +27,8 @@ import { NAV_ITEMS, NavItem } from '../../../../config/nav-config';
 export class NavbarComponent implements OnInit {
   name: string | null = null;
   username: string | null = null;
+  @Input() sidenavOpened = true;
+  @Output() toggleSidenav = new EventEmitter<void>();
 
   constructor(public authService: AuthService) {
     this.loadUserData();
@@ -42,6 +44,9 @@ export class NavbarComponent implements OnInit {
     });
   }
 
+  onToggleSidenav(): void {
+    this.toggleSidenav.emit();
+  }
   private loadUserData(): void {
     this.name = localStorage.getItem('name');
     this.username = localStorage.getItem('username');

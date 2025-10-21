@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatSidenavModule } from '@angular/material/sidenav';
@@ -28,16 +28,31 @@ export class Sidebar implements OnInit {
   navItems: NavItem[] = [];
   userRoles: string[] = [];
   isAuthenticated = false;
+  sidenavOpened = true;
+  sidenavWidth = 224; // 56 * 4 = 224px (w-56 in Tailwind)
+  minWidth = 180;
+  maxWidth = 400;
+  isResizing = false;
+  startX = 0;
+  startWidth = 0;
 
   constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-     this.isAuthenticated = this.authService.isAuthenticated();
-      if (this.isAuthenticated) {
+    this.isAuthenticated = this.authService.isAuthenticated();
+    if (this.isAuthenticated) {
       this.userRoles = this.authService.getUserRoles();
       this.navItems = this.getAuthorizedNavItems();
-      console.log('Navigation items:', this.navItems);
-      console.log('User roles:', this.userRoles);
+     
+         // Load saved sidebar state
+      const savedWidth = localStorage.getItem('sidenavWidth');
+      const savedState = localStorage.getItem('sidenavOpened');
+        if (savedWidth) {
+        this.sidenavWidth = parseInt(savedWidth, 10);
+      }
+      if (savedState !== null) {
+        this.sidenavOpened = savedState === 'true';
+      }
     }
   }
   @ViewChild('sidenav') sidenav: any;
@@ -57,7 +72,36 @@ export class Sidebar implements OnInit {
     return !!item.subItems && item.subItems.length > 0;
   }
 
-  toggleSidenav(): void {
-    this.sidenav.toggle();
+    // Resize functionality
+  onResizeStart(event: MouseEvent): void {
+    this.isResizing = true;
+    this.startX = event.clientX;
+    this.startWidth = this.sidenavWidth;
+    event.preventDefault();
   }
+  toggleSidenav(): void {
+    this.sidenavOpened = !this.sidenavOpened;
+    localStorage.setItem('sidenavOpened', this.sidenavOpened.toString());
+  }
+
+    @HostListener('document:mousemove', ['$event'])
+  onMouseMove(event: MouseEvent): void {
+    if (!this.isResizing) return;
+
+    const delta = event.clientX - this.startX;
+    const newWidth = this.startWidth + delta;
+
+    if (newWidth >= this.minWidth && newWidth <= this.maxWidth) {
+      this.sidenavWidth = newWidth;
+    }
+  }
+
+    @HostListener('document:mouseup')
+  onMouseUp(): void {
+    if (this.isResizing) {
+      this.isResizing = false;
+      localStorage.setItem('sidenavWidth', this.sidenavWidth.toString());
+    }
+  }
+  
 }

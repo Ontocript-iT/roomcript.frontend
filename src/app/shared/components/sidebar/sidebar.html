@@ -1,79 +1,90 @@
 <ng-container *ngIf="isAuthenticated; else noSidebar">
-<mat-sidenav-container class="h-screen">
-  <!-- Left Sidebar - Compact Width -->
-  <mat-sidenav #sidenav mode="side" opened class="w-56 bg-black border-r border-gray-800">
-    <!-- Sidebar Header - Compact -->
-    <div class="flex flex-col items-center py-4 px-3 border-b border-gray-800">
-      <div
-        class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg mb-2"
-      >
-        <mat-icon class="!w-7 !h-7 !text-[28px]">hotel</mat-icon>
+  <mat-sidenav-container class="h-screen">
+    <!-- Left Sidebar - Resizable -->
+    <mat-sidenav 
+      #sidenav 
+      mode="side" 
+      [opened]="sidenavOpened" 
+      [style.width.px]="sidenavWidth"
+      class="bg-black border-r border-gray-800 relative">
+      
+      <!-- Sidebar Header - Compact -->
+      <div class="flex flex-col items-center py-4 px-3 border-b border-gray-800">
+        <div
+          class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg mb-2"
+        >
+          <mat-icon class="!w-7 !h-7 !text-[28px]">hotel</mat-icon>
+        </div>
+        <h3 class="text-sm font-semibold text-white">Hotel PMS</h3>
       </div>
-      <h3 class="text-sm font-semibold text-white">Hotel PMS</h3>
-    </div>
 
-    <!-- Navigation Menu - With Submenu Support -->
-    <div class="pt-2 px-2">
-      <ng-container *ngFor="let item of navItems">
-        <!-- Items WITHOUT submenu -->
-        <a
-          *ngIf="!hasSubItems(item)"
-          mat-list-item
-          [routerLink]="item.route"
-          routerLinkActive="!bg-indigo-600 !text-white"
-          class="!mb-1 !rounded-lg !h-10 !text-white hover:!bg-gray-800 !transition-all !duration-200 !flex !items-center !px-3"
-        >
-          <mat-icon class="!text-white !mr-3 !w-5 !h-5 !text-[20px]">{{ item.icon }}</mat-icon>
-          <span class="!font-medium !text-sm">{{ item.title }}</span>
-        </a>
-
-        <!-- Items WITH submenu (Expansion Panel) -->
-        <mat-expansion-panel
-          *ngIf="hasSubItems(item)"
-          class="!bg-transparent !shadow-none !mb-1"
-          [class.expanded]="item.expanded"
-        >
-          <mat-expansion-panel-header
-            class="!h-10 !min-h-[40px] !px-3 !py-0 !rounded-lg hover:!bg-gray-800 !transition-all !duration-200"
-            [collapsedHeight]="'40px'"
-            [expandedHeight]="'40px'"
+      <!-- Navigation Menu - With Submenu Support -->
+      <div class="pt-2 px-2">
+        <ng-container *ngFor="let item of navItems">
+          <!-- Items WITHOUT submenu -->
+          <a
+            *ngIf="!hasSubItems(item)"
+            mat-list-item
+            [routerLink]="item.route"
+            routerLinkActive="!bg-indigo-600 !text-white"
+            class="!mb-1 !rounded-lg !h-10 !text-white hover:!bg-gray-800 !transition-all !duration-200 !flex !items-center !px-3"
           >
-            <mat-panel-title class="!flex !items-center !text-white !text-sm !font-medium">
-              <mat-icon class="!text-white !mr-3 !w-5 !h-5 !text-[20px]">{{ item.icon }}</mat-icon>
-              <span>{{ item.title }}</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
+            <mat-icon class="!text-white !mr-3 !w-5 !h-5 !text-[20px]">{{ item.icon }}</mat-icon>
+            <span class="!font-medium !text-sm">{{ item.title }}</span>
+          </a>
 
-          <!-- Submenu Items -->
-          <div class="submenu-container !bg-gray-900 !rounded-lg !mt-1">
-            <a
-              *ngFor="let subItem of item.subItems"
-              mat-list-item
-              [routerLink]="subItem.route"
-              routerLinkActive="!bg-indigo-600 !text-white"
-              class="!h-9 !text-gray-300 hover:!bg-gray-800 hover:!text-white !transition-all !duration-200 !flex !items-center !pl-12 !pr-3 !rounded"
+          <!-- Items WITH submenu (Expansion Panel) -->
+          <mat-expansion-panel
+            *ngIf="hasSubItems(item)"
+            class="!bg-transparent !shadow-none !mb-1"
+            [class.expanded]="item.expanded"
+          >
+            <mat-expansion-panel-header
+              class="!h-10 !min-h-[40px] !px-3 !py-0 !rounded-lg hover:!bg-gray-800 !transition-all !duration-200"
+              [collapsedHeight]="'40px'"
+              [expandedHeight]="'40px'"
             >
-              <mat-icon *ngIf="subItem.icon" class="!text-gray-400 !mr-2 !w-4 !h-4 !text-[16px]">{{
-                subItem.icon
-              }}</mat-icon>
-              <span class="!text-xs !font-medium">{{ subItem.title }}</span>
-            </a>
-          </div>
-        </mat-expansion-panel>
-      </ng-container>
-    </div>
-  </mat-sidenav>
+              <mat-panel-title class="!flex !items-center !text-white !text-sm !font-medium">
+                <mat-icon class="!text-white !mr-3 !w-5 !h-5 !text-[20px]">{{ item.icon }}</mat-icon>
+                <span>{{ item.title }}</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
 
-  <!-- Right Content Area -->
-  <mat-sidenav-content class="bg-gray-100">
-    <app-navbar></app-navbar>
-    <div class="p-6">
-      <router-outlet></router-outlet>
-    </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+            <!-- Submenu Items -->
+            <div class="submenu-container !bg-gray-900 !rounded-lg !mt-1">
+              <a
+                *ngFor="let subItem of item.subItems"
+                mat-list-item
+                [routerLink]="subItem.route"
+                routerLinkActive="!bg-indigo-600 !text-white"
+                class="!h-9 !text-gray-300 hover:!bg-gray-800 hover:!text-white !transition-all !duration-200 !flex !items-center !pl-12 !pr-3 !rounded"
+              >
+                <mat-icon *ngIf="subItem.icon" class="!text-gray-400 !mr-2 !w-4 !h-4 !text-[16px]">{{
+                  subItem.icon
+                }}</mat-icon>
+                <span class="!text-xs !font-medium">{{ subItem.title }}</span>
+              </a>
+            </div>
+          </mat-expansion-panel>
+        </ng-container>
+      </div>
+
+      <!-- Resize Handle -->
+      <div 
+        class="resize-handle"
+        (mousedown)="onResizeStart($event)">
+      </div>
+    </mat-sidenav>
+
+    <!-- Right Content Area -->
+    <mat-sidenav-content class="bg-gray-100">
+      <app-navbar [sidenavOpened]="sidenavOpened" (toggleSidenav)="toggleSidenav()"></app-navbar>
+      <div class="p-6">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
 </ng-container>
-
 
 <ng-template #noSidebar>
   <div class="h-screen bg-gray-100">

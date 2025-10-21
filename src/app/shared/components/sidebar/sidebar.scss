@@ -16,7 +16,7 @@
 
 ::ng-deep .mat-drawer {
   background-color: #131c36 !important;
-  width: 300px;
+  transition: width 0.3s ease !important;
 }
 
 
@@ -65,3 +65,30 @@
   height: 40px !important;
   min-height: 40px !important;
 }
+
+
+// // Resize handle styling
+// .resize-handle {
+//   position: absolute;
+//   top: 0;
+//   right: 0;
+//   width: 4px;
+//   height: 100%;
+//   cursor: ew-resize;
+//   background-color: transparent;
+//   transition: background-color 0.2s ease;
+//   z-index: 10;
+
+//   &:hover {
+//     background-color: rgba(99, 102, 241, 0.5);
+//   }
+
+//   &:active {
+//     background-color: rgba(99, 102, 241, 0.8);
+//   }
+// }
+
+// // Disable text selection during resize
+// :host {
+//   user-select: none;
+// }
