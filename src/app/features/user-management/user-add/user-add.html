@@ -1,0 +1,176 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+      <div class="flex items-center gap-4 mb-2">
+        <div
+          class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg"
+        >
+          <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">person_add</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Create New User</h1>
+          <p class="text-gray-500 mt-1">Add a new user to your hotel management system</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+      <mat-card-content class="!p-8">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+          <!-- Basic Information Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">badge</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">User Information</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- Username -->
+              <mat-form-field appearance="fill" class="lg:col-span-2">
+                <mat-label>Username</mat-label>
+                <input matInput formControlName="username" placeholder="e.g., john.doe" />
+                <mat-icon matPrefix class="!text-gray-400">account_circle</mat-icon>
+                <mat-error *ngIf="userForm.get('username')?.hasError('required')">
+                  Username is required
+                </mat-error>
+                <mat-error *ngIf="userForm.get('username')?.hasError('minlength')">
+                  Username must be at least 4 characters
+                </mat-error>
+              </mat-form-field>
+
+              <!-- First Name -->
+              <mat-form-field appearance="fill">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" placeholder="Thilina" />
+                <mat-icon matPrefix class="!text-gray-400">person</mat-icon>
+                <mat-error *ngIf="userForm.get('firstName')?.hasError('required')">
+                  First name is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Last Name -->
+              <mat-form-field appearance="fill">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" placeholder="Nuwan" />
+                <mat-icon matPrefix class="!text-gray-400">person_outline</mat-icon>
+                <mat-error *ngIf="userForm.get('lastName')?.hasError('required')">
+                  Last name is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Password -->
+              <mat-form-field appearance="fill">
+                <mat-label>Password</mat-label>
+                <input
+                  matInput
+                  [type]="hidePassword ? 'password' : 'text'"
+                  formControlName="password"
+                  placeholder="Enter password"
+                />
+                <mat-icon matPrefix class="!text-gray-400">lock</mat-icon>
+                <button
+                  mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="hidePassword = !hidePassword"
+                >
+                  <mat-icon class="!text-gray-400">{{
+                    hidePassword ? 'visibility_off' : 'visibility'
+                  }}</mat-icon>
+                </button>
+                <mat-error *ngIf="userForm.get('password')?.hasError('required')">
+                  Password is required
+                </mat-error>
+                <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">
+                  Password must be at least 8 characters
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Property Code - Editable only for SUPER_ADMIN -->
+              <mat-form-field appearance="fill">
+                <mat-label>Property Code</mat-label>
+                <input
+                  matInput
+                  formControlName="propertyCode"
+                  placeholder="PROP0005"
+                  [readonly]="!isSuperAdmin"
+                />
+                <mat-icon matPrefix class="!text-gray-400">business</mat-icon>
+                <mat-hint *ngIf="!isSuperAdmin" class="!text-xs !text-gray-500">
+                  Auto-assigned from your profile
+                </mat-hint>
+                <mat-hint *ngIf="isSuperAdmin" class="!text-xs !text-blue-600">
+                  Super Admin: You can change this property code
+                </mat-hint>
+                <mat-error *ngIf="userForm.get('propertyCode')?.hasError('required')">
+                  Property code is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Roles Selection Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]"
+                  >admin_panel_settings</mat-icon
+                >
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Assign User Role</h2>
+            </div>
+
+            <!-- Role Selection Dropdown -->
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>User Role</mat-label>
+              <mat-select formControlName="role">
+                <mat-option *ngFor="let role of availableRoles" [value]="role.value">
+                  <div class="py-2">
+                    <p class="font-semibold text-gray-900">{{ role.label }}</p>
+                    <p class="text-xs text-gray-500">{{ role.description }}</p>
+                  </div>
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix class="!text-gray-400">shield</mat-icon>
+              <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+                Role is required
+              </mat-error>
+            </mat-form-field>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isLoading"
+              class="!h-12 !px-8 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium"
+            >
+              <mat-icon class="!mr-2">close</mat-icon>
+              Cancel
+            </button>
+            <button
+              mat-raised-button
+              type="submit"
+              [disabled]="userForm.invalid || isLoading"
+              class="!h-12 !px-8 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed"
+            >
+              <mat-spinner
+                *ngIf="isLoading"
+                diameter="20"
+                class="!inline-block !mr-2"
+              ></mat-spinner>
+              <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+              {{ isLoading ? 'Creating User...' : 'Create User' }}
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

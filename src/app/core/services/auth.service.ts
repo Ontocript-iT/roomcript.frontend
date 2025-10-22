@@ -30,10 +30,10 @@ export class AuthService {
         localStorage.setItem(this.TOKEN_KEY, response.token);
         localStorage.setItem(this.NAME_KEY, response.name);
         localStorage.setItem(this.USERNAME_KEY, response.username);
+        localStorage.setItem("propertyCode", response.propertyCode);
         this.userSubject.next(response.user);
+    
         
-        // FIX: Store as JSON array, not comma-separated string
-        // Also strip "ROLE_" prefix for cleaner frontend usage
         const cleanRoles = (response.roles || []).map((role: string) => 
           role.replace('ROLE_', '')
         );

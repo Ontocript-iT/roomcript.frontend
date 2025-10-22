@@ -1,0 +1,36 @@
+// Table styling
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+thead tr th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f9fafb;
+}
+
+tbody tr {
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+// Smooth transitions
+button {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// SweetAlert custom styles
+::ng-deep {
+  .swal2-html-container {
+    .material-icons {
+      vertical-align: middle;
+    }
+  }
+}

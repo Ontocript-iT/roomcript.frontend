@@ -6,8 +6,11 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
 import { RoomListComponent } from './features/rooms/room-list/room-list';
-import { UserManagement } from './features/user-management/user-management';
-import { PropertyAddComponent } from './features/property-management/property-add';
+import { PropertyAddComponent } from './features/property-management/create-property/property-add';
+import { UserAddComponent } from './features/user-management/user-add/user-add';
+import { UserAssign } from './features/user-management/user-assign/user-assign';
+import { PropertyList } from './features/property-management/property-list/property-list';
+
 
 
 export const routes: Routes = [
@@ -30,14 +33,24 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'userManagement',
-    component: UserManagement,
+    path: 'addUser',
+    component: UserAddComponent,
     canActivate: [authGuard]
   },
   {
-    path: 'propertyAdd',
+    path: 'createProperty',
     component: PropertyAddComponent,
     canActivate: [authGuard]
+  },
+  {
+    path: 'assignUserRoles',
+    component: UserAssign,
+    canActivate: [authGuard]  
+  },
+  {
+    path: 'propertyList',
+    component: PropertyList,
+    canActivate: [authGuard]  
   }
 
 ];

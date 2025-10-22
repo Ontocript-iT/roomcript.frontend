@@ -14,8 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthService } from '../../core/services/auth.service';
-import { PropertyService, Property } from '../../core/services/property.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { PropertyService, Property } from '../../../core/services/property.service';
 
 
 
@@ -25,7 +25,7 @@ import { PropertyService, Property } from '../../core/services/property.service'
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,  // <-- Add this
+    ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -42,7 +42,6 @@ import { PropertyService, Property } from '../../core/services/property.service'
 export class PropertyAddComponent implements OnInit {
   propertyForm!: FormGroup;
   isLoading = false;
-  // private apiUrl = 'http://localhost:8080/api/properties';
 
   constructor(
     private fb: FormBuilder,
@@ -85,9 +84,7 @@ export class PropertyAddComponent implements OnInit {
           next: (response) => {
             this.isLoading = false;
             this.showSuccess('Property created successfully!');
-            console.log('Created property:', response);
-            
-            // Navigate to properties list or dashboard
+
             this.router.navigate(['/properties']);
           },
           error: (error) => {

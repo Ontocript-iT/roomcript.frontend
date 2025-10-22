@@ -24,5 +24,6 @@ export interface AuthResponse {
   username:string;
   name:string;
   roles:string[];
+  propertyCode:string;
 
 }

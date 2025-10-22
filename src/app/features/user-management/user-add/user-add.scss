@@ -1,0 +1,47 @@
+// Use the same SCSS from property-add.component.scss
+// Material form field customization
+::ng-deep {
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      background-color: #ffffff !important;
+      border-radius: 8px;
+    }
+
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #4f46e5 !important;
+        border-width: 2px !important;
+      }
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #e5e7eb !important;
+      transition: border-color 0.3s ease;
+    }
+
+    &:hover:not(.mat-focused) {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #d1d5db !important;
+      }
+    }
+  }
+
+  .mat-mdc-checkbox {
+    .mdc-checkbox__background {
+      border-color: #d1d5db !important;
+    }
+
+    &.mat-mdc-checkbox-checked {
+      .mdc-checkbox__background {
+        background-color: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+      }
+    }
+  }
+}
