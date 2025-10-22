@@ -60,19 +60,19 @@ export const NAV_ITEMS: NavItem[] = [
   {
     title: 'Rooms',
     icon: 'meeting_room',
-    roles: ['ADMIN', 'MANAGER', 'FRONT_DESK'],
+    roles: ['SUPER_ADMIN'],
     subItems: [
       {
         title: 'All Rooms',
         route: '/rooms/all',
         icon: 'view_list',
-        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
+        roles: ['SUPER_ADMIN']
       },
       {
         title: 'Add Room',
-        route: '/rooms/add',
+        route: '/roomCreate',
         icon: 'add',
-        roles: ['ADMIN', 'MANAGER']
+        roles: ['SUPER_ADMIN']
       },
       {
         title: 'Room Types',

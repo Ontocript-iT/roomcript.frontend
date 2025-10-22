@@ -1,8 +1,45 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { Room } from '../models/room.model';
+import { AuthService } from './auth.service';
+
+export interface CreateRoomRequest {
+  roomNumber: string;
+  roomType: string;
+  basePrice: number;
+  description: string;
+  floor: number;
+  capacity: number;
+  maxAdults: number;
+  maxChildren: number;
+  bedType: string;
+  smokingAllowed: boolean;
+  hasBalcony: boolean;
+  hasSeaView: boolean;
+  amenities: string;
+  remarks: string;
+}
+
+export interface RoomResponse {
+  id: number;
+  roomNumber: string;
+  roomType: string;
+  basePrice: number;
+  description: string;
+  floor: number;
+  capacity: number;
+  maxAdults: number;
+  maxChildren: number;
+  bedType: string;
+  smokingAllowed: boolean;
+  hasBalcony: boolean;
+  hasSeaView: boolean;
+  amenities: string;
+  remarks: string;
+  createdAt?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,25 +47,30 @@ import { Room } from '../models/room.model';
 export class RoomService {
   private apiUrl = `${environment.apiUrl}/rooms`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
 
-  getRooms(): Observable<Room[]> {
-    return this.http.get<Room[]>(this.apiUrl);
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
   }
 
-  getRoomById(id: number): Observable<Room> {
-    return this.http.get<Room>(`${this.apiUrl}/${id}`);
-  }
+  createRoom(roomData: CreateRoomRequest): Observable<RoomResponse> {
+    console.log('Creating room with data:', roomData);
 
-  createRoom(room: Partial<Room>): Observable<Room> {
-    return this.http.post<Room>(this.apiUrl, room);
-  }
-
-  updateRoom(id: number, room: Partial<Room>): Observable<Room> {
-    return this.http.put<Room>(`${this.apiUrl}/${id}`, room);
-  }
-
-  deleteRoom(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.post<RoomResponse>(
+      this.apiUrl,
+      roomData,
+      { headers: this.getHeaders() }
+    ).pipe(
+      tap(response => {
+        console.log('Room creation response:', response);
+      })
+    );
   }
 }

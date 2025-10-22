@@ -1,0 +1,255 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-8">
+      <div class="flex items-center gap-4 mb-2">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">meeting_room</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Create New Room</h1>
+          <p class="text-gray-500 mt-1">Add a new room to your property inventory</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+      <mat-card-content class="!p-8">
+        <form [formGroup]="roomForm" (ngSubmit)="onSubmit()">
+          
+          <!-- Basic Information Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">info</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Basic Information</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- Room Number -->
+              <mat-form-field appearance="fill">
+                <mat-label>Room Number</mat-label>
+                <input matInput formControlName="roomNumber" placeholder="e.g., 1023">
+                <mat-icon matPrefix class="!text-gray-400">vpn_key</mat-icon>
+                <mat-error *ngIf="roomForm.get('roomNumber')?.hasError('required')">
+                  Room number is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Room Type -->
+              <mat-form-field appearance="fill">
+                <mat-label>Room Type</mat-label>
+                <mat-select formControlName="roomType">
+                  <mat-option value="Standard">Standard</mat-option>
+                  <mat-option value="Deluxe">Deluxe</mat-option>
+                  <mat-option value="Suite">Suite</mat-option>
+                  <mat-option value="Presidential">Presidential</mat-option>
+                  <mat-option value="Family">Family</mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">category</mat-icon>
+                <mat-error *ngIf="roomForm.get('roomType')?.hasError('required')">
+                  Room type is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Base Price -->
+              <mat-form-field appearance="fill">
+                <mat-label>Base Price</mat-label>
+                <input matInput type="number" formControlName="basePrice" placeholder="150.00">
+                <mat-icon matPrefix class="!text-gray-400">attach_money</mat-icon>
+                <mat-error *ngIf="roomForm.get('basePrice')?.hasError('required')">
+                  Base price is required
+                </mat-error>
+                <mat-error *ngIf="roomForm.get('basePrice')?.hasError('min')">
+                  Price must be greater than 0
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Floor -->
+              <mat-form-field appearance="fill">
+                <mat-label>Floor</mat-label>
+                <input matInput type="number" formControlName="floor" placeholder="1">
+                <mat-icon matPrefix class="!text-gray-400">layers</mat-icon>
+                <mat-error *ngIf="roomForm.get('floor')?.hasError('required')">
+                  Floor is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Description - Full Width -->
+              <mat-form-field appearance="fill" class="lg:col-span-2">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" rows="3" placeholder="Spacious deluxe room with sea view"></textarea>
+                <mat-icon matPrefix class="!text-gray-400">description</mat-icon>
+                <mat-error *ngIf="roomForm.get('description')?.hasError('required')">
+                  Description is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Capacity Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                <mat-icon class="!text-green-600 !w-5 !h-5 !text-[20px]">people</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Capacity & Occupancy</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <!-- Total Capacity -->
+              <mat-form-field appearance="fill">
+                <mat-label>Total Capacity</mat-label>
+                <input matInput type="number" formControlName="capacity" placeholder="4">
+                <mat-icon matPrefix class="!text-gray-400">group</mat-icon>
+                <mat-error *ngIf="roomForm.get('capacity')?.hasError('required')">
+                  Capacity is required
+                </mat-error>
+                <mat-error *ngIf="roomForm.get('capacity')?.hasError('min')">
+                  Must be at least 1
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Max Adults -->
+              <mat-form-field appearance="fill">
+                <mat-label>Max Adults</mat-label>
+                <input matInput type="number" formControlName="maxAdults" placeholder="2">
+                <mat-icon matPrefix class="!text-gray-400">person</mat-icon>
+                <mat-error *ngIf="roomForm.get('maxAdults')?.hasError('required')">
+                  Max adults is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Max Children -->
+              <mat-form-field appearance="fill">
+                <mat-label>Max Children</mat-label>
+                <input matInput type="number" formControlName="maxChildren" placeholder="2">
+                <mat-icon matPrefix class="!text-gray-400">child_care</mat-icon>
+                <mat-error *ngIf="roomForm.get('maxChildren')?.hasError('required')">
+                  Max children is required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Bed Type -->
+              <mat-form-field appearance="fill">
+                <mat-label>Bed Type</mat-label>
+                <mat-select formControlName="bedType">
+                  <mat-option value="Single">Single</mat-option>
+                  <mat-option value="Twin">Twin</mat-option>
+                  <mat-option value="Double">Double</mat-option>
+                  <mat-option value="Queen">Queen</mat-option>
+                  <mat-option value="King">King</mat-option>
+                  <mat-option value="Bunk">Bunk</mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">bed</mat-icon>
+                <mat-error *ngIf="roomForm.get('bedType')?.hasError('required')">
+                  Bed type is required
+                </mat-error>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Features Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <mat-icon class="!text-blue-600 !w-5 !h-5 !text-[20px]">star</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Room Features</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Smoking Allowed -->
+              <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all cursor-pointer"
+                   (click)="toggleCheckbox('smokingAllowed')">
+                <mat-checkbox formControlName="smokingAllowed">
+                  <div class="ml-2">
+                    <p class="font-semibold text-gray-900">Smoking Allowed</p>
+                    <p class="text-xs text-gray-500">Guests can smoke in this room</p>
+                  </div>
+                </mat-checkbox>
+              </div>
+
+              <!-- Has Balcony -->
+              <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all cursor-pointer"
+                   (click)="toggleCheckbox('hasBalcony')">
+                <mat-checkbox formControlName="hasBalcony">
+                  <div class="ml-2">
+                    <p class="font-semibold text-gray-900">Has Balcony</p>
+                    <p class="text-xs text-gray-500">Room includes a balcony</p>
+                  </div>
+                </mat-checkbox>
+              </div>
+
+              <!-- Has Sea View -->
+              <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-400 hover:bg-indigo-50 transition-all cursor-pointer"
+                   (click)="toggleCheckbox('hasSeaView')">
+                <mat-checkbox formControlName="hasSeaView">
+                  <div class="ml-2">
+                    <p class="font-semibold text-gray-900">Sea View</p>
+                    <p class="text-xs text-gray-500">Room has sea/ocean view</p>
+                  </div>
+                </mat-checkbox>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amenities Section -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">room_service</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Amenities & Remarks</h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+              <!-- Amenities -->
+              <mat-form-field appearance="fill">
+                <mat-label>Amenities (Comma Separated)</mat-label>
+                <input matInput formControlName="amenities" placeholder="WiFi,TV,MiniBar,AC,Safe">
+                <mat-icon matPrefix class="!text-gray-400">wifi</mat-icon>
+                <mat-hint class="!text-xs !text-gray-500">Separate amenities with commas (e.g., WiFi,TV,AC)</mat-hint>
+                <mat-error *ngIf="roomForm.get('amenities')?.hasError('required')">
+                  Amenities are required
+                </mat-error>
+              </mat-form-field>
+
+              <!-- Remarks -->
+              <mat-form-field appearance="fill">
+                <mat-label>Remarks (Optional)</mat-label>
+                <textarea matInput formControlName="remarks" rows="2" placeholder="Additional notes or comments"></textarea>
+                <mat-icon matPrefix class="!text-gray-400">comment</mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+            <button 
+              mat-stroked-button 
+              type="button" 
+              (click)="onCancel()"
+              [disabled]="isLoading"
+              class="!h-12 !px-8 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium">
+              <mat-icon class="!mr-2">close</mat-icon>
+              Cancel
+            </button>
+            <button 
+              mat-raised-button 
+              type="submit" 
+              [disabled]="roomForm.invalid || isLoading"
+              class="!h-12 !px-8 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed">
+              <mat-spinner *ngIf="isLoading" diameter="20" class="!inline-block !mr-2"></mat-spinner>
+              <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+              {{ isLoading ? 'Creating Room...' : 'Create Room' }}
+            </button>
+          </div>
+
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

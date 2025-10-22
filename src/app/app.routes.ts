@@ -5,11 +5,12 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
-import { RoomListComponent } from './features/rooms/room-list/room-list';
+// import { RoomListComponent } from './features/rooms/room-list/room-list';
 import { PropertyAddComponent } from './features/property-management/create-property/property-add';
 import { UserAddComponent } from './features/user-management/user-add/user-add';
 import { UserAssign } from './features/user-management/user-assign/user-assign';
 import { PropertyList } from './features/property-management/property-list/property-list';
+import { RoomCreate } from './features/rooms/room-create/room-create';
 
 
 
@@ -22,11 +23,11 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard]
   },
-  { 
-    path: 'rooms', 
-    component: RoomListComponent,
-    canActivate: [authGuard]
-  },
+  // { 
+  //   path: 'rooms', 
+  //   component: RoomListComponent,
+  //   canActivate: [authGuard]
+  // },
   { 
     path: 'reservations', 
     component: ReservationListComponent,
@@ -50,6 +51,12 @@ export const routes: Routes = [
   {
     path: 'propertyList',
     component: PropertyList,
+    canActivate: [authGuard]  
+  }
+  ,
+  {
+    path: 'roomCreate',
+    component: RoomCreate,
     canActivate: [authGuard]  
   }
 
