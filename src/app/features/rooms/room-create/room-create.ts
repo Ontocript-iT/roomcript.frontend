@@ -123,6 +123,7 @@ export class RoomCreate implements OnInit {
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
+    console.log('Marking form group as touched');
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
       control?.markAsTouched();
