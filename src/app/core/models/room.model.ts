@@ -6,3 +6,4 @@ export interface Room {
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
   propertyId: number;
 }
+

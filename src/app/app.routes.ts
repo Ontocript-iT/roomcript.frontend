@@ -5,7 +5,6 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
-// import { RoomListComponent } from './features/rooms/room-list/room-list';
 import { PropertyAddComponent } from './features/property-management/create-property/property-add';
 import { UserAddComponent } from './features/user-management/user-add/user-add';
 import { UserAssign } from './features/user-management/user-assign/user-assign';
