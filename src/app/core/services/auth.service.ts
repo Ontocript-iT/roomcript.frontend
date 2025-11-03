@@ -32,9 +32,9 @@ export class AuthService {
         localStorage.setItem(this.USERNAME_KEY, response.username);
         localStorage.setItem("propertyCode", response.propertyCode);
         this.userSubject.next(response.user);
-    
-        
-        const cleanRoles = (response.roles || []).map((role: string) => 
+
+
+        const cleanRoles = (response.roles || []).map((role: string) =>
           role.replace('ROLE_', '')
         );
         localStorage.setItem('userRoles', JSON.stringify(cleanRoles));
@@ -109,7 +109,18 @@ export class AuthService {
     if (token) {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        this.userSubject.next(payload);
+
+        // Load name and username from localStorage
+        const name = localStorage.getItem(this.NAME_KEY);
+        const username = localStorage.getItem(this.USERNAME_KEY);
+
+        const user: User = {
+          ...payload,
+          name: name || payload.name,
+          username: username || payload.username
+        };
+
+        this.userSubject.next(user);
       } catch (e) {
         this.logout();
       }
