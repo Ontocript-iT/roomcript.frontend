@@ -35,11 +35,13 @@ export class NavbarComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Subscribe to user changes if using reactive approach
     this.authService.user$.subscribe((user) => {
       if (user) {
-        this.name = user.username;
-        this.username = user.username;
+        this.name = user.name || 'Guest User';
+        this.username = user.username || 'guest';
+
+      } else {
+        this.loadUserData();
       }
     });
   }
@@ -48,10 +50,16 @@ export class NavbarComponent implements OnInit {
     this.toggleSidenav.emit();
   }
   private loadUserData(): void {
-    this.name = localStorage.getItem('name');
-    this.username = localStorage.getItem('username');
-    console.log('User roles stored:', localStorage.getItem('userRoles'));
-    console.log('Loaded user:', this.name, this.username);
+    const storedName = localStorage.getItem('name');
+    const storedUsername = localStorage.getItem('username');
+
+    if (storedName) {
+      this.name = storedName;
+    }
+
+    if (storedUsername) {
+      this.username = storedUsername;
+    }
   }
 
   logout(): void {
