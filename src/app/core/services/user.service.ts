@@ -28,6 +28,7 @@ export interface PropertyUser {
   roleId: number | null;
   roleName: string;
   roleDescription: string | null;
+  roles: string[];
   isActive: boolean;
   assignedAt: string;
   assignedByUsername: string | null;
@@ -88,14 +89,43 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
   const params = { propertyCode };
   return this.http.get<any>(
     `${environment.apiUrl}/properties/getPropertyUsers`,
-    { 
+    {
       headers: this.getHeaders(),
-      params 
+      params
     }
   ).pipe(
-    map(response => response.body || response), // Extract body if exists
+    tap(rawResponse => {
+      if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
+        console.log('Response keys:', Object.keys(rawResponse));
+      }
+    }),
+    map(response => {
+
+      if (Array.isArray(response)) {
+        console.log('✅ Response is direct array, length:', response.length);
+        return response as PropertyUser[];
+      }
+
+      if (response && typeof response === 'object') {
+
+        if (response.body && Array.isArray(response.body)) {
+          return response.body as PropertyUser[];
+        }
+
+        const keys = Object.keys(response);
+        for (const key of keys) {
+          if (Array.isArray(response[key])) {
+            return response[key] as PropertyUser[];
+          }
+        }
+      }
+      return [];
+    }),
     tap(users => {
-      console.log('Property users fetched:', users);
+      console.log('Users count:', users.length);
+      if (users.length > 0) {
+        console.log('First user sample:', users[0]);
+      }
     })
   );
 }
@@ -105,11 +135,11 @@ revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
     userId: userId.toString(),
     propertyCode: propertyCode
   };
-  
+
   return this.http.post(
     `${environment.apiUrl}/properties/revoke`,
     null,
-    { 
+    {
       headers: this.getHeaders(),
       params: params
     }
@@ -119,6 +149,13 @@ revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
     })
   );
 }
+
+  assignUserRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/properties/assign?userId=${userId}&propertyCode=${propertyCode}&roleName=${roleName}`, {
+      propertyCode,
+      roleName
+    });
+  }
 
 
 }

@@ -38,6 +38,13 @@ export class UserAssign implements OnInit {
   propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
   propertyName = 'Beach Resort Hotel'; // You can fetch this from API
 
+  availableRoles = [
+    { value: 'ROLE_ADMIN', label: 'Administrator', description: 'Full system access and management' },
+    { value: 'ROLE_FRONT_DESK_MANAGER', label: 'Front Desk Manager', description: 'Property and staff management' },
+    { value: 'ROLE_FRONT_DESK_STAFF', label: 'Front Desk Staff', description: 'Reservations and check-in/out' },
+    { value: 'ROLE_HOUSEKEEPING_MANAGER', label: 'Housekeeping Manager', description: 'Room status and maintenance' },
+    { value: 'ROLE_ACCOUNTANT', label: 'Accountant', description: 'Financial reports and billing' }
+  ];
   constructor(
     private userService: UserService,
     private router: Router,
@@ -54,28 +61,52 @@ export class UserAssign implements OnInit {
     this.userService.getPropertyUsers(this.propertyCode).subscribe({
       next: (users) => {
         this.users = users;
-        console.log(users[0].firstName + ' users loaded for property ' + this.propertyCode);
         this.isLoading = false;
-        console.log('Users loaded:', users);
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Error loading users:', error);
         this.showError('Failed to load users');
       }
     });
   }
 
+  getRolesDisplayString(user: PropertyUser): string {
+    if (!user.roles || user.roles.length === 0) {
+      return 'No Roles Assigned';
+    }
+    return user.roles.map(role => this.getRoleDisplayName(role)).join(', ');
+  }
+
+  getRolesBadges(user: PropertyUser): Array<{ role: string; displayName: string; class: string; icon: string }> {
+    if (!user.roles || user.roles.length === 0) {
+      return [];
+    }
+
+    return user.roles.map(role => ({
+      role: role,
+      displayName: this.getRoleDisplayName(role),
+      class: this.getRoleBadgeClass(role),
+      icon: this.getRoleIcon(role)
+    }));
+  }
+
   getRoleDisplayName(roleName: string): string {
+    if (!roleName || roleName.trim() === '') {
+      return 'Unknown Role';
+    }
+
     const roleMap: { [key: string]: string } = {
       'ROLE_ADMIN': 'Administrator',
       'ROLE_MANAGER': 'Manager',
       'ROLE_FRONT_DESK': 'Front Desk',
+      'ROLE_FRONT_DESK_MANAGER': 'Front Desk Manager',
+      'ROLE_FRONT_DESK_STAFF': 'Front Desk Staff',
       'ROLE_HOUSEKEEPING': 'Housekeeping',
+      'ROLE_HOUSEKEEPING_MANAGER': 'Housekeeping Manager',
       'ROLE_ACCOUNTANT': 'Accountant',
       'ROLE_SUPER_ADMIN': 'Super Admin'
     };
-    return roleMap[roleName] || roleName.replace('ROLE_', '');
+    return roleMap[roleName] || roleName.replace('ROLE_', '').replace(/_/g, ' ');
   }
 
   getRoleBadgeClass(roleName: string): string {
@@ -84,7 +115,10 @@ export class UserAssign implements OnInit {
       'ROLE_ADMIN': 'bg-purple-100 text-purple-800',
       'ROLE_MANAGER': 'bg-blue-100 text-blue-800',
       'ROLE_FRONT_DESK': 'bg-green-100 text-green-800',
+      'ROLE_FRONT_DESK_MANAGER': 'bg-green-100 text-green-800',
+      'ROLE_FRONT_DESK_STAFF': 'bg-blue-100 text-blue-800',
       'ROLE_HOUSEKEEPING': 'bg-yellow-100 text-yellow-800',
+      'ROLE_HOUSEKEEPING_MANAGER': 'bg-yellow-100 text-yellow-800',
       'ROLE_ACCOUNTANT': 'bg-pink-100 text-pink-800',
       'ROLE_SUPER_ADMIN': 'bg-red-100 text-red-800'
     };
@@ -96,7 +130,10 @@ export class UserAssign implements OnInit {
       'ROLE_ADMIN': 'admin_panel_settings',
       'ROLE_MANAGER': 'manage_accounts',
       'ROLE_FRONT_DESK': 'desk',
+      'ROLE_FRONT_DESK_MANAGER': 'domain',
+      'ROLE_FRONT_DESK_STAFF': 'person_outline',
       'ROLE_HOUSEKEEPING': 'cleaning_services',
+      'ROLE_HOUSEKEEPING_MANAGER': 'badge',
       'ROLE_ACCOUNTANT': 'account_balance',
       'ROLE_SUPER_ADMIN': 'verified_user'
     };
@@ -104,10 +141,7 @@ export class UserAssign implements OnInit {
   }
 
   openAssignDialog(user: PropertyUser): void {
-    // You can implement a dialog for assigning roles
-    console.log('Assign role to:', user);
     this.showSuccess(`Assigning role to ${user.firstName} ${user.lastName}`);
-    // Implement your assign logic here
   }
 
 openRevokeDialog(user: PropertyUser): void {
@@ -157,7 +191,7 @@ openRevokeDialog(user: PropertyUser): void {
     this.userService.revokeUserAccess(user.userId, user.propertyCode).subscribe({
       next: (response) => {
         console.log('User access revoked successfully:', response);
-        
+
         // Show success message
         Swal.fire({
           title: 'Access Revoked!',
@@ -179,7 +213,7 @@ openRevokeDialog(user: PropertyUser): void {
       },
       error: (error) => {
         console.error('Error revoking user access:', error);
-        
+
         // Show error message
         Swal.fire({
           title: 'Error!',
@@ -227,4 +261,110 @@ openRevokeDialog(user: PropertyUser): void {
       panelClass: ['error-snackbar']
     });
   }
+
+  openAssignRoleDialog(user: PropertyUser): void {
+    const roleOptionsHtml = this.availableRoles
+      .map((role) => `
+      <option value="${role.value}">
+        ${role.label}
+      </option>
+    `)
+      .join('');
+
+    Swal.fire({
+      title: 'Assign Role',
+      html: `
+      <div class="text-left">
+        <p class="mb-2"><strong>User:</strong> ${user.firstName} ${user.lastName}</p>
+        <p class="mb-2"><strong>Username:</strong> @${user.username}</p>
+        <p class="mb-2"><strong>Property:</strong> ${user.propertyName}</p>
+        <p class="mb-4"><strong>Current Roles:</strong> ${this.getRolesDisplayString(user)}</p>
+        <div class="w-full">
+          <select id="roleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="" disabled>Select the new role</option>
+            ${roleOptionsHtml}
+          </select>
+        </div>
+      </div>
+    `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Assign',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true,
+      customClass: {
+        popup: 'rounded-xl',
+        title: 'text-xl font-bold',
+        htmlContainer: 'text-sm',
+        confirmButton: 'rounded-lg px-6 py-2 font-semibold',
+        cancelButton: 'rounded-lg px-6 py-2 font-semibold'
+      },
+      preConfirm: () => {
+        const selectedRole = (document.getElementById('roleSelect') as HTMLSelectElement).value;
+        if (!selectedRole) {
+          Swal.showValidationMessage('Please select a role');
+          return false;
+        }
+        return selectedRole;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.assignUserRole(user, result.value);
+      }
+    });
+  }
+
+  private assignUserRole(user: PropertyUser, newRole: string): void {
+    Swal.fire({
+      title: 'Assigning Role...',
+      html: 'Please wait while we process your request.',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    this.userService.assignUserRole(user.userId, user.propertyCode, newRole).subscribe({
+      next: (response) => {
+
+        Swal.fire({
+          title: 'Role Assigned!',
+          html: `
+          <p>Role has been successfully assigned to:</p>
+          <p class="font-semibold mt-2">${user.firstName} ${user.lastName}</p>
+          <p class="text-sm text-gray-600 mt-2">New Role: ${this.getRoleDisplayName(newRole)}</p>
+        `,
+          icon: 'success',
+          confirmButtonColor: '#10b981',
+          confirmButtonText: 'OK',
+          customClass: {
+            popup: 'rounded-xl',
+            confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+          }
+        }).then(() => {
+          // Reload users list
+          this.loadUsers();
+        });
+      },
+      error: (error) => {
+        Swal.fire({
+          title: 'Error!',
+          html: `
+          <p>Failed to assign role to ${user.firstName} ${user.lastName}</p>
+          <p class="text-sm text-gray-600 mt-2">${error.error?.message || 'Please try again later.'}</p>
+        `,
+          icon: 'error',
+          confirmButtonColor: '#dc2626',
+          confirmButtonText: 'Close',
+          customClass: {
+            popup: 'rounded-xl',
+            confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+          }
+        });
+      }
+    });
+  }
+
 }

@@ -27,6 +27,7 @@ import { NAV_ITEMS, NavItem } from '../../../../config/nav-config';
 export class NavbarComponent implements OnInit {
   name: string | null = null;
   username: string | null = null;
+  role: string | null = null;
   @Input() sidenavOpened = true;
   @Output() toggleSidenav = new EventEmitter<void>();
 
@@ -39,6 +40,7 @@ export class NavbarComponent implements OnInit {
       if (user) {
         this.name = user.name || 'Guest User';
         this.username = user.username || 'guest';
+        this.role = user.role || "Guest";
 
       } else {
         this.loadUserData();
@@ -52,6 +54,7 @@ export class NavbarComponent implements OnInit {
   private loadUserData(): void {
     const storedName = localStorage.getItem('name');
     const storedUsername = localStorage.getItem('username');
+    const storedRole = localStorage.getItem('role');
 
     if (storedName) {
       this.name = storedName;
@@ -59,6 +62,10 @@ export class NavbarComponent implements OnInit {
 
     if (storedUsername) {
       this.username = storedUsername;
+    }
+
+    if (storedRole) {
+      this.role = storedRole;
     }
   }
 
