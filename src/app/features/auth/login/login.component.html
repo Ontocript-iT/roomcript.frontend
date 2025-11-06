@@ -4,7 +4,7 @@
     <!-- Decorative Background Elements -->
     <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
     <div class="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl"></div>
-    
+
     <!-- Content -->
     <div class="relative z-10 flex flex-col justify-center items-center w-full px-16 text-white">
       <!-- Logo -->
@@ -13,17 +13,17 @@
           <mat-icon class="!w-20 !h-20 !text-[80px] text-white">hotel</mat-icon>
         </div>
       </div>
-      
+
       <!-- Brand Name -->
       <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
         Hotel PMS
       </h1>
-      
+
       <!-- Tagline -->
       <p class="text-xl text-gray-300 mb-12 text-center max-w-md">
         Complete Property Management Solution
       </p>
-      
+
       <!-- Features -->
       <div class="space-y-6 max-w-lg">
         <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
@@ -35,7 +35,7 @@
             <p class="text-sm text-gray-400">Monitor occupancy, revenue, and operations at a glance</p>
           </div>
         </div>
-        
+
         <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
           <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-purple-400">book_online</mat-icon>
@@ -45,7 +45,7 @@
             <p class="text-sm text-gray-400">Manage bookings, check-ins, and guest preferences effortlessly</p>
           </div>
         </div>
-        
+
         <div class="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 hover:bg-white/10 transition-all duration-300">
           <div class="w-12 h-12 rounded-lg bg-pink-500/20 flex items-center justify-center flex-shrink-0">
             <mat-icon class="!text-pink-400">analytics</mat-icon>
@@ -56,7 +56,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Footer Text -->
       <div class="mt-16 text-center text-gray-500 text-sm">
         <p>Trusted by 500+ properties worldwide</p>
@@ -73,7 +73,7 @@
           <mat-icon class="!w-10 !h-10 !text-[40px] text-white">hotel</mat-icon>
         </div>
       </div>
-      
+
       <!-- Login Header -->
       <div class="mb-8">
         <h2 class="text-3xl font-bold text-[#131c36] mb-2">Welcome Back</h2>
@@ -85,9 +85,9 @@
         <!-- Username Field -->
         <mat-form-field appearance="outline" class="!w-full">
           <mat-label>Username or Email</mat-label>
-          <input 
-            matInput 
-            formControlName="usernameOrEmail" 
+          <input
+            matInput
+            formControlName="usernameOrEmail"
             placeholder="Enter your username"
             class="!text-[#131c36]">
           <mat-icon matPrefix class="!text-gray-400">person_outline</mat-icon>
@@ -99,17 +99,17 @@
         <!-- Password Field -->
         <mat-form-field appearance="outline" class="!w-full">
           <mat-label>Password</mat-label>
-          <input 
-            matInput 
-            [type]="hidePassword ? 'password' : 'text'" 
-            formControlName="password" 
+          <input
+            matInput
+            [type]="hidePassword ? 'password' : 'text'"
+            formControlName="password"
             placeholder="Enter your password"
             class="!text-[#131c36]">
           <mat-icon matPrefix class="!text-gray-400">lock_outline</mat-icon>
-          <button 
-            mat-icon-button 
-            matSuffix 
-            type="button" 
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
             (click)="hidePassword = !hidePassword"
             class="!text-gray-400 hover:!text-[#131c36]">
             <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -129,17 +129,17 @@
         </div>
 
         <!-- Error Message -->
-        <div 
-          *ngIf="errorMessage" 
+        <div
+          *ngIf="errorMessage"
           class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
           <mat-icon class="!w-5 !h-5 !text-[20px]">error_outline</mat-icon>
           <span>{{ errorMessage }}</span>
         </div>
 
         <!-- Login Button -->
-        <button 
-          mat-raised-button 
-          type="submit" 
+        <button
+          mat-raised-button
+          type="submit"
           [disabled]="loginForm.invalid"
           class="!w-full !h-12 !bg-[#131c36] !text-white !rounded-lg !font-semibold !text-base hover:!bg-[#1a2744] !transition-all !duration-300 !shadow-lg hover:!shadow-xl disabled:!bg-gray-300 disabled:!text-gray-500">
           <span *ngIf="!isLoading">Sign In</span>

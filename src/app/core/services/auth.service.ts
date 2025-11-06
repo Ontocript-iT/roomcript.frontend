@@ -13,6 +13,7 @@ export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private NAME_KEY = 'name';
   private USERNAME_KEY = 'username';
+  private ROLE_KEY = 'role';
   private userSubject = new BehaviorSubject<User | null>(null);
   public user$ = this.userSubject.asObservable();
 
@@ -31,8 +32,15 @@ export class AuthService {
         localStorage.setItem(this.NAME_KEY, response.name);
         localStorage.setItem(this.USERNAME_KEY, response.username);
         localStorage.setItem("propertyCode", response.propertyCode);
-        this.userSubject.next(response.user);
 
+        const primaryRole = response.roles?.[0] || 'GUEST';
+        localStorage.setItem(this.ROLE_KEY, primaryRole);
+        const userWithRole: User = {
+          ...response.user,
+          role: primaryRole
+        };
+
+        this.userSubject.next(response.user);
 
         const cleanRoles = (response.roles || []).map((role: string) =>
           role.replace('ROLE_', '')
@@ -90,6 +98,7 @@ export class AuthService {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.NAME_KEY);
     localStorage.removeItem(this.USERNAME_KEY);
+    localStorage.removeItem(this.ROLE_KEY);
     localStorage.removeItem('userRoles'); // Clear roles on logout
     this.userSubject.next(null);
     this.currentUserRoles.next([]);
@@ -113,11 +122,13 @@ export class AuthService {
         // Load name and username from localStorage
         const name = localStorage.getItem(this.NAME_KEY);
         const username = localStorage.getItem(this.USERNAME_KEY);
+        const role = localStorage.getItem(this.ROLE_KEY);
 
         const user: User = {
           ...payload,
           name: name || payload.name,
-          username: username || payload.username
+          username: username || payload.username,
+          role: role || 'GUEST'
         };
 
         this.userSubject.next(user);
