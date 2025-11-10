@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {catchError, map, Observable, of} from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Reservation } from '../models/reservation.model';
+import { AvailableRooms } from '../models/room.model';
 import {tap} from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
@@ -11,15 +12,20 @@ import { AuthService } from './auth.service';
 })
 export class ReservationService {
   private apiUrl = `${environment.apiUrl}/reservations`;
+  private roomsApiUrl = `${environment.apiUrl}/rooms`;
 
   constructor(
     private http: HttpClient,
     private authService: AuthService
   ) {}
 
-  getReservations(): Observable<Reservation[]> {
-    return this.http.get<any>(this.apiUrl, {
-      headers: this.getHeaders()
+  getReservations(propertyCode: string): Observable<Reservation[]> {
+    const url = `${environment.apiUrl}/reservations/getAllReservationsByProperty`;
+
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    return this.http.get<any>(url, {
+      headers: headers
     }).pipe(
       tap(rawResponse => {
         if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
@@ -35,22 +41,15 @@ export class ReservationService {
 
         // If response is an object, look for array in properties
         if (response && typeof response === 'object') {
-          // Check if response.body contains the array
           if (response.body && Array.isArray(response.body)) {
-            console.log('✅ Found array in response.body');
             return response.body as Reservation[];
-          }
-
-          // Check if response.data contains the array
-          if (response.data && Array.isArray(response.data)) {
-            console.log('✅ Found array in response.data');
+          }else if (response.data && Array.isArray(response.data)) {
             return response.data as Reservation[];
           }
 
           const keys = Object.keys(response);
           for (const key of keys) {
             if (Array.isArray(response[key])) {
-              console.log(`✅ Found array in response.${key}`);
               return response[key] as Reservation[];
             }
           }
@@ -59,12 +58,12 @@ export class ReservationService {
         return [];
       }),
       tap(reservations => {
-        console.log('Reservations count:', reservations.length);
         if (reservations.length > 0) {
           console.log('First reservation sample:', reservations[0]);
         }
       }),
       catchError(error => {
+        console.error('Error fetching reservations:', error);
         return of([]);
       })
     );
@@ -89,6 +88,31 @@ export class ReservationService {
 
   deleteReservation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getAvailableRoomsCount(propertyCode: string): Observable<AvailableRooms[]> {
+    const url = `${this.roomsApiUrl}/getAvailableRoomsCountForEachType`;
+
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    return this.http.get<any>(url, { headers }).pipe(
+      map(response => {
+        // Extract the body array from the response
+        if (response && response.body && Array.isArray(response.body)) {
+          return response.body as AvailableRooms[];
+        }
+        return [];
+      }),
+      tap(rooms => {
+        if (rooms.length > 0) {
+          console.log('Room types:', rooms.map(r => r.roomType));
+        }
+      }),
+      catchError(error => {
+        console.error('Error fetching available rooms:', error);
+        return of([]);
+      })
+    );
   }
 
   private getHeaders(): HttpHeaders {

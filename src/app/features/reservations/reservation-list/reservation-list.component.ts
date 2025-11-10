@@ -34,7 +34,7 @@ import Swal from 'sweetalert2';
 export class ReservationListComponent implements OnInit {
   reservations: Reservation[] = [];
   isLoading = false;
-  // displayedColumns: string[] = ['guestName', 'guestEmail', 'roomNumber', 'roomType', 'checkInDate', 'checkOutDate', 'totalPrice', 'status', 'actions'];
+  propertyCode = localStorage.getItem("propertyCode") || '';
 
   constructor(
     private reservationService: ReservationService,
@@ -48,10 +48,8 @@ export class ReservationListComponent implements OnInit {
   loadReservations(): void {
     this.isLoading = true;
 
-    this.reservationService.getReservations().subscribe({
+    this.reservationService.getReservations(this.propertyCode).subscribe({
       next: (data) => {
-        console.log("loading data", data);
-        console.log("loading res", this.reservations);
         this.reservations = data;
         this.isLoading = false;
       },
@@ -96,54 +94,57 @@ export class ReservationListComponent implements OnInit {
       title: 'Reservation Details',
       html: `
       <div class="text-left space-y-2" style="font-size: 14px;">
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Name:</span>
-          <span>${reservation.name}</span>
-        </div>
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Email:</span>
-          <span>${reservation.email}</span>
-        </div>
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Phone:</span>
-          <span>${reservation.phone || 'N/A'}</span>
-        </div>
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Address:</span>
-          <span>${reservation.address || 'N/A'}</span>
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+          <div class="flex">
+            <span class="font-semibold">Name: </span>
+            <span>${reservation.name}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold">Email: </span>
+            <span>${reservation.email}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold">Phone: </span>
+            <span>${reservation.phone || 'N/A'}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold">Address: </span>
+            <span>${reservation.address || 'N/A'}</span>
+          </div>
         </div>
 
         <hr class="my-3 border-gray-300" />
 
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Check-In:</span>
-          <span>${new Date(reservation.checkInDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </span>
-        </div>
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Check-Out:</span>
-          <span>${new Date(reservation.checkOutDate).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </span>
-        </div>
+        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+          <div class="flex">
+            <span class="font-semibold">Check-In: </span>
+            <span>${new Date(reservation.checkInDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold">Check-Out: </span>
+            <span>${new Date(reservation.checkOutDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </span>
+          </div>
 
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Total Guests:</span>
-          <span>${reservation.numberOfGuests || 'N/A'}</span>
-        </div>
+          <div class="flex mb-2">
+            <span class="font-semibold">Total Guests: </span>
+            <span>${reservation.numberOfGuests || 'N/A'}</span>
+          </div>
 
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Total Guests:</span>
-          <span>${reservation.roomCount || reservation.roomDetails?.length || 'N/A'}</span>
+          <div class="flex mb-2">
+            <span class="font-semibold">Room Count: </span>
+            <span>${reservation.roomCount || reservation.roomDetails?.length || 'N/A'}</span>
+          </div>
         </div>
-
         <div class="mb-3">
           ${roomsHtml}
         </div>
@@ -171,7 +172,7 @@ export class ReservationListComponent implements OnInit {
       showConfirmButton: true,
       confirmButtonText: 'Close',
       confirmButtonColor: '#6b7280',
-      width: '600px',
+      width: '800px',
       customClass: {
         popup: 'rounded-xl',
         title: 'text-2xl font-bold text-gray-800',
