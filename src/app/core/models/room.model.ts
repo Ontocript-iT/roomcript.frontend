@@ -7,3 +7,10 @@ export interface Room {
   propertyId: number;
 }
 
+export interface AvailableRooms{
+  roomType: string;
+  availableCount: number;
+  totalCount: number;
+  reservedCount: number;
+  basePrice: number;
+}

@@ -101,13 +101,13 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       {
         title: 'All Reservations',
-        route: '/reservations/all',
+        route: '/reservations',
         icon: 'list',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'New Reservation',
-        route: '/reservations/new',
+        route: '/addReservation',
         icon: 'add_circle',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
