@@ -90,7 +90,7 @@ export class UserAssign implements OnInit {
     }));
   }
 
-  getRoleDisplayName(roleName: string): string {
+  getRoleDisplayName(roleName: string | null): string {
     if (!roleName || roleName.trim() === '') {
       return 'Unknown Role';
     }
@@ -144,41 +144,95 @@ export class UserAssign implements OnInit {
     this.showSuccess(`Assigning role to ${user.firstName} ${user.lastName}`);
   }
 
-openRevokeDialog(user: PropertyUser): void {
-    Swal.fire({
-      title: 'Revoke Access',
-      html: `
-        <div class="text-left">
-          <p class="mb-2"><strong>User:</strong> ${user.firstName} ${user.lastName}</p>
-          <p class="mb-2"><strong>Username:</strong> @${user.username}</p>
-          <p class="mb-2"><strong>Role:</strong> ${this.getRoleDisplayName(user.roleName)}</p>
-          <p class="mb-4"><strong>Property:</strong> ${user.propertyName}</p>
-          <p class="text-red-600 font-semibold">Are you sure you want to revoke access for this user?</p>
-        </div>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, Revoke Access',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true,
-      customClass: {
-        popup: 'rounded-xl',
-        title: 'text-xl font-bold',
-        htmlContainer: 'text-sm',
-        confirmButton: 'rounded-lg px-6 py-2 font-semibold',
-        cancelButton: 'rounded-lg px-6 py-2 font-semibold'
-      }
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.revokeUserAccess(user);
+  openRevokeRoleDialog(user: PropertyUser): void {
+    const currentRolesHtml = user.roles
+      .map((role) => {
+        const displayName = this.getRoleDisplayName(role);
+        return `<option value="${role}">${displayName}</option>`;
+      })
+      .join('');
+
+      Swal.fire({
+        title: 'Revoke Access',
+        html: `
+          <div class="text-left space-y-2" style="font-size: 14px;">
+            <div class="grid grid-cols-1 gap-y-3">
+              <div class="flex">
+                <span class="font-semibold w-24">User:</span>
+                <span>${user.firstName} ${user.lastName}</span>
+              </div>
+              <div class="flex">
+                <span class="font-semibold w-24">Username:</span>
+                <span>@${user.username}</span>
+              </div>
+              <div class="flex">
+                <span class="font-semibold w-24">Property:</span>
+                <span> ${user.propertyName}</span>
+              </div>
+            </div>
+            <div class="text-left">
+              <div class="w-full">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Select role to revoke:</label>
+                <select id="roleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                  <option value="" disabled selected>Select the role to revoke</option>
+                  ${currentRolesHtml}
+                </select>
+              </div>
+            </div>
+            <p class="text-red-600 font-semibold">Are you sure you want to revoke access for this user?</p>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, Revoke Access',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        customClass: {
+          popup: 'rounded-xl',
+          title: 'text-xl font-bold',
+          htmlContainer: 'text-sm',
+          confirmButton: 'rounded-lg px-6 py-2 font-semibold',
+          cancelButton: 'rounded-lg px-6 py-2 font-semibold'
+        },
+        preConfirm: () => {
+          const selectElement = document.getElementById('roleSelect') as HTMLSelectElement;
+          const selectedRole = selectElement?.value;
+
+          if (!selectedRole || selectedRole === '') {
+            Swal.showValidationMessage('Please select a role to revoke');
+            return false;
+          }
+
+          return selectedRole;
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.revokeUserRole(user, result.value);
+        }
+    });
+  }
+
+  revokeUserRole(user: PropertyUser, roleToRevoke: string): void {
+    this.isLoading = true;
+    const displayName = this.getRoleDisplayName(roleToRevoke);
+
+    this.userService.revokeRole(user.userId, user.propertyCode, roleToRevoke).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.showSuccess(`Role "${displayName}" revoked successfully from ${user.firstName} ${user.lastName}!`);
+        this.loadUsers();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error revoking role:', error);
+        const errorMessage = error.error?.message || error.message || 'Failed to revoke role';
+        this.showError(errorMessage);
       }
     });
   }
 
   private revokeUserAccess(user: PropertyUser): void {
-    // Show loading
     Swal.fire({
       title: 'Revoking Access...',
       html: 'Please wait while we process your request.',
@@ -274,11 +328,26 @@ openRevokeDialog(user: PropertyUser): void {
     Swal.fire({
       title: 'Assign Role',
       html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="grid grid-cols-1 gap-y-3">
+          <div class="flex">
+            <span class="font-semibold w-24">User:</span>
+            <span>${user.firstName} ${user.lastName}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold w-24">Username:</span>
+            <span>@${user.username}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold w-24">Property:</span>
+            <span> ${user.propertyName}</span>
+          </div>
+          <div class="flex mb-4">
+            <span class="font-semibold w-24">Current Roles:</span>
+            <span>${this.getRolesDisplayString(user)}</span>
+          </div>
+        </div>
       <div class="text-left">
-        <p class="mb-2"><strong>User:</strong> ${user.firstName} ${user.lastName}</p>
-        <p class="mb-2"><strong>Username:</strong> @${user.username}</p>
-        <p class="mb-2"><strong>Property:</strong> ${user.propertyName}</p>
-        <p class="mb-4"><strong>Current Roles:</strong> ${this.getRolesDisplayString(user)}</p>
         <div class="w-full">
           <select id="roleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="" disabled>Select the new role</option>
