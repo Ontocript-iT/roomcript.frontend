@@ -317,13 +317,17 @@ export class UserAssign implements OnInit {
   }
 
   openAssignRoleDialog(user: PropertyUser): void {
-    const roleOptionsHtml = this.availableRoles
-      .map((role) => `
-      <option value="${role.value}">
-        ${role.label}
-      </option>
-    `)
-      .join('');
+    const isAdmin = user.roles?.includes('ROLE_ADMIN');
+
+    const roleOptionsHtml = !isAdmin
+      ? this.availableRoles
+        .map((role) => `
+        <option value="${role.value}">
+          ${role.label}
+        </option>
+      `)
+        .join('')
+      : '';
 
     Swal.fire({
       title: 'Assign Role',
@@ -347,12 +351,18 @@ export class UserAssign implements OnInit {
             <span>${this.getRolesDisplayString(user)}</span>
           </div>
         </div>
-      <div class="text-left">
-        <div class="w-full">
-          <select id="roleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="" disabled>Select the new role</option>
-            ${roleOptionsHtml}
-          </select>
+        <div class="text-left">
+          ${!isAdmin ? `
+            <div class="w-full">
+              <label for="roleSelect" class="block mb-2 font-medium text-gray-700">Select the new role</label>
+              <select id="roleSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="" disabled selected>Select a role</option>
+                ${roleOptionsHtml}
+              </select>
+            </div>
+          ` : `
+            <p class="text-red-600 font-semibold">User already has Administrator access. Role assignment not allowed.</p>
+          `}
         </div>
       </div>
     `,
