@@ -70,7 +70,9 @@ export class ReservationService {
   }
 
   getReservationById(id: number): Observable<Reservation> {
-    return this.http.get<Reservation>(`${this.apiUrl}/${id}`);
+    return this.http.get<Reservation>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
   }
 
   createReservation(reservation: Partial<Reservation>): Observable<Reservation> {
@@ -82,9 +84,30 @@ export class ReservationService {
     return this.http.post(url, reservationData);
   }
 
-  updateReservation(id: number, reservation: Partial<Reservation>): Observable<Reservation> {
-    return this.http.put<Reservation>(`${this.apiUrl}/${id}`, reservation);
+  updateReservation(id: number, reservationData: any): Observable<any> {
+    const url = `${this.apiUrl}/${id}`;
+
+    console.log('🔄 Updating reservation:', {
+      url: url,
+      reservationId: id,
+      data: reservationData
+    });
+
+    return this.http.put<any>(url, reservationData, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('Reservation updated successfully:', response);
+      }),
+      catchError(error => {
+        console.error('Error updating reservation:', error);
+        throw error;
+      })
+    );
   }
+  // updateReservation(id: number, reservation: Partial<Reservation>): Observable<Reservation> {
+  //   return this.http.put<Reservation>(`${this.apiUrl}/${id}`, reservation);
+  // }
 
   deleteReservation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

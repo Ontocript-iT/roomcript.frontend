@@ -99,7 +99,7 @@
               <!-- Email -->
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-gray-400 mr-2">email</mat-icon>
+                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">email</mat-icon>
                   {{ res.email }}
                 </div>
               </td>
@@ -174,7 +174,7 @@
                     mat-icon-button
                     matTooltip="Edit Resevation"
                     color="accent"
-                    (click)="editReservation(res.id)"
+                    (click)="editReservation(res)"
                     class="!transition-all !duration-200">
                     <mat-icon>edit</mat-icon>
                   </button>
