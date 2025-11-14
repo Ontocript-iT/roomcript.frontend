@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import {catchError, map, Observable, of} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { Room } from '../models/room.model';
 
 
 export interface CreateRoomRequest {
@@ -71,6 +72,36 @@ export class RoomService {
     ).pipe(
       tap(response => {
         console.log('Room creation response:', response);
+      })
+    );
+  }
+
+  getAvailableRoomsByType(propertyCode: string, roomType: string): Observable<Room[]> {
+    const url = `${this.apiUrl}/getAvailableRoomsByType`;
+
+    return this.http.get<any>(url, {
+      headers: {
+        'X-Property-Code': propertyCode
+      },
+      params: {
+        roomType: roomType
+      }
+    }).pipe(
+      map(response => {
+        let roomsArray: Room[] = [];
+
+        if (Array.isArray(response)) {
+          roomsArray = response;
+        }
+        else if (response && response.body && Array.isArray(response.body)) {
+          roomsArray = response.body;
+        }
+
+        return roomsArray as Room[];
+      }),
+      catchError(error => {
+        console.error(`Error fetching rooms for ${roomType}:`, error);
+        return of([]);
       })
     );
   }

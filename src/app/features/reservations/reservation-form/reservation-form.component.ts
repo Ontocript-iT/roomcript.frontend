@@ -13,6 +13,7 @@ import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ReservationService } from '../../../core/services/reservation.service';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import {RoomService} from '../../../core/services/room.service';
 
 @Component({
   selector: 'app-reservation-form',
@@ -38,6 +39,7 @@ export class ReservationFormComponent implements OnInit {
   reservationForm!: FormGroup;
   isLoading = false;
   propertyCode = localStorage.getItem("propertyCode") || '';
+  availableRoomsByIndex: Map<number, any[]> = new Map();
 
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
@@ -76,6 +78,7 @@ export class ReservationFormComponent implements OnInit {
     private fb: FormBuilder,
     private router: Router,
     private reservationService: ReservationService,
+    private roomService: RoomService,
     private snackBar: MatSnackBar,
 ) {}
 
@@ -210,24 +213,53 @@ export class ReservationFormComponent implements OnInit {
     const room = this.rooms.at(index);
     const roomType = room.get('roomType')?.value;
 
-    const rates: any = {
-      'Standard': 100,
-      'Deluxe': 150,
-      'Superior-Deluxe': 200,
-      'Suite': 250,
-      'Double': 120,
-      'Twin': 110,
-      'Quadruple': 300
-    };
+    if (!roomType) return;
 
-    if (!room.get('manualRate')?.value) {
-      room.patchValue({ rate: rates[roomType] || 0 });
+    room.patchValue({ roomNumber: '' });
+
+    this.fetchAvailableRoomsByType(roomType, index);
+  }
+
+  fetchAvailableRoomsByType(roomType: string, index: number): void {
+    if (!this.propertyCode) {
+      console.error('Property code not found');
+      return;
     }
+
+    // Use the RoomService method
+    this.roomService.getAvailableRoomsByType(this.propertyCode, roomType).subscribe({
+      next: (rooms) => {
+        // Store available rooms for this specific index
+        this.availableRoomsByIndex.set(index, rooms);
+        console.log(`Available rooms for ${roomType} at index ${index}:`, rooms);
+      },
+      error: (error) => {
+        // Error is already handled in the service with catchError
+        // But you can add additional component-level handling if needed
+        console.error(`Error in component for ${roomType}:`, error);
+        this.availableRoomsByIndex.set(index, []);
+      }
+    });
+  }
+
+  getAvailableRoomsForIndex(index: number): any[] {
+    return this.availableRoomsByIndex.get(index) || [];
   }
 
   onRoomSelect(index: number): void {
-    console.log('Room selected at index:', index);
+    const roomsArray = this.reservationForm.get('rooms') as FormArray;
+    const roomGroup = roomsArray.at(index);
+    const selectedRoomId = roomGroup.get('roomNumber')?.value;
+
+    // Get available rooms for this index
+    const availableRooms = this.getAvailableRoomsForIndex(index);
+    const selectedRoom = availableRooms.find(room => room.id === selectedRoomId);
+
+    if (selectedRoom && !roomGroup.get('manualRate')?.value) {
+      roomGroup.patchValue({ rate: selectedRoom.basePrice });
+    }
   }
+
 
   private transformFormData(formValue: any): any {
     let totalAdults = 0;
@@ -235,7 +267,6 @@ export class ReservationFormComponent implements OnInit {
     const roomIds: number[] = [];
     const roomGuests: any[] = [];
 
-    // Process each room
     formValue.rooms.forEach((room: any) => {
       const roomId = parseInt(room.roomNumber, 10);
 

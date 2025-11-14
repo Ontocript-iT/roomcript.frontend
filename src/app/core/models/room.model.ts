@@ -5,6 +5,7 @@ export interface Room {
   price: number;
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
   propertyId: number;
+  basePrice: number;
 }
 
 export interface AvailableRooms{
