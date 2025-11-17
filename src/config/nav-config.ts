@@ -23,19 +23,19 @@ export const NAV_ITEMS: NavItem[] = [
   },
     {
     title: 'User',
-    icon: 'dashboard',
+    icon: 'person_manage',
     roles: ['ADMIN','SUPER_ADMIN'],
      subItems: [
       {
         title: 'Add User',
         route: '/addUser',
-        icon: 'view_list',
+        icon: 'person_add',
         roles: ['SUPER_ADMIN', 'ADMIN']
       },
       {
         title: 'Assign User Roles',
         route: '/assignUserRoles',
-        icon: 'view_list',
+        icon: 'person_assign',
         roles: ['SUPER_ADMIN', 'ADMIN']
       },]
   },
@@ -101,13 +101,13 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       {
         title: 'All Reservations',
-        route: '/reservations/all',
+        route: '/reservations',
         icon: 'list',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'New Reservation',
-        route: '/reservations/new',
+        route: '/addReservation',
         icon: 'add_circle',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },

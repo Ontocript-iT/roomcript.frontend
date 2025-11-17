@@ -1,0 +1,458 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Header Section -->
+    <div class="mb-8">
+      <div class="flex items-center gap-4 mb-2">
+        <div
+          class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg"
+        >
+          <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">book_online</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Create New Reservation</h1>
+          <p class="text-gray-500 mt-1">Add a new reservation to your hotel management system</p>
+        </div>
+      </div>
+    </div>
+
+        <!-- Form Card -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div class="lg:col-span-3">
+        <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+          <mat-card-content class="!p-8">
+            <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()">
+
+              <!-- Reservation Details Section -->
+              <div class="mb-8 border-b border-gray-300">
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
+                  <!-- Check In Date -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Check-In Date</mat-label>
+                    <input matInput [matDatepicker]="checkInPicker" formControlName="checkIn" placeholder="Select date">
+                    <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #checkInPicker></mat-datepicker>
+                    <mat-error *ngIf="reservationForm.get('checkIn')?.hasError('required')">
+                      Check-in date is required
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Check Out Date -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Check-Out Date</mat-label>
+                    <input matInput [matDatepicker]="checkOutPicker" formControlName="checkOut" placeholder="Select date">
+                    <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #checkOutPicker></mat-datepicker>
+                    <mat-error *ngIf="reservationForm.get('checkOut')?.hasError('required')">
+                      Check-out date is required
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Number of Rooms -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Rooms</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="numberOfRooms"
+                      placeholder="0"
+                      readonly
+                      class="pr-10 text-left">
+
+                    <!-- Stacked increment/decrement buttons -->
+                    <div matSuffix class="flex flex-col gap-0 mb-1">
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="incrementRooms()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white"
+                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                      </button>
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="decrementRooms()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white"
+                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                      </button>
+                    </div>
+
+                    <mat-error *ngIf="reservationForm.get('numberOfRooms')?.hasError('required')">
+                      Number of rooms is required
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Reservation Type -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Reservation Type</mat-label>
+                    <mat-select formControlName="reservationType">
+                      <mat-option *ngFor="let resType of availableReservationTypes" [value]="resType.value">
+                          {{ resType.label }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="reservationForm.get('reservationType')?.hasError('required')">
+                      Reservation type is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <!-- Booking Source -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Booking Source</mat-label>
+                    <mat-select formControlName="bookingSource">
+                      <mat-option *ngFor="let bSource of availableBookingSources" [value]="bSource.value">
+                        {{ bSource.label }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="reservationForm.get('bookingSource')?.hasError('required')">
+                      Booking source is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Room Details Section -->
+              <div class="mb-8 pb-4 border-b border-gray-300">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+                  </div>
+                  <h2 class="text-md font-semibold text-gray-800">Room Details</h2>
+                </div>
+
+                <!-- Dynamic Room Entries -->
+                <div formArrayName="rooms">
+                  <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-1">
+
+                    <div class="grid grid-cols-1 lg:grid-cols-8 gap-2 items-start">
+
+                      <!-- Room Type -->
+                      <mat-form-field appearance="fill" class="lg:col-span-2">
+                        <mat-label>Room Type</mat-label>
+                        <mat-select formControlName="roomType" (selectionChange)="onRoomTypeChange(i)">
+                          <mat-option
+                            *ngFor="let roomType of availableRoomTypes"
+                            [value]="roomType.value"
+                            [disabled]="roomType.availableCount === 0">
+                            <span class="room-label">{{ roomType.label }}</span>
+                            <span class="room-count-badge">{{ roomType.availableCount }}</span>
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <!-- Room Number -->
+                      <mat-form-field appearance="fill" class="lg:col-span-1">
+                        <mat-label>Room</mat-label>
+                        <mat-select formControlName="roomNumber" (selectionChange)="onRoomSelect(i)">
+                          <mat-option
+                            *ngIf="getAvailableRoomsForIndex(i).length === 0"
+                            disabled>
+                            No rooms
+                          </mat-option>
+                          <mat-option
+                            *ngFor="let room of getAvailableRoomsForIndex(i)"
+                            [value]="room.id">
+                            {{ room.roomNumber }}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+
+                      <!-- Adults -->
+                      <mat-form-field appearance="fill" class="lg:col-span-1">
+                        <mat-label>Adults</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="adults"
+                          placeholder="0"
+                          readonly
+                          class="pr-10 text-left">
+
+                        <div matSuffix class="flex flex-col gap-0 mb-1">
+                          <button
+                            mat-button
+                            type="button"
+                            (click)="incrementAdults(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
+                            style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                            <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                          </button>
+                          <button
+                            mat-button
+                            type="button"
+                            (click)="decrementAdults(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
+                            style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                            <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                          </button>
+                        </div>
+                      </mat-form-field>
+
+                      <!-- Children -->
+                      <mat-form-field appearance="fill" class="lg:col-span-1">
+                        <mat-label>Children</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="children"
+                          placeholder="0"
+                          readonly
+                          class="pr-10 text-left">
+
+                        <div matSuffix class="flex flex-col gap-0 mb-1">
+                          <button
+                            mat-button
+                            type="button"
+                            (click)="incrementChildren(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
+                            style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                            <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                          </button>
+                          <button
+                            mat-button
+                            type="button"
+                            (click)="decrementChildren(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
+                            style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                            <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                          </button>
+                        </div>
+                      </mat-form-field>
+
+                      <!-- Rate -->
+                      <mat-form-field appearance="fill" class="lg:col-span-2">
+                        <mat-label>Rate</mat-label>
+                        <input matInput type="currency" formControlName="rate" [readonly]="!room.get('manualRate')?.value" placeholder="0.00">
+                        <button mat-icon-button matSuffix type="button" (click)="toggleManualRate(i)">
+                          <mat-icon class="!text-gray-600">{{ room.get('manualRate')?.value ? 'refresh' : 'edit' }}</mat-icon>
+                        </button>
+                      </mat-form-field>
+
+                      <!-- Remove Button (Right Side) - Only show for rows after first -->
+                      <div class="lg:col-span-1 flex items-center justify-start ml-2" style="height: 56px;">
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="removeRoom(i)"
+                          *ngIf="i > 0"
+                          class="!text-red-600 hover:!bg-red-50"
+                          matTooltip="Remove Room">
+                          <mat-icon>remove_circle_outline</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Add Room Button -->
+                <div class="flex justify-start mt-2">
+                  <button mat-raised-button type="button" (click)="addRoom()" class="!bg-purple-600 !text-white hover:!bg-purple-700">
+                    <mat-icon class="!mr-2">add</mat-icon>
+                    Add Room
+                  </button>
+                </div>
+              </div>
+
+              <!-- Guest Information Section -->
+              <div class="mb-8">
+                <div class="flex items-center gap-2 mb-6">
+                  <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">person</mat-icon>
+                  </div>
+                  <h2 class="text-md font-semibold text-gray-800">Guest Information</h2>
+                </div>
+
+                <!-- Row 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                  <!-- Guest Name (Title + Name) -->
+                  <div class="lg:col-span-1 flex gap-0">
+                    <!-- Title Select -->
+                    <mat-form-field appearance="fill" class="!w-30" style="border-radius: 4px 0 0 4px;">
+                      <mat-select formControlName="guestTitle">
+                        <mat-option value="MR">Mr.</mat-option>
+                        <mat-option value="MRS">Mrs.</mat-option>
+                        <mat-option value="MS">Ms.</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+
+                    <!-- Name Input -->
+                    <mat-form-field appearance="fill" class="flex-1" style="border-radius: 0 4px 4px 0;">
+                      <mat-label>Guest Name</mat-label>
+                      <input matInput formControlName="guestName" placeholder="Full Name">
+                      <mat-error *ngIf="reservationForm.get('guestName')?.hasError('required')">
+                        Guest name is required
+                      </mat-error>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Mobile -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Mobile</mat-label>
+                    <input matInput formControlName="mobile" placeholder="+1 234 567 8900">
+                    <mat-error *ngIf="reservationForm.get('mobile')?.hasError('required')">
+                      Mobile number is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                  <!-- Email -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Email</mat-label>
+                    <input matInput type="email" formControlName="email" placeholder="guest@example.com">
+                    <mat-error *ngIf="reservationForm.get('email')?.hasError('required')">
+                      Email is required
+                    </mat-error>
+                    <mat-error *ngIf="reservationForm.get('email')?.hasError('email')">
+                      Invalid email format
+                    </mat-error>
+                  </mat-form-field>
+
+                  <!-- Address -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Address</mat-label>
+                    <input matInput formControlName="address" placeholder="Street Address">
+                  </mat-form-field>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                  <!-- Country -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Country</mat-label>
+                    <input matInput formControlName="country" placeholder="Country">
+                  </mat-form-field>
+
+                  <!-- State -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>State</mat-label>
+                    <input matInput formControlName="state" placeholder="State">
+                  </mat-form-field>
+
+                  <!-- City -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>City</mat-label>
+                    <input matInput formControlName="city" placeholder="City">
+                  </mat-form-field>
+
+                  <!-- Zip Code -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Zip Code</mat-label>
+                    <input matInput formControlName="zipCode" placeholder="12345">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="onCancel()"
+                  [disabled]="isLoading"
+                  class="!h-12 !px-8 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium"
+                >
+                  <mat-icon class="!mr-2">close</mat-icon>
+                  Cancel
+                </button>
+                <button
+                  mat-raised-button
+                  type="submit"
+                  [disabled]="reservationForm.invalid || isLoading"
+                  class="!h-12 !px-8 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed"
+                >
+                  <mat-spinner
+                    *ngIf="isLoading"
+                    diameter="20"
+                    class="!inline-block !mr-2"
+                  ></mat-spinner>
+                  <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+                  {{ isLoading ? 'Creating Reservation...' : 'Create Reservation' }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- Billing Summary (Right - 1 column) -->
+      <div class="lg:col-span-1">
+        <mat-card class="!shadow-xl !rounded-xl overflow-hidden sticky">
+          <mat-card-header class="!from-green-500 !to-teal-500 !p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between w-full">
+              <h3 class="text-md font-semibold text-gray-800">Billing Summary</h3>
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-200 text-purple-800">
+                {{ reservationForm.get('reservationType')?.value || 'Confirm Booking' }}
+              </span>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content class="!p-6">
+            <!-- Date Range -->
+            <div class="mb-6 pb-4 border-b border-gray-200">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-600">Check-in</span>
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ billingSummary.checkIn || '00/00/0000' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-sm text-gray-600">Check-out</span>
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ billingSummary.checkOut || '00/00/0000' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Number of Nights</span>
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ billingSummary.numberOfNights }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Room Charges -->
+            <div class="mb-4">
+              <h4 class="text-sm font-semibold text-gray-700 mb-3">Room Charges</h4>
+              <div *ngFor="let room of rooms.controls; let i = index" class="mb-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-gray-600">
+                    {{ room.get('roomType')?.value || 'Room ' + (i + 1) }}
+                  </span>
+                  <span class="text-sm font-semibold text-gray-900">
+                    {{ getRoomCharge(i).toFixed(2) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Taxes -->
+            <div class="mb-6 pb-4 border-b border-gray-200">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Taxes</span>
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ billingSummary.taxes.toFixed(2) }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Total -->
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-lg">
+              <div class="flex justify-between items-center">
+                <span class="text-lg font-bold text-gray-800">Due Amount</span>
+                <span class="text-xl font-bold text-purple-600">
+                  {{ billingSummary.totalAmount.toFixed(2) }}
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 
 // Angular Material Imports
@@ -61,23 +61,40 @@ export class UserAddComponent implements OnInit {
     // Check if current user is SUPER_ADMIN
     this.isSuperAdmin = this.authService.hasRole('SUPER_ADMIN');
     console.log('Is Super Admin:', this.isSuperAdmin);
-    
+
     this.initializeForm();
   }
 
   private initializeForm(): void {
     this.userForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(4)]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, Validators.minLength(8),this.passwordStrengthValidator.bind(this)]],
       firstName: ['', [Validators.required]],
       lastName: ['', [Validators.required]],
       propertyCode: [
-        { value: this.propertyCode, disabled: !this.isSuperAdmin }, 
+        { value: this.propertyCode, disabled: !this.isSuperAdmin },
         [Validators.required]
       ],
       role: ['ROLE_ADMIN', [Validators.required]]
     });
   }
+
+  //ghedugweidwu
+  private passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.value;
+    if (!password) return null;
+
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumeric = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+
+    return hasUpperCase && hasLowerCase && hasNumeric && hasSpecialChar
+      ? null
+      : { weakPassword: true };
+  }
+
+
 
   onSubmit(): void {
     if (this.userForm.valid) {
@@ -94,7 +111,7 @@ export class UserAddComponent implements OnInit {
           this.isLoading = false;
           console.log('User created successfully:', response);
           this.showSuccess('User created successfully!');
-          
+
           // Reset form and navigate
           this.userForm.reset({
             propertyCode: this.propertyCode,
@@ -156,7 +173,7 @@ export class UserAddComponent implements OnInit {
 
   private handleError(error: any): void {
     let errorMessage = 'An error occurred while creating the user';
-    
+
     if (error.status === 0) {
       errorMessage = 'Unable to connect to server';
     } else if (error.status === 401) {
@@ -168,7 +185,7 @@ export class UserAddComponent implements OnInit {
     } else if (error.error?.message) {
       errorMessage = error.error.message;
     }
-    
+
     this.showError(errorMessage);
     console.error('Error creating user:', error);
   }

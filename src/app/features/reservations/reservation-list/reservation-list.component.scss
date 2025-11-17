@@ -12,3 +12,13 @@
     width: 100%;
   }
 }
+
+// In global styles.scss or component styles
+::ng-deep .swal-style-dialog {
+  .mat-mdc-dialog-container,
+  .mdc-dialog__surface {
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+

@@ -1,5 +1,3 @@
-// Use the same SCSS from property-add.component.scss
-// Material form field customization
 ::ng-deep {
   .mat-mdc-form-field {
     &.mat-mdc-form-field-type-mat-input,
@@ -71,51 +69,4 @@
     width: 18px !important;
     height: 18px !important;
   }
-
-  // Reduce prefix/suffix spacing
-  .mat-mdc-form-field-icon-prefix,
-  .mat-mdc-form-field-icon-suffix {
-    padding: 0 8px !important;
-  }
-
-  .mat-mdc-checkbox {
-    .mdc-checkbox__background {
-      border-color: #d1d5db !important;
-    }
-
-    &.mat-mdc-checkbox-checked {
-      .mdc-checkbox__background {
-        background-color: #4f46e5 !important;
-        border-color: #4f46e5 !important;
-      }
-    }
-  }
 }
-
-::ng-deep .mat-mdc-option {
-  position: relative;
-
-  .room-label {
-    display: inline-block;
-    padding-right: 50px; // Make space for badge
-  }
-
-  .room-count-badge {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #E1BEE7;
-    color: #6A1B9A;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    min-width: 25px;
-    text-align: center;
-  }
-  .mat-pseudo-checkbox {
-    display: none !important;
-  }
-}
-

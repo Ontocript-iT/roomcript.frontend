@@ -5,12 +5,12 @@ import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
-// import { RoomListComponent } from './features/rooms/room-list/room-list';
 import { PropertyAddComponent } from './features/property-management/create-property/property-add';
 import { UserAddComponent } from './features/user-management/user-add/user-add';
 import { UserAssign } from './features/user-management/user-assign/user-assign';
 import { PropertyList } from './features/property-management/property-list/property-list';
 import { RoomCreate } from './features/rooms/room-create/room-create';
+import {ReservationFormComponent} from './features/reservations/reservation-form/reservation-form.component';
 
 
 
@@ -18,19 +18,24 @@ export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { 
-    path: 'dashboard', 
+  {
+    path: 'dashboard',
     component: DashboardComponent,
     canActivate: [authGuard]
   },
-  // { 
-  //   path: 'rooms', 
+  // {
+  //   path: 'rooms',
   //   component: RoomListComponent,
   //   canActivate: [authGuard]
   // },
-  { 
-    path: 'reservations', 
+  {
+    path: 'reservations',
     component: ReservationListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'addReservation',
+    component: ReservationFormComponent,
     canActivate: [authGuard]
   },
   {
@@ -46,18 +51,18 @@ export const routes: Routes = [
   {
     path: 'assignUserRoles',
     component: UserAssign,
-    canActivate: [authGuard]  
+    canActivate: [authGuard]
   },
   {
     path: 'propertyList',
     component: PropertyList,
-    canActivate: [authGuard]  
+    canActivate: [authGuard]
   }
   ,
   {
     path: 'roomCreate',
     component: RoomCreate,
-    canActivate: [authGuard]  
+    canActivate: [authGuard]
   }
 
 ];
