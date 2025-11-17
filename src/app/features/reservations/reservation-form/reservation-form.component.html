@@ -149,11 +149,16 @@
                       <mat-form-field appearance="fill" class="lg:col-span-1">
                         <mat-label>Room</mat-label>
                         <mat-select formControlName="roomNumber" (selectionChange)="onRoomSelect(i)">
-                          <mat-option value="3">101</mat-option>
-                          <mat-option value="4">1021</mat-option>
-                          <mat-option value="5">1022</mat-option>
-                          <mat-option value="7">1024</mat-option>
-                          <mat-option value="8">1025</mat-option>
+                          <mat-option
+                            *ngIf="getAvailableRoomsForIndex(i).length === 0"
+                            disabled>
+                            No rooms
+                          </mat-option>
+                          <mat-option
+                            *ngFor="let room of getAvailableRoomsForIndex(i)"
+                            [value]="room.id">
+                            {{ room.roomNumber }}
+                          </mat-option>
                         </mat-select>
                       </mat-form-field>
 

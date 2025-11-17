@@ -12,6 +12,10 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {PropertyUser} from '../../../core/services/user.service';
 import Swal from 'sweetalert2';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { UpdateReservation } from '../update-reservation/update-reservation';
+import {MatNativeDateModule} from '@angular/material/core';
 
 @Component({
   selector: 'app-reservation-list',
@@ -26,7 +30,10 @@ import Swal from 'sweetalert2';
     MatCard,
     MatCardContent,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSnackBarModule,
+    MatDialogModule,
+    MatNativeDateModule
   ],
   templateUrl: './reservation-list.component.html',
   styleUrls: ['./reservation-list.component.scss']
@@ -38,7 +45,9 @@ export class ReservationListComponent implements OnInit {
 
   constructor(
     private reservationService: ReservationService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
   ) {}
 
   ngOnInit(): void {
@@ -199,8 +208,25 @@ export class ReservationListComponent implements OnInit {
     return uniqueTypes.join(', ');
   }
 
-  editReservation(id: number): void {
-    this.router.navigate(['/reservations/edit', id]);
+  editReservation(reservation: Reservation): void {
+    this.openUpdateDialog(reservation);
+  }
+
+  openUpdateDialog(reservation: Reservation): void {
+    const dialogRef = this.dialog.open(UpdateReservation, {
+      width: '1200px',
+      maxWidth: '95vw',
+      data: { reservation: reservation },
+      disableClose: true,
+      panelClass: 'swal-style-dialog',
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadReservations();
+        this.showSuccess('Reservation updated successfully!');
+      }
+    });
   }
 
   deleteReservation(id: number): void {
@@ -223,5 +249,23 @@ export class ReservationListComponent implements OnInit {
       case 'CANCELLED': return 'warn';
       default: return '';
     }
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
   }
 }

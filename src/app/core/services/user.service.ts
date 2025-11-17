@@ -130,6 +130,23 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
   );
 }
 
+  revokeRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
+    const params = {
+      userId: userId.toString(),
+      propertyCode: propertyCode,
+      roleName: roleName
+    };
+
+    return this.http.post(
+      `${environment.apiUrl}/properties/revokeRole`,
+      null,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    )
+  }
+
 revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
   const params = {
     userId: userId.toString(),
@@ -156,6 +173,5 @@ revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
       roleName
     });
   }
-
 
 }
