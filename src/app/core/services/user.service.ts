@@ -102,7 +102,7 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
     map(response => {
 
       if (Array.isArray(response)) {
-        console.log('✅ Response is direct array, length:', response.length);
+        console.log('Response is direct array, length:', response.length);
         return response as PropertyUser[];
       }
 
@@ -121,12 +121,12 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
       }
       return [];
     }),
-    tap(users => {
-      console.log('Users count:', users.length);
-      if (users.length > 0) {
-        console.log('First user sample:', users[0]);
-      }
-    })
+    // tap(users => {
+    //   console.log('Users count:', users.length);
+    //   if (users.length > 0) {
+    //     console.log('First user sample:', users[0]);
+    //   }
+    // })
   );
 }
 

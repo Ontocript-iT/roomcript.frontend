@@ -390,7 +390,19 @@ export class UserAssign implements OnInit {
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        this.assignUserRole(user, result.value);
+        if (result.value === 'ROLE_ADMIN') {
+          // Assign admin role first
+          this.assignUserRole(user, 'ROLE_ADMIN');
+          // Revoke all other roles
+          user.roles.forEach(role => {
+            if (role !== 'ROLE_ADMIN') {
+              this.revokeUserRole(user, role);
+            }
+          });
+        } else {
+          // Assign non-admin role normally
+          this.assignUserRole(user, result.value);
+        }
       }
     });
   }
