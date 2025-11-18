@@ -229,17 +229,37 @@ export class ReservationListComponent implements OnInit {
     });
   }
 
-  deleteReservation(id: number): void {
-    if (confirm('Are you sure you want to cancel this reservation?')) {
-      this.reservationService.deleteReservation(id).subscribe({
-        next: () => {
-          this.loadReservations();
-        },
-        error: (err) => {
-          console.error('Error canceling reservation', err);
-        }
-      });
-    }
+  cancelReservation(reservation: any): void {
+    Swal.fire({
+      title: 'Cancel Reservation',
+      html: `Are you sure you want to cancel reservation for <br><strong>${reservation.name}</strong>?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Cancel',
+      cancelButtonText: 'No',
+      customClass: {
+        popup: 'text-xs',
+        title: 'text-sm font-bold',
+        htmlContainer: 'text-xs',
+        confirmButton: 'text-xs px-4 py-2 rounded-lg',
+        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.reservationService.cancelReservation(reservation.id).subscribe({
+          next: () => {
+            this.showSuccess(`Reservation for ${reservation.name} cancelled successfully.`);
+            this.loadReservations();
+          },
+          error: (error) => {
+            console.error('Cancel reservation error:', error);
+            this.showError('Failed to cancel reservation');
+          }
+        });
+      }
+    });
   }
 
   getStatusColor(status: string): string {

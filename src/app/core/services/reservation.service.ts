@@ -127,8 +127,17 @@ export class ReservationService {
     );
   }
 
-  deleteReservation(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  cancelReservation(reservationId: number): Observable<any> {
+    const url = `${this.apiUrl}/${reservationId}/cancel`;
+
+    return this.http.delete<any>(url, {
+      headers: this.getHeaders()
+    }).pipe(
+      catchError(error => {
+        console.error('Error canceling reservation:', error);
+        throw error;
+      })
+    );
   }
 
   getAvailableRoomsCount(propertyCode: string): Observable<AvailableRooms[]> {

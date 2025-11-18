@@ -51,9 +51,6 @@
                 Guest Name
               </th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Email
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Room No.
               </th>
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -68,7 +65,7 @@
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Total
               </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Status
               </th>
               <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -93,14 +90,6 @@
                       {{ res.name }}
                     </div>
                   </div>
-                </div>
-              </td>
-
-              <!-- Email -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">email</mat-icon>
-                  {{ res.email }}
                 </div>
               </td>
 
@@ -142,19 +131,13 @@
               </td>
 
               <!-- Status -->
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4 whitespace-nowrap text-center">
                 <span
                   [ngClass]="{
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800': res.status === 'CONFIRMED',
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800': res.status === 'PENDING',
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800': res.status === 'CANCELLED'
+                    'status-confirmed': res.status?.toUpperCase() === 'CONFIRMED',
+                    'status-pending': res.status?.toUpperCase() === 'PENDING',
+                    'status-cancelled': res.status?.toUpperCase() === 'CANCELLED'
                   }">
-                  <span
-                    [ngClass]="{
-                      'w-2 h-2 bg-green-500 rounded-full mr-2': res.status === 'CONFIRMED',
-                      'w-2 h-2 bg-yellow-500 rounded-full mr-2': res.status === 'PENDING',
-                      'w-2 h-2 bg-red-500 rounded-full mr-2': res.status === 'CANCELLED'
-                    }"></span>
                   {{ res.status }}
                 </span>
               </td>
@@ -181,7 +164,7 @@
                   <button
                     mat-icon-button
                     matTooltip="Delete Reservation"
-                    (click)="deleteReservation(res.id)"
+                    (click)="cancelReservation(res)"
                     class="!transition-all !duration-200">
                     <mat-icon class="action-icon">delete</mat-icon>
                   </button>
