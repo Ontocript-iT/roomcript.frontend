@@ -70,7 +70,7 @@
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white divide-y divide-gray-200 text-xs">
               <tr *ngFor="let user of users; let i = index"
                   [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
                   class="transition-colors duration-150 border-b border-gray-200">
@@ -83,11 +83,8 @@
                       </ng-container>
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-semibold text-gray-900">
+                      <div class="font-semibold text-gray-900">
                         {{ user.firstName }} {{ user.lastName }}
-                      </div>
-                      <div class="text-xs text-gray-500" *ngIf="user.email">
-                        {{ user.email }}
                       </div>
                     </div>
                   </div>
@@ -96,8 +93,7 @@
                 <!-- Username -->
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">alternate_email</mat-icon>
-                    <span class="text-sm text-gray-900 font-mono">{{ user.username }}</span>
+                    <span class="text-gray-900">{{ user.username }}</span>
                   </div>
                 </td>
 
@@ -110,12 +106,12 @@
                   [ngClass]="badge.class"
                   [matTooltip]="badge.displayName"
                 >
-                  <mat-icon class="inline text-sm mr-1">{{ badge.icon }}</mat-icon>
+                  <mat-icon class="inline mr-1 role-icon">{{ badge.icon }}</mat-icon>
                   {{ badge.displayName }}
                 </span>
                     </ng-container>
                     <ng-template #noRoles>
-                      <span class="text-gray-500 text-sm italic">No roles assigned</span>
+                      <span class="text-gray-500 italic">No roles assigned</span>
                     </ng-template>
                   </div>
                 </td>
@@ -129,7 +125,7 @@
                 </td>
 
                 <!-- Assigned Date -->
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
                   <div class="flex items-center">
                     <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
                     {{ user.assignedAt | date:'MMM d, y' }}
@@ -145,7 +141,7 @@
                       color="primary"
                       (click)="openAssignRoleDialog(user)"
                       class="!transition-all !duration-200">
-                      <mat-icon>person_add</mat-icon>
+                      <mat-icon class="action-icon">person_add</mat-icon>
                     </button>
                     <button
                       mat-icon-button
@@ -153,7 +149,7 @@
                       color="warn"
                       (click)="openRevokeRoleDialog(user)"
                       class="!transition-all !duration-200">
-                      <mat-icon>block</mat-icon>
+                      <mat-icon class="action-icon">block</mat-icon>
                     </button>
                     <button
                       mat-icon-button
@@ -161,14 +157,14 @@
                       color="accent"
                       (click)="editUser(user)"
                       class="!transition-all !duration-200">
-                      <mat-icon>edit</mat-icon>
+                      <mat-icon class="action-icon">edit</mat-icon>
                     </button>
                     <button
                       mat-icon-button
                       matTooltip="View Details"
                       (click)="viewUser(user)"
                       class="!transition-all !duration-200">
-                      <mat-icon>visibility</mat-icon>
+                      <mat-icon class="action-icon">visibility</mat-icon>
                     </button>
                   </div>
                 </td>
