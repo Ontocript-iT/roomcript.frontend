@@ -11,6 +11,7 @@ import { UserAssign } from './features/user-management/user-assign/user-assign';
 import { PropertyList } from './features/property-management/property-list/property-list';
 import { RoomCreate } from './features/rooms/room-create/room-create';
 import {ReservationFormComponent} from './features/reservations/reservation-form/reservation-form.component';
+import {CheckinCheckoutComponent} from './features/reservations/checkin-checkout/checkin-checkout';
 
 
 
@@ -36,6 +37,11 @@ export const routes: Routes = [
   {
     path: 'addReservation',
     component: ReservationFormComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'checkin-checkout',
+    component: CheckinCheckoutComponent,
     canActivate: [authGuard]
   },
   {

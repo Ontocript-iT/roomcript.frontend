@@ -21,4 +21,6 @@ export interface Reservation {
   phone:  string;
   numberOfGuests:number;
   roomCount: number;
+  checkInStatus: boolean;
+  checkOutStatus: boolean;
 }

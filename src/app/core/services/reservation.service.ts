@@ -21,46 +21,40 @@ export class ReservationService {
 
   getReservations(propertyCode: string): Observable<Reservation[]> {
     const url = `${environment.apiUrl}/reservations/getAllReservationsByProperty`;
-
     const headers = this.getHeaders().set('X-Property-Code', propertyCode);
 
     return this.http.get<any>(url, {
       headers: headers
     }).pipe(
-      tap(rawResponse => {
-        if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
-          console.log('Response keys:', Object.keys(rawResponse));
-        }
-      }),
       map(response => {
-        // If response is already an array, return it directly
-        if (Array.isArray(response)) {
-          console.log('✅ Response is direct array, length:', response.length);
-          return response as Reservation[];
+        let reservations: any[] = [];
+
+        // Check if response has a 'body' property
+        if (response && response.body && Array.isArray(response.body)) {
+          console.log('Extracted from response.body, length:', response.body.length);
+          reservations = response.body;
         }
-
-        // If response is an object, look for array in properties
-        if (response && typeof response === 'object') {
-          if (response.body && Array.isArray(response.body)) {
-            return response.body as Reservation[];
-          }else if (response.data && Array.isArray(response.data)) {
-            return response.data as Reservation[];
-          }
-
-          const keys = Object.keys(response);
-          for (const key of keys) {
-            if (Array.isArray(response[key])) {
-              return response[key] as Reservation[];
+        // If response is already an array
+        else if (Array.isArray(response)) {
+          console.log('Response is direct array, length:', response.length);
+          reservations = response;
+        }
+        // If response is an object
+        else if (response && typeof response === 'object') {
+          if (response.data && Array.isArray(response.data)) {
+            reservations = response.data;
+          } else {
+            const keys = Object.keys(response);
+            for (const key of keys) {
+              if (Array.isArray(response[key])) {
+                console.log(`Found array in response.${key}`);
+                reservations = response[key];
+                break;
+              }
             }
           }
         }
-
-        return [];
-      }),
-      tap(reservations => {
-        if (reservations.length > 0) {
-          console.log('First reservation sample:', reservations[0]);
-        }
+        return reservations as Reservation[];
       }),
       catchError(error => {
         console.error('Error fetching reservations:', error);
@@ -105,9 +99,33 @@ export class ReservationService {
       })
     );
   }
-  // updateReservation(id: number, reservation: Partial<Reservation>): Observable<Reservation> {
-  //   return this.http.put<Reservation>(`${this.apiUrl}/${id}`, reservation);
-  // }
+
+  updateCheckInAndCheckOutStatus(
+    reservationId: number,
+    isCheckedIn: boolean,
+    isCheckedOut: boolean
+  ): Observable<any> {
+    const url = `${this.apiUrl}/updateCheckInAndCheckOutStatus?reservationId=${reservationId}&isCheckedIn=${isCheckedIn ? 1 : 0}&isCheckedOut=${isCheckedOut ? 1 : 0}`;
+
+    console.log('🔄 Updating check-in/out status:', {
+      url: url,
+      reservationId: reservationId,
+      isCheckedIn: isCheckedIn,
+      isCheckedOut: isCheckedOut
+    });
+
+    return this.http.post<any>(url, {}, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('Check-in/out status updated successfully:', response);
+      }),
+      catchError(error => {
+        console.error('Error updating check-in/out status:', error);
+        throw error;
+      })
+    );
+  }
 
   deleteReservation(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
