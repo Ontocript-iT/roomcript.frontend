@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
@@ -102,7 +102,7 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
     map(response => {
 
       if (Array.isArray(response)) {
-        console.log('✅ Response is direct array, length:', response.length);
+        console.log('Response is direct array, length:', response.length);
         return response as PropertyUser[];
       }
 
@@ -121,12 +121,12 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
       }
       return [];
     }),
-    tap(users => {
-      console.log('Users count:', users.length);
-      if (users.length > 0) {
-        console.log('First user sample:', users[0]);
-      }
-    })
+    // tap(users => {
+    //   console.log('Users count:', users.length);
+    //   if (users.length > 0) {
+    //     console.log('First user sample:', users[0]);
+    //   }
+    // })
   );
 }
 
@@ -147,25 +147,23 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
     )
   }
 
-revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
-  const params = {
-    userId: userId.toString(),
-    propertyCode: propertyCode
-  };
+  revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('propertyCode', propertyCode);
 
-  return this.http.post(
-    `${environment.apiUrl}/properties/revoke`,
-    null,
-    {
-      headers: this.getHeaders(),
-      params: params
-    }
-  ).pipe(
-    tap(response => {
-      console.log('User access revoked:', response);
-    })
-  );
-}
+    return this.http.delete(
+      `${environment.apiUrl}/properties/revoke`,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      tap(response => {
+        console.log('User access revoked:', response);
+      })
+    );
+  }
 
   assignUserRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/properties/assign?userId=${userId}&propertyCode=${propertyCode}&roleName=${roleName}`, {

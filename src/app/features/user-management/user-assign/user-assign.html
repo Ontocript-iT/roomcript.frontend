@@ -153,6 +153,13 @@
                     </button>
                     <button
                       mat-icon-button
+                      matTooltip="View Details"
+                      (click)="viewUser(user)"
+                      class="!transition-all !duration-200">
+                      <mat-icon class="action-icon">visibility</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
                       matTooltip="Edit User"
                       color="accent"
                       (click)="editUser(user)"
@@ -161,10 +168,10 @@
                     </button>
                     <button
                       mat-icon-button
-                      matTooltip="View Details"
-                      (click)="viewUser(user)"
+                      matTooltip="Revoke User"
+                      (click)="revokeUser(user)"
                       class="!transition-all !duration-200">
-                      <mat-icon class="action-icon">visibility</mat-icon>
+                      <mat-icon class="action-icon">delete</mat-icon>
                     </button>
                   </div>
                 </td>

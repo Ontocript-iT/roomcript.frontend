@@ -112,17 +112,11 @@ export const NAV_ITEMS: NavItem[] = [
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
-        title: 'Check-In',
-        route: '/reservations/check-in',
+        title: 'Check-In/Out',
+        route: '/checkin-checkout',
         icon: 'login',
         roles: ['ADMIN', 'FRONT_DESK']
       },
-      {
-        title: 'Check-Out',
-        route: '/reservations/check-out',
-        icon: 'logout',
-        roles: ['ADMIN', 'FRONT_DESK']
-      }
     ]
   },
   {

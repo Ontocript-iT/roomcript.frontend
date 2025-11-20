@@ -1,23 +1,14 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
   <div class="max-w-7xl mx-auto">
     <div class="mb-8">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-            <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">people</mat-icon>
-          </div>
-          <div>
-            <h1 class="text-2xl font-bold text-gray-900">Reservations</h1>
-            <p class="text-gray-500 mt-1">Manage reservations</p>
-          </div>
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">meeting_room</mat-icon>
         </div>
-        <button
-          mat-raised-button
-          routerLink="/addReservation"
-          class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-          <mat-icon class="!mr-2">add</mat-icon>
-          Add New Reservation
-        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Check-In / Check-Out</h1>
+          <p class="text-gray-500 mt-1">View guest check-in and check-out information</p>
+        </div>
       </div>
     </div>
 
@@ -30,17 +21,9 @@
 
         <!-- Empty State -->
         <div *ngIf="!isLoading && reservations.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">people_outline</mat-icon>
+          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">meeting_room</mat-icon>
           <h3 class="text-xl font-semibold text-gray-700 mb-2">No Reservations Found</h3>
-          <p class="text-gray-500 mb-6">Start by adding first reservation</p>
-          <button
-            mat-raised-button
-            color="primary"
-            routerLink="/addReservation"
-            class="!rounded-lg">
-            <mat-icon class="!mr-2">add</mat-icon>
-            Add Reservation
-          </button>
+          <p class="text-gray-500">No guests scheduled for check-in or check-out today</p>
         </div>
 
         <div *ngIf="!isLoading && reservations.length > 0" class="overflow-x-auto">
@@ -65,7 +48,7 @@
               <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Total
               </th>
-              <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Status
               </th>
               <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -75,7 +58,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200 text-xs">
             <tr *ngFor="let res of reservations; let i = index"
-                [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
+                [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'"
                 class="transition-colors duration-150 border-b border-gray-200">
               <!-- Guest Name -->
               <td class="px-6 py-4 whitespace-nowrap">
@@ -100,7 +83,7 @@
                 </span>
               </td>
 
-              <!-- Room Types (Unique, Comma-separated) -->
+              <!-- Room Types -->
               <td class="px-6 py-4 whitespace-nowrap">
                 <span class="text-gray-900">
                   {{ getUniqueRoomTypes(res) }}
@@ -110,7 +93,7 @@
               <!-- Check-In -->
               <td class="px-6 py-4 whitespace-nowrap text-gray-900">
                 <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
+                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">login</mat-icon>
                   {{ res.checkInDate | date }}
                 </div>
               </td>
@@ -118,7 +101,7 @@
               <!-- Check-Out -->
               <td class="px-6 py-4 whitespace-nowrap text-gray-900">
                 <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
+                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">logout</mat-icon>
                   {{ res.checkOutDate | date }}
                 </div>
               </td>
@@ -131,43 +114,55 @@
               </td>
 
               <!-- Status -->
-              <td class="px-6 py-4 whitespace-nowrap text-center">
+              <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   [ngClass]="{
-                    'status-confirmed': res.status?.toUpperCase() === 'CONFIRMED',
-                    'status-pending': res.status?.toUpperCase() === 'PENDING',
-                    'status-cancelled': res.status?.toUpperCase() === 'CANCELLED'
+                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800': res.status === 'CONFIRMED',
+                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800': res.status === 'PENDING',
+                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800': res.status === 'CANCELLED',
+                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800': res.status === 'CHECKED_IN'
                   }">
+                  <span
+                    [ngClass]="{
+                      'w-2 h-2 bg-green-500 rounded-full mr-2': res.status === 'CONFIRMED',
+                      'w-2 h-2 bg-yellow-500 rounded-full mr-2': res.status === 'PENDING',
+                      'w-2 h-2 bg-red-500 rounded-full mr-2': res.status === 'CANCELLED',
+                      'w-2 h-2 bg-blue-500 rounded-full mr-2': res.status === 'CHECKED_IN'
+                    }"></span>
                   {{ res.status }}
                 </span>
               </td>
 
-                                <!-- Actions -->
               <td class="px-6 py-4 whitespace-nowrap text-center">
-                <div class="flex items-center justify-center gap-1">
+                <div class="flex items-center justify-center gap-2">
+                  <!-- Check-In Button: Show if check_in_status is 0 -->
                   <button
-                    mat-icon-button
-                    matTooltip="View Details"
-                    color="accent"
-                    (click)="viewReservation(res)"
-                    class="!transition-all !duration-200">
-                    <mat-icon class="action-icon">visibility</mat-icon>
+                    *ngIf="!res.checkInStatus"
+                    mat-raised-button
+                    (click)="onCheckIn(res)"
+                    class="!h-8 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                    <mat-icon class="!w-4 !h-4 !text-xs !mr-1">login</mat-icon>
+                    Check In
                   </button>
+
+                  <!-- Check-Out Button: Show if check_in_status is 1 and check_out_status is 0 -->
                   <button
-                    mat-icon-button
-                    matTooltip="Edit Resevation"
-                    color="accent"
-                    (click)="editReservation(res)"
-                    class="!transition-all !duration-200">
-                    <mat-icon class="action-icon">edit</mat-icon>
+                    *ngIf="res.checkInStatus && !res.checkOutStatus"
+                    mat-raised-button
+                    (click)="onCheckOut(res)"
+                    class="!h-8 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                    <mat-icon class="!w-4 !h-4 !text-xs !mr-1">logout</mat-icon>
+                    Check Out
                   </button>
-                  <button
-                    mat-icon-button
-                    matTooltip="Delete Reservation"
-                    (click)="cancelReservation(res)"
-                    class="!transition-all !duration-200">
-                    <mat-icon class="action-icon">delete</mat-icon>
-                  </button>
+
+                  <!-- Completed: Show if both check_in_status and check_out_status are 1 -->
+                  <span
+                    *ngIf="res.checkInStatus && res.checkOutStatus"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                    <mat-icon class="!w-4 !h-4 !text-[16px] !mr-1">check_circle</mat-icon>
+                    Completed
+                  </span>
+
                 </div>
               </td>
             </tr>
