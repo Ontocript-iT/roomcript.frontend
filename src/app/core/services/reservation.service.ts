@@ -140,31 +140,6 @@ export class ReservationService {
     );
   }
 
-  getAvailableRoomsCount(propertyCode: string): Observable<AvailableRooms[]> {
-    const url = `${this.roomsApiUrl}/getAvailableRoomsCountForEachType`;
-
-    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
-
-    return this.http.get<any>(url, { headers }).pipe(
-      map(response => {
-        // Extract the body array from the response
-        if (response && response.body && Array.isArray(response.body)) {
-          return response.body as AvailableRooms[];
-        }
-        return [];
-      }),
-      tap(rooms => {
-        if (rooms.length > 0) {
-          console.log('Room types:', rooms.map(r => r.roomType));
-        }
-      }),
-      catchError(error => {
-        console.error('Error fetching available rooms:', error);
-        return of([]);
-      })
-    );
-  }
-
   private getHeaders(): HttpHeaders {
     const token = this.authService.getToken();
     return new HttpHeaders({

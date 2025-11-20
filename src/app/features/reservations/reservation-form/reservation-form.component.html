@@ -61,24 +61,36 @@
                       class="pr-10 text-left">
 
                     <!-- Stacked increment/decrement buttons -->
-                    <div matSuffix class="flex flex-col gap-0 mb-1">
-                      <button
-                        mat-button
-                        type="button"
-                        (click)="incrementRooms()"
-                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white"
-                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
-                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
-                      </button>
-                      <button
-                        mat-button
-                        type="button"
-                        (click)="decrementRooms()"
-                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white"
-                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
-                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
-                      </button>
-                    </div>
+                    <mat-form-field appearance="fill">
+                      <mat-label>Rooms</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        formControlName="numberOfRooms"
+                        placeholder="0"
+                        readonly
+                        class="text-left">
+                      <mat-icon matSuffix class="!text-gray-400">meeting_room</mat-icon>
+                      <mat-hint>Auto-calculated based on added rooms</mat-hint>
+                    </mat-form-field>
+<!--                    <div matSuffix class="flex flex-col gap-0 mb-1">-->
+<!--                      <button-->
+<!--                        mat-button-->
+<!--                        type="button"-->
+<!--                        (click)="incrementRooms()"-->
+<!--                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white"-->
+<!--                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">-->
+<!--                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>-->
+<!--                      </button>-->
+<!--                      <button-->
+<!--                        mat-button-->
+<!--                        type="button"-->
+<!--                        (click)="decrementRooms()"-->
+<!--                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white"-->
+<!--                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">-->
+<!--                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>-->
+<!--                      </button>-->
+<!--                    </div>-->
 
                     <mat-error *ngIf="reservationForm.get('numberOfRooms')?.hasError('required')">
                       Number of rooms is required
@@ -118,13 +130,31 @@
 
               <!-- Room Details Section -->
               <div class="mb-8 pb-4 border-b border-gray-300">
-                <div class="flex items-center gap-2 mb-4">
-                  <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+                    </div>
+                    <h2 class="text-md font-semibold text-gray-800">Room Details</h2>
                   </div>
-                  <h2 class="text-md font-semibold text-gray-800">Room Details</h2>
-                </div>
 
+                  <!-- Group Reservation Checkbox (Right Side) -->
+                  <mat-checkbox
+                    formControlName="isGroupReservation"
+                    class="!m-0">
+                    <span class="text-sm font-medium text-gray-700">Group Reservation</span>
+                    <mat-icon
+                      class="!w-4 !h-4 !text-[16px] !text-gray-400 ml-1"
+                      matTooltip="Check this to add multiple rooms">
+                      info_outline
+                    </mat-icon>
+                  </mat-checkbox>
+<!--                  <mat-checkbox-->
+<!--                    formControlName="isGroupReservation"-->
+<!--                    class="!m-0">-->
+<!--                    <span class="text-sm font-medium text-gray-700">Group Reservation</span>-->
+<!--                  </mat-checkbox>-->
+                </div>
                 <!-- Dynamic Room Entries -->
                 <div formArrayName="rooms">
                   <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-1">
@@ -233,7 +263,7 @@
                         </button>
                       </mat-form-field>
 
-                      <!-- Remove Button (Right Side) - Only show for rows after first -->
+                      <!-- Remove Button  -->
                       <div class="lg:col-span-1 flex items-center justify-start ml-2" style="height: 56px;">
                         <button
                           mat-icon-button
@@ -250,12 +280,79 @@
                 </div>
 
                 <!-- Add Room Button -->
-                <div class="flex justify-start mt-2">
-                  <button mat-raised-button type="button" (click)="addRoom()" class="!bg-purple-600 !text-white hover:!bg-purple-700">
-                    <mat-icon class="!mr-2">add</mat-icon>
-                    Add Room
-                  </button>
-                </div>
+                <div class="mt-2">
+                  <div class="flex justify-start items-center gap-3">
+                    <div class="mt-0 mb-4">
+                    <!-- Add Room Button -->
+                      <button
+                        mat-raised-button
+                        type="button"
+                        (click)="addRoom()"
+                        [disabled]="!canAddRoom"
+                        [class]="canAddRoom
+                          ? '!bg-purple-600 !text-white hover:!bg-purple-700'
+                          : '!bg-gray-300 !text-gray-500 !cursor-not-allowed'">
+                        <mat-icon class="!mr-2">add</mat-icon>
+                        Add Room
+                      </button>
+                    </div>
+
+                    <!-- Add Discount Button (Show when field is hidden) -->
+                    <div class="mb-4">
+                      <button
+                        *ngIf="!showDiscountField"
+                        mat-stroked-button
+                        type="button"
+                        (click)="toggleDiscountField()"
+                        class="!bg-purple-600 !text-white hover:!bg-purple-700">
+                        <mat-icon class="!mr-2">add</mat-icon>
+                        Add Discount
+                      </button>
+                    </div>
+
+                    <!-- Discount Field -->
+                      <mat-form-field
+                        *ngIf="showDiscountField"
+                        appearance="fill"
+                        class="!w-48">
+                        <mat-label>Discount %</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          formControlName="discount"
+                          placeholder="0"
+                          min="0"
+                          max="100"
+                          step="0.5">
+                        <span matSuffix class="!text-gray-600 !font-semibold">%</span>
+                        <mat-error *ngIf="reservationForm.get('discount')?.hasError('min')">
+                          Min 0%
+                        </mat-error>
+                        <mat-error *ngIf="reservationForm.get('discount')?.hasError('max')">
+                          Max 100%
+                        </mat-error>
+                      </mat-form-field>
+
+                      <!-- Remove Discount Button-->
+                      <button
+                        *ngIf="showDiscountField"
+                        mat-icon-button
+                        type="button"
+                        (click)="removeDiscount()"
+                        class="!text-red-500 hover:!bg-red-50"
+                        matTooltip="Remove Discount">
+                        <mat-icon>remove_circle_outline</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Helper text on next line -->
+                  <div *ngIf="!canAddRoom" class="mt-2 ml-1">
+                    <span class="text-sm text-gray-500 flex items-center">
+                      <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">info</mat-icon>
+                      Enable "Group Reservation" to add multiple rooms
+                    </span>
+                  </div>
               </div>
 
               <!-- Guest Information Section -->
@@ -433,6 +530,12 @@
 
             <!-- Taxes -->
             <div class="mb-6 pb-4 border-b border-gray-200">
+              <div class="flex justify-between items-center mb-3">
+                <span class="text-sm text-gray-600">Discount ({{ reservationForm.get('discount')?.value }}%)</span>
+                <span class="text-sm font-semibold text-gray-900">
+                  {{ billingSummary.discount.toFixed(2) }}
+                </span>
+              </div>
               <div class="flex justify-between items-center">
                 <span class="text-sm text-gray-600">Taxes</span>
                 <span class="text-sm font-semibold text-gray-900">
