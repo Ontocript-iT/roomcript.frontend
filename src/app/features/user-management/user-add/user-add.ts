@@ -43,9 +43,9 @@ export class UserAddComponent implements OnInit {
 
   availableRoles = [
     { value: 'ROLE_ADMIN', label: 'Administrator', description: 'Full system access and management' },
-    { value: 'ROLE_MANAGER', label: 'Manager', description: 'Property and staff management' },
-    { value: 'ROLE_FRONT_DESK', label: 'Front Desk', description: 'Reservations and check-in/out' },
-    { value: 'ROLE_HOUSEKEEPING', label: 'Housekeeping', description: 'Room status and maintenance' },
+    { value: 'ROLE_GENERAL_MANAGER', label: 'General Manager', description: 'Property and staff management' },
+    { value: ' ROLE_FRONT_DESK_MANAGER', label: 'Front Desk Manager', description: 'Reservations and check-in/out' },
+    { value: ' ROLE_HOUSEKEEPING_MANAGER', label: 'Housekeeping', description: 'Room status and maintenance' },
     { value: 'ROLE_ACCOUNTANT', label: 'Accountant', description: 'Financial reports and billing' }
   ];
 
