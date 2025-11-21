@@ -51,6 +51,8 @@ export class StayView implements OnInit {
   selectedMonth: number = new Date().getMonth() + 1;
   selectedYear: number = new Date().getFullYear();
   propertyCode: string = 'PROP0005'; // You can make this dynamic
+
+  expandedRoomTypes: Set<number> = new Set<number>();
   
   months = [
     { value: 1, name: 'January' },
@@ -111,6 +113,18 @@ export class StayView implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+    toggleRoomType(index: number): void {
+    if (this.expandedRoomTypes.has(index)) {
+      this.expandedRoomTypes.delete(index);
+    } else {
+      this.expandedRoomTypes.add(index);
+    }
+  }
+
+    isRoomTypeExpanded(index: number): boolean {
+    return this.expandedRoomTypes.has(index);
   }
 
   generateDateCells(): void {
