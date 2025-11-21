@@ -30,14 +30,12 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
-
-        <button 
-          mat-raised-button 
-          color="primary"
-          (click)="loadStayView()"
-          class="!h-14">
+            <button
+          mat-raised-button
+         (click)="loadStayView()"
+          class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
           <mat-icon class="!mr-2">refresh</mat-icon>
-          Refresh
+         Refresh
         </button>
       </div>
     </div>
@@ -75,69 +73,100 @@
         </div>
 
         <!-- Room Types and Reservations -->
-        <div *ngFor="let roomType of roomTypes; let rtIndex = index">
-          <!-- Room Type Header -->
-          <div class="flex border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <div class="w-48 flex-shrink-0 p-4 font-bold text-gray-800 border-r border-gray-300 bg-indigo-100">
-              {{ roomType.roomType }}
-              <span class="text-xs font-normal text-gray-600 ml-2">
-                ({{ roomType.totalRooms }} rooms, {{ roomType.totalReservations }} reservations)
-              </span>
+    <!-- Room Types and Reservations -->
+<div *ngFor="let roomType of roomTypes; let rtIndex = index">
+  <!-- Room Type Header with Dropdown Toggle -->
+  <div class="flex border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50 cursor-pointer hover:from-indigo-100 hover:to-purple-100 transition-all"
+       (click)="roomType.totalRooms > 1 ? toggleRoomType(rtIndex) : null">
+    <div class="w-48 flex-shrink-0 p-4 font-bold text-gray-800 border-r border-gray-300 bg-indigo-100">
+      <div class="flex items-center gap-2">
+        <!-- Dropdown Icon (only if more than 1 room) -->
+        <mat-icon 
+          *ngIf="roomType.totalRooms > 1"
+          class="!w-5 !h-5 !text-[20px] transition-transform"
+          [ngClass]="{'rotate-180': isRoomTypeExpanded(rtIndex)}">
+          expand_more
+        </mat-icon>
+        
+        <!-- Room Type Name -->
+        <span>{{ roomType.roomType }}</span>
+        
+        <!-- Room Count Badge -->
+        <span class="text-xs font-normal text-gray-600 ml-1">
+          ({{ roomType.totalRooms }} rooms, {{ roomType.totalReservations }} reservations)
+        </span>
+      </div>
+    </div>
+    <div class="flex flex-1"></div>
+  </div>
+
+  <!-- Individual Rooms (Collapsible) -->
+  <div *ngIf="roomType.totalRooms === 1 || isRoomTypeExpanded(rtIndex)">
+    <div *ngFor="let room of roomType.rooms; let roomIndex = index">
+      <div class="flex border-b border-gray-200 hover:bg-gray-50 transition-all relative">
+        <!-- Room Number Column -->
+        <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200 bg-gray-50">
+          <div class="flex items-center gap-2">
+            <mat-icon class="!w-5 !h-5 !text-[20px] text-blue-600">meeting_room</mat-icon>
+            <span class="font-semibold text-gray-700">{{ room.roomNumber }}</span>
+            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+              {{ room.reservationCount }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Date Cells with Reservations -->
+        <div class="flex flex-1 relative" style="height: 60px;">
+          <!-- Date Grid Background -->
+          <div class="absolute inset-0 flex">
+            <div 
+              *ngFor="let dateCell of dateCells"
+              class="w-24 flex-shrink-0 border-r border-gray-100"
+              [ngClass]="{
+                'bg-gray-50': isWeekend(dateCell),
+                'bg-yellow-50': isToday(dateCell)
+              }">
             </div>
-            <div class="flex flex-1"></div>
           </div>
 
-          <!-- Individual Rooms -->
-          <div *ngFor="let room of roomType.rooms; let roomIndex = index">
-            <div class="flex border-b border-gray-200 hover:bg-gray-50 transition-all relative">
-              <!-- Room Number Column -->
-              <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200 bg-gray-50">
-                <div class="flex items-center gap-2">
-                  <mat-icon class="!w-5 !h-5 !text-[20px] text-blue-600">meeting_room</mat-icon>
-                  <span class="font-semibold text-gray-700">{{ room.roomNumber }}</span>
-                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                    {{ room.reservationCount }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Date Cells with Reservations -->
-              <div class="flex flex-1 relative" style="height: 60px;">
-                <!-- Date Grid Background -->
-                <div class="absolute inset-0 flex">
-                  <div 
-                    *ngFor="let dateCell of dateCells"
-                    class="w-24 flex-shrink-0 border-r border-gray-100"
-                    [ngClass]="{
-                      'bg-gray-50': isWeekend(dateCell),
-                      'bg-yellow-50': isToday(dateCell)
-                    }">
-                  </div>
-                </div>
-
-                <!-- Reservations Overlay -->
-                <div class="absolute inset-0 p-1">
-                  <div 
-                    *ngFor="let reservation of room.reservations; let i = index"
-                    class="absolute cursor-pointer rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105 hover:z-10 flex items-center px-3 py-2"
-                    [ngClass]="getReservationColor(reservation)"
-                    [style.left.px]="(getReservationPosition(reservation).startCol - 1) * 96 + 4"
-                    [style.width.px]="getReservationPosition(reservation).spanCols * 96 - 8"
-                    [style.top.px]="i * 22"
-                    (click)="showReservationDetails(reservation)">
-                    <div class="text-white text-xs font-semibold truncate flex items-center gap-2">
-                      <mat-icon class="!w-4 !h-4 !text-[16px]">person</mat-icon>
-                      {{ reservation.guestName }}
-                      <span class="ml-auto bg-white/20 px-2 py-0.5 rounded">
-                        {{ reservation.confirmationNumber.split('-')[1] }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
+          <!-- Reservations Overlay -->
+          <div class="absolute inset-0 p-1">
+            <div 
+              *ngFor="let reservation of room.reservations; let i = index"
+              class="absolute cursor-pointer rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105 hover:z-10 flex items-center px-3 py-2"
+              [ngClass]="getReservationColor(reservation)"
+              [style.left.px]="(getReservationPosition(reservation).startCol - 1) * 96 + 4"
+              [style.width.px]="getReservationPosition(reservation).spanCols * 96 - 8"
+              [style.top.px]="i * 22"
+              (click)="showReservationDetails(reservation)">
+              <div class="text-white text-xs font-semibold truncate flex items-center gap-2">
+                <mat-icon class="!w-4 !h-4 !text-[16px]">person</mat-icon>
+                {{ reservation.guestName }}
+                <span class="ml-auto bg-white/20 px-2 py-0.5 rounded">
+                  {{ reservation.confirmationNumber.split('-')[1] }}
+                </span>
               </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collapsed Summary (shows when room type is collapsed) -->
+  <div *ngIf="roomType.totalRooms > 1 && !isRoomTypeExpanded(rtIndex)" 
+       class="flex border-b border-gray-200 bg-gray-50">
+    <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200">
+      <span class="text-sm text-gray-500 italic">Click to expand {{ roomType.totalRooms }} rooms</span>
+    </div>
+    <div class="flex flex-1 p-4">
+      <span class="text-sm text-gray-500">
+        {{ roomType.totalReservations }} total reservations across all rooms
+      </span>
+    </div>
+  </div>
+</div>
+
 
         <!-- Legend -->
         <div class="flex items-center gap-6 p-6 bg-gray-50 border-t border-gray-200">
