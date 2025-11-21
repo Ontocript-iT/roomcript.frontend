@@ -1,51 +1,52 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4"> <!-- reduced padding from 6 to 4 -->
   <!-- Header Section -->
-  <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-    <div class="flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-3">
-        <div class="bg-blue-500 p-3 rounded-lg">
-          <mat-icon class="!text-white !w-8 !h-8 !text-[32px]">hotel</mat-icon>
+  <div class="bg-white rounded-xl shadow-lg p-4 mb-4"> <!-- reduced padding/margin -->
+    <div class="flex items-center justify-between flex-wrap gap-3"> <!-- reduced gap -->
+      <div class="flex items-center gap-2"> <!-- reduced gap -->
+        <div class="bg-blue-500 p-2 rounded-lg"> <!-- reduced padding -->
+          <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">hotel</mat-icon> <!-- smaller icon -->
         </div>
         <div>
-          <h1 class="text-3xl font-bold text-gray-800">Stay View</h1>
-          <p class="text-sm text-gray-500 mt-1">Property: {{ propertyCode }} | Total Reservations: {{ totalReservations }}</p>
+          <h1 class="text-xl font-bold text-gray-800">Stay View</h1> <!-- smaller heading -->
+          <p class="text-xs text-gray-500 mt-0.5">Property: {{ propertyCode }} | Total Reservations: {{ totalReservations }}</p> <!-- smaller text -->
         </div>
       </div>
 
-      <div class="flex items-center gap-4">
-        <mat-form-field class="!w-40" appearance="outline">
-          <mat-label>Month</mat-label>
-          <mat-select [(ngModel)]="selectedMonth" (selectionChange)="onMonthYearChange()">
-            <mat-option *ngFor="let month of months" [value]="month.value">
+      <div class="flex items-center gap-3"> <!-- reduced gap -->
+        <mat-form-field class="!w-32" appearance="outline"> <!-- smaller width -->
+          <mat-label class="text-xs">Month</mat-label> <!-- smaller label -->
+          <mat-select [(ngModel)]="selectedMonth" (selectionChange)="onMonthYearChange()" class="text-sm">
+            <mat-option *ngFor="let month of months" [value]="month.value" class="text-xs">
               {{ month.name }}
             </mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field class="!w-32" appearance="outline">
-          <mat-label>Year</mat-label>
-          <mat-select [(ngModel)]="selectedYear" (selectionChange)="onMonthYearChange()">
-            <mat-option *ngFor="let year of years" [value]="year">
+        <mat-form-field class="!w-24" appearance="outline"> <!-- smaller width -->
+          <mat-label class="text-xs">Year</mat-label>
+          <mat-select [(ngModel)]="selectedYear" (selectionChange)="onMonthYearChange()" class="text-sm">
+            <mat-option *ngFor="let year of years" [value]="year" class="text-xs">
               {{ year }}
             </mat-option>
           </mat-select>
         </mat-form-field>
-            <button
+
+        <button
           mat-raised-button
-         (click)="loadStayView()"
-          class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-          <mat-icon class="!mr-2">refresh</mat-icon>
-         Refresh
+          (click)="loadStayView()"
+          class="!h-10 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !text-sm !rounded-lg !font-semibold !shadow-md hover:!shadow-lg !transition-all !duration-300">
+          <mat-icon class="!mr-1 !w-4 !h-4">refresh</mat-icon>
+          Refresh
         </button>
       </div>
     </div>
   </div>
 
   <!-- Loading State -->
-  <div *ngIf="loading" class="flex items-center justify-center py-20">
+  <div *ngIf="loading" class="flex items-center justify-center py-16">
     <div class="text-center">
-      <mat-spinner diameter="60" class="mx-auto mb-4"></mat-spinner>
-      <p class="text-gray-600 font-medium">Loading stay view...</p>
+      <mat-spinner diameter="40" class="mx-auto mb-3"></mat-spinner> <!-- smaller spinner -->
+      <p class="text-gray-600 font-medium text-sm">Loading stay view...</p> <!-- smaller text -->
     </div>
   </div>
 
@@ -55,141 +56,135 @@
       <div class="min-w-max">
         <!-- Date Header Row -->
         <div class="flex border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 sticky top-0 z-20">
-          <div class="w-48 flex-shrink-0 p-4 font-semibold text-gray-700 border-r border-gray-200 bg-blue-100">
+          <div class="w-40 flex-shrink-0 p-2 font-semibold text-gray-700 border-r border-gray-200 bg-blue-100 text-sm"> <!-- smaller width, padding, font -->
             Room Type / Room #
           </div>
           <div class="flex">
-            <div 
+            <div
               *ngFor="let dateCell of dateCells"
-              class="w-24 flex-shrink-0 p-3 text-center border-r border-gray-200 transition-all hover:bg-blue-100"
+              class="w-16 flex-shrink-0 p-1 text-center border-r border-gray-200 transition-all hover:bg-blue-100" 
               [ngClass]="{
                 'bg-blue-100': isWeekend(dateCell),
-                'bg-yellow-50 font-bold': isToday(dateCell)
+                'bg-yellow-50 font-medium': isToday(dateCell)
               }">
-              <div class="text-xs font-medium text-gray-600">{{ dateCell.dayName }}</div>
-              <div class="text-lg font-bold text-gray-800 mt-1">{{ dateCell.date }}</div>
+              <div class="text-[10px] font-medium text-gray-600">{{ dateCell.dayName }}</div> <!-- smaller font -->
+              <div class="text-sm font-semibold text-gray-800 mt-0.5">{{ dateCell.date }}</div> <!-- smaller font -->
             </div>
           </div>
         </div>
 
         <!-- Room Types and Reservations -->
-    <!-- Room Types and Reservations -->
-<div *ngFor="let roomType of roomTypes; let rtIndex = index">
-  <!-- Room Type Header with Dropdown Toggle -->
-  <div class="flex border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50 cursor-pointer hover:from-indigo-100 hover:to-purple-100 transition-all"
-       (click)="roomType.totalRooms > 1 ? toggleRoomType(rtIndex) : null">
-    <div class="w-48 flex-shrink-0 p-4 font-bold text-gray-800 border-r border-gray-300 bg-indigo-100">
-      <div class="flex items-center gap-2">
-        <!-- Dropdown Icon (only if more than 1 room) -->
-        <mat-icon 
-          *ngIf="roomType.totalRooms > 1"
-          class="!w-5 !h-5 !text-[20px] transition-transform"
-          [ngClass]="{'rotate-180': isRoomTypeExpanded(rtIndex)}">
-          expand_more
-        </mat-icon>
-        
-        <!-- Room Type Name -->
-        <span>{{ roomType.roomType }}</span>
-        
-        <!-- Room Count Badge -->
-        <span class="text-xs font-normal text-gray-600 ml-1">
-          ({{ roomType.totalRooms }} rooms, {{ roomType.totalReservations }} reservations)
-        </span>
-      </div>
-    </div>
-    <div class="flex flex-1"></div>
-  </div>
+        <div *ngFor="let roomType of roomTypes; let rtIndex = index">
+          <!-- Room Type Header with Dropdown Toggle -->
+          <div class="flex border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50 cursor-pointer hover:from-indigo-100 hover:to-purple-100 transition-all"
+               (click)="roomType.totalRooms > 1 ? toggleRoomType(rtIndex) : null">
+            <div class="w-40 flex-shrink-0 p-2 font-bold text-gray-800 border-r border-gray-300 bg-indigo-100 text-sm">
+              <div class="flex items-center gap-1">
+                <!-- Dropdown Icon -->
+                <mat-icon
+                  *ngIf="roomType.totalRooms > 1"
+                  class="!w-4 !h-4 !text-[16px] transition-transform"
+                  [ngClass]="{'rotate-180': isRoomTypeExpanded(rtIndex)}">
+                  expand_more
+                </mat-icon>
 
-  <!-- Individual Rooms (Collapsible) -->
-  <div *ngIf="roomType.totalRooms === 1 || isRoomTypeExpanded(rtIndex)">
-    <div *ngFor="let room of roomType.rooms; let roomIndex = index">
-      <div class="flex border-b border-gray-200 hover:bg-gray-50 transition-all relative">
-        <!-- Room Number Column -->
-        <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200 bg-gray-50">
-          <div class="flex items-center gap-2">
-            <mat-icon class="!w-5 !h-5 !text-[20px] text-blue-600">meeting_room</mat-icon>
-            <span class="font-semibold text-gray-700">{{ room.roomNumber }}</span>
-            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              {{ room.reservationCount }}
-            </span>
-          </div>
-        </div>
+                <span>{{ roomType.roomType }}</span>
 
-        <!-- Date Cells with Reservations -->
-        <div class="flex flex-1 relative" style="height: 60px;">
-          <!-- Date Grid Background -->
-          <div class="absolute inset-0 flex">
-            <div 
-              *ngFor="let dateCell of dateCells"
-              class="w-24 flex-shrink-0 border-r border-gray-100"
-              [ngClass]="{
-                'bg-gray-50': isWeekend(dateCell),
-                'bg-yellow-50': isToday(dateCell)
-              }">
-            </div>
-          </div>
-
-          <!-- Reservations Overlay -->
-          <div class="absolute inset-0 p-1">
-            <div 
-              *ngFor="let reservation of room.reservations; let i = index"
-              class="absolute cursor-pointer rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105 hover:z-10 flex items-center px-3 py-2"
-              [ngClass]="getReservationColor(reservation)"
-              [style.left.px]="(getReservationPosition(reservation).startCol - 1) * 96 + 4"
-              [style.width.px]="getReservationPosition(reservation).spanCols * 96 - 8"
-              [style.top.px]="i * 22"
-              (click)="showReservationDetails(reservation)">
-              <div class="text-white text-xs font-semibold truncate flex items-center gap-2">
-                <mat-icon class="!w-4 !h-4 !text-[16px]">person</mat-icon>
-                {{ reservation.guestName }}
-                <span class="ml-auto bg-white/20 px-2 py-0.5 rounded">
-                  {{ reservation.confirmationNumber.split('-')[1] }}
+                <span class="text-xs font-normal text-gray-600 ml-1">
+                  ({{ roomType.totalRooms }} rooms, {{ roomType.totalReservations }} reservations)
                 </span>
               </div>
             </div>
+            <div class="flex flex-1"></div>
+          </div>
+
+          <!-- Individual Rooms (Collapsible) -->
+          <div *ngIf="roomType.totalRooms === 1 || isRoomTypeExpanded(rtIndex)">
+            <div *ngFor="let room of roomType.rooms; let roomIndex = index">
+              <div class="flex border-b border-gray-200 hover:bg-gray-50 transition-all relative">
+                <!-- Room Number Column -->
+                <div class="w-40 flex-shrink-0 p-2 border-r border-gray-200 bg-gray-50 text-sm">
+                  <div class="flex items-center gap-2">
+                    <mat-icon class="!w-4 !h-4 !text-[16px] text-blue-600">meeting_room</mat-icon>
+                    <span class="font-semibold text-gray-700">{{ room.roomNumber }}</span>
+                    <span class="text-xs bg-blue-100 text-blue-800 px-1 py-0.5 rounded-full">
+                      {{ room.reservationCount }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Date Cells with Reservations -->
+                <div class="flex flex-1 relative" style="height: 48px;"> <!-- reduced height -->
+                  <!-- Date Grid Background -->
+                  <div class="absolute inset-0 flex">
+                    <div
+                      *ngFor="let dateCell of dateCells"
+                      class="w-16 flex-shrink-0 border-r border-gray-100"
+                      [ngClass]="{
+                        'bg-gray-50': isWeekend(dateCell),
+                        'bg-yellow-50': isToday(dateCell)
+                      }">
+                    </div>
+                  </div>
+
+                  <!-- Reservations Overlay -->
+                  <div class="absolute inset-0 p-1">
+                    <div
+                      *ngFor="let reservation of room.reservations; let i = index"
+                      class="absolute cursor-pointer rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105 hover:z-10 flex items-center px-2 py-1 text-xs"
+                      [ngClass]="getReservationColor(reservation)"
+                      [style.left.px]="(getReservationPosition(reservation).startCol - 1) * 64 + 2" 
+                      [style.width.px]="getReservationPosition(reservation).spanCols * 64 - 4"
+                      [style.top.px]="i * 18"
+                      (click)="showReservationDetails(reservation)">
+                      <div class="text-white font-semibold truncate flex items-center gap-1">
+                        <mat-icon class="!w-3 !h-3 !text-[12px]">person</mat-icon> <!-- smaller icon -->
+                        {{ reservation.guestName }}
+                        <span class="ml-auto bg-white/20 px-1 py-0.5 rounded text-[10px]">
+                          {{ reservation.confirmationNumber.split('-')[1] }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsed Summary -->
+          <div *ngIf="roomType.totalRooms > 1 && !isRoomTypeExpanded(rtIndex)"
+               class="flex border-b border-gray-200 bg-gray-50">
+            <div class="w-40 flex-shrink-0 p-2 border-r border-gray-200 text-xs">
+              <span class="italic text-gray-500">Click to expand {{ roomType.totalRooms }} rooms</span>
+            </div>
+            <div class="flex flex-1 p-2 text-xs text-gray-500">
+              {{ roomType.totalReservations }} total reservations across all rooms
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Collapsed Summary (shows when room type is collapsed) -->
-  <div *ngIf="roomType.totalRooms > 1 && !isRoomTypeExpanded(rtIndex)" 
-       class="flex border-b border-gray-200 bg-gray-50">
-    <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200">
-      <span class="text-sm text-gray-500 italic">Click to expand {{ roomType.totalRooms }} rooms</span>
-    </div>
-    <div class="flex flex-1 p-4">
-      <span class="text-sm text-gray-500">
-        {{ roomType.totalReservations }} total reservations across all rooms
-      </span>
-    </div>
-  </div>
-</div>
-
 
         <!-- Legend -->
-        <div class="flex items-center gap-6 p-6 bg-gray-50 border-t border-gray-200">
+        <div class="flex items-center gap-4 p-4 bg-gray-50 border-t border-gray-200 text-xs">
           <div class="font-semibold text-gray-700">Legend:</div>
           <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-blue-500 rounded"></div>
-            <span class="text-sm text-gray-600">Confirmed</span>
+            <div class="w-3 h-3 bg-blue-500 rounded"></div>
+            <span class="text-gray-600">Confirmed</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-green-500 rounded"></div>
-            <span class="text-sm text-gray-600">Checked In</span>
+            <div class="w-3 h-3 bg-green-500 rounded"></div>
+            <span class="text-gray-600">Checked In</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-yellow-500 rounded"></div>
-            <span class="text-sm text-gray-600">Payment Pending</span>
+            <div class="w-3 h-3 bg-yellow-500 rounded"></div>
+            <span class="text-gray-600">Payment Pending</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-emerald-600 rounded"></div>
-            <span class="text-sm text-gray-600">Fully Paid</span>
+            <div class="w-3 h-3 bg-emerald-600 rounded"></div>
+            <span class="text-gray-600">Fully Paid</span>
           </div>
           <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-red-500 rounded"></div>
-            <span class="text-sm text-gray-600">Cancelled</span>
+            <div class="w-3 h-3 bg-red-500 rounded"></div>
+            <span class="text-gray-600">Cancelled</span>
           </div>
         </div>
       </div>
@@ -197,9 +192,9 @@
   </div>
 
   <!-- Empty State -->
-  <div *ngIf="!loading && totalReservations === 0" class="bg-white rounded-xl shadow-lg p-12 text-center">
-    <mat-icon class="!w-20 !h-20 !text-[80px] text-gray-300 mx-auto mb-4">event_busy</mat-icon>
-    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Reservations Found</h3>
-    <p class="text-gray-500">There are no reservations for the selected month and year.</p>
+  <div *ngIf="!loading && totalReservations === 0" class="bg-white rounded-xl shadow-lg p-8 text-center">
+    <mat-icon class="!w-16 !h-16 !text-[64px] text-gray-300 mx-auto mb-3">event_busy</mat-icon>
+    <h3 class="text-lg font-semibold text-gray-700 mb-1">No Reservations Found</h3>
+    <p class="text-gray-500 text-sm">There are no reservations for the selected month and year.</p>
   </div>
 </div>

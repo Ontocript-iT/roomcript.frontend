@@ -1,0 +1,37 @@
+/* Reduce header fonts and padding */
+.room-type-header,
+.room-number-column {
+  font-size: 0.75rem; /* smaller text */
+  padding: 0.5rem 0.75rem; /* less padding */
+}
+
+/* Reduce calendar cell width and reservation bar size */
+.calendar-date-cell {
+  width: 1.5rem; /* smaller width (default 6rem / 96px reduced) */
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+}
+
+.date-grid-background div {
+  width: 1.5rem; /* match date cell width */
+  border-width: 1px;
+}
+
+/* Reservation bars smaller height */
+.reservation-bar {
+  height: 18px !important; /* smaller than previous 22px */
+  padding: 2px 6px !important;
+  font-size: 0.6rem !important;
+}
+
+/* Room number column width */
+.room-number-column {
+  width: 6rem; /* reduced from 12rem (48) */
+}
+
+/* Make icons smaller */
+.mat-icon {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+}
