@@ -126,7 +126,7 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       {
         title: 'All Guests',
-        route: '/guests/all',
+        route: '/guest/list',
         icon: 'list',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },

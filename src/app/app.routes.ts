@@ -12,7 +12,11 @@ import { PropertyList } from './features/property-management/property-list/prope
 import { RoomCreate } from './features/rooms/room-create/room-create';
 import {ReservationFormComponent} from './features/reservations/reservation-form/reservation-form.component';
 import {CheckinCheckoutComponent} from './features/reservations/checkin-checkout/checkin-checkout';
+
+import {GuestListComponent} from './features/guest-management/guest-list/guest-list';
+
 import { StayView } from './features/stay-view/stay-view';
+
 
 
 
@@ -33,16 +37,6 @@ export const routes: Routes = [
   {
     path: 'reservations',
     component: ReservationListComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'addReservation',
-    component: ReservationFormComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'checkin-checkout',
-    component: CheckinCheckoutComponent,
     canActivate: [authGuard]
   },
   {
@@ -76,5 +70,12 @@ export const routes: Routes = [
     component: StayView,
     canActivate: [authGuard]
   }
+  ,
+  {
+    path: 'guest/list',
+    component: GuestListComponent,
+    canActivate: [authGuard]
+  }
+
 
 ];

@@ -312,6 +312,7 @@ export class PropertyList implements OnInit {
 
   manageUsers(property: PropertyResponse): void {
     console.log('Manage users for property:', property);
+
     // Store property code in localStorage for user management page
     localStorage.setItem('propertyCode', property.propertyCode);
     this.router.navigate(['/users']);

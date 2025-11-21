@@ -178,22 +178,22 @@ export class UpdateReservation implements OnInit {
       return;
     }
 
-    this.reservationService.getAvailableRoomsCount(this.propertyCode).subscribe({
-      next: (rooms) => {
-        this.availableRoomTypes = this.availableRoomTypes.map(roomType => {
-          const apiRoom = rooms.find(r => r.roomType === roomType.value);
-          return {
-            value: roomType.value,
-            label: roomType.label,
-            availableCount: apiRoom?.availableCount || 0,
-            basePrice: apiRoom?.basePrice || 0
-          };
-        });
-      },
-      error: (error) => {
-        console.error('Error loading room availability:', error);
-      }
-    });
+    // this.reservationService.getAvailableRoomsCount(this.propertyCode).subscribe({
+    //   next: (rooms) => {
+    //     this.availableRoomTypes = this.availableRoomTypes.map(roomType => {
+    //       const apiRoom = rooms.find(r => r.roomType === roomType.value);
+    //       return {
+    //         value: roomType.value,
+    //         label: roomType.label,
+    //         availableCount: apiRoom?.availableCount || 0,
+    //         basePrice: apiRoom?.basePrice || 0
+    //       };
+    //     });
+    //   },
+    //   error: (error) => {
+    //     console.error('Error loading room availability:', error);
+    //   }
+    // });
   }
 
   get rooms(): FormArray {
