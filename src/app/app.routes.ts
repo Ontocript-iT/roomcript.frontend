@@ -39,6 +39,16 @@ export const routes: Routes = [
     component: ReservationListComponent,
     canActivate: [authGuard]
   },
+    {
+    path: 'addReservation',
+    component: ReservationFormComponent,
+    canActivate: [authGuard]
+  },
+      {
+    path: 'checkin-checkout',
+    component: CheckinCheckoutComponent,
+    canActivate: [authGuard]
+  },
   {
     path: 'addUser',
     component: UserAddComponent,
