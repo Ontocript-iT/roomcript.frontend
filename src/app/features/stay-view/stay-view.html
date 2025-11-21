@@ -1,0 +1,176 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+  <!-- Header Section -->
+  <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-blue-500 p-3 rounded-lg">
+          <mat-icon class="!text-white !w-8 !h-8 !text-[32px]">hotel</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Stay View</h1>
+          <p class="text-sm text-gray-500 mt-1">Property: {{ propertyCode }} | Total Reservations: {{ totalReservations }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <mat-form-field class="!w-40" appearance="outline">
+          <mat-label>Month</mat-label>
+          <mat-select [(ngModel)]="selectedMonth" (selectionChange)="onMonthYearChange()">
+            <mat-option *ngFor="let month of months" [value]="month.value">
+              {{ month.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="!w-32" appearance="outline">
+          <mat-label>Year</mat-label>
+          <mat-select [(ngModel)]="selectedYear" (selectionChange)="onMonthYearChange()">
+            <mat-option *ngFor="let year of years" [value]="year">
+              {{ year }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button 
+          mat-raised-button 
+          color="primary"
+          (click)="loadStayView()"
+          class="!h-14">
+          <mat-icon class="!mr-2">refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <mat-spinner diameter="60" class="mx-auto mb-4"></mat-spinner>
+      <p class="text-gray-600 font-medium">Loading stay view...</p>
+    </div>
+  </div>
+
+  <!-- Stay View Grid -->
+  <div *ngIf="!loading" class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <div class="min-w-max">
+        <!-- Date Header Row -->
+        <div class="flex border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 sticky top-0 z-20">
+          <div class="w-48 flex-shrink-0 p-4 font-semibold text-gray-700 border-r border-gray-200 bg-blue-100">
+            Room Type / Room #
+          </div>
+          <div class="flex">
+            <div 
+              *ngFor="let dateCell of dateCells"
+              class="w-24 flex-shrink-0 p-3 text-center border-r border-gray-200 transition-all hover:bg-blue-100"
+              [ngClass]="{
+                'bg-blue-100': isWeekend(dateCell),
+                'bg-yellow-50 font-bold': isToday(dateCell)
+              }">
+              <div class="text-xs font-medium text-gray-600">{{ dateCell.dayName }}</div>
+              <div class="text-lg font-bold text-gray-800 mt-1">{{ dateCell.date }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room Types and Reservations -->
+        <div *ngFor="let roomType of roomTypes; let rtIndex = index">
+          <!-- Room Type Header -->
+          <div class="flex border-b border-gray-300 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <div class="w-48 flex-shrink-0 p-4 font-bold text-gray-800 border-r border-gray-300 bg-indigo-100">
+              {{ roomType.roomType }}
+              <span class="text-xs font-normal text-gray-600 ml-2">
+                ({{ roomType.totalRooms }} rooms, {{ roomType.totalReservations }} reservations)
+              </span>
+            </div>
+            <div class="flex flex-1"></div>
+          </div>
+
+          <!-- Individual Rooms -->
+          <div *ngFor="let room of roomType.rooms; let roomIndex = index">
+            <div class="flex border-b border-gray-200 hover:bg-gray-50 transition-all relative">
+              <!-- Room Number Column -->
+              <div class="w-48 flex-shrink-0 p-4 border-r border-gray-200 bg-gray-50">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="!w-5 !h-5 !text-[20px] text-blue-600">meeting_room</mat-icon>
+                  <span class="font-semibold text-gray-700">{{ room.roomNumber }}</span>
+                  <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {{ room.reservationCount }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Date Cells with Reservations -->
+              <div class="flex flex-1 relative" style="height: 60px;">
+                <!-- Date Grid Background -->
+                <div class="absolute inset-0 flex">
+                  <div 
+                    *ngFor="let dateCell of dateCells"
+                    class="w-24 flex-shrink-0 border-r border-gray-100"
+                    [ngClass]="{
+                      'bg-gray-50': isWeekend(dateCell),
+                      'bg-yellow-50': isToday(dateCell)
+                    }">
+                  </div>
+                </div>
+
+                <!-- Reservations Overlay -->
+                <div class="absolute inset-0 p-1">
+                  <div 
+                    *ngFor="let reservation of room.reservations; let i = index"
+                    class="absolute cursor-pointer rounded-lg shadow-md hover:shadow-xl transition-all transform hover:scale-105 hover:z-10 flex items-center px-3 py-2"
+                    [ngClass]="getReservationColor(reservation)"
+                    [style.left.px]="(getReservationPosition(reservation).startCol - 1) * 96 + 4"
+                    [style.width.px]="getReservationPosition(reservation).spanCols * 96 - 8"
+                    [style.top.px]="i * 22"
+                    (click)="showReservationDetails(reservation)">
+                    <div class="text-white text-xs font-semibold truncate flex items-center gap-2">
+                      <mat-icon class="!w-4 !h-4 !text-[16px]">person</mat-icon>
+                      {{ reservation.guestName }}
+                      <span class="ml-auto bg-white/20 px-2 py-0.5 rounded">
+                        {{ reservation.confirmationNumber.split('-')[1] }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-6 p-6 bg-gray-50 border-t border-gray-200">
+          <div class="font-semibold text-gray-700">Legend:</div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-blue-500 rounded"></div>
+            <span class="text-sm text-gray-600">Confirmed</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-green-500 rounded"></div>
+            <span class="text-sm text-gray-600">Checked In</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+            <span class="text-sm text-gray-600">Payment Pending</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-emerald-600 rounded"></div>
+            <span class="text-sm text-gray-600">Fully Paid</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-red-500 rounded"></div>
+            <span class="text-sm text-gray-600">Cancelled</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && totalReservations === 0" class="bg-white rounded-xl shadow-lg p-12 text-center">
+    <mat-icon class="!w-20 !h-20 !text-[80px] text-gray-300 mx-auto mb-4">event_busy</mat-icon>
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Reservations Found</h3>
+    <p class="text-gray-500">There are no reservations for the selected month and year.</p>
+  </div>
+</div>
