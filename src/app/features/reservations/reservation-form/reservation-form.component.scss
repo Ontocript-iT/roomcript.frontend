@@ -94,6 +94,8 @@
 
 ::ng-deep .mat-mdc-option {
   position: relative;
+  min-height: 30px !important;
+  height: 30px !important;
 
   .room-label {
     display: inline-block;

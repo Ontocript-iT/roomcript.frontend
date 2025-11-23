@@ -24,3 +24,16 @@ export interface Reservation {
   checkInStatus: boolean;
   checkOutStatus: boolean;
 }
+
+export interface ReservationFilter {
+  status?: string;
+  startReservationDate?: string;
+  endReservationDate?: string;
+  startCheckInDate?: string;
+  endCheckInDate?: string;
+  bookingSource?: string;
+  roomType?: string;
+  reservationType?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+}

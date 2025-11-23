@@ -32,6 +32,7 @@
                     <mat-label>Check-In Date</mat-label>
                     <input matInput [matDatepicker]="checkInPicker" formControlName="checkIn" placeholder="Select date">
                     <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #checkInPicker></mat-datepicker><mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
                     <mat-datepicker #checkInPicker></mat-datepicker>
                     <mat-error *ngIf="reservationForm.get('checkIn')?.hasError('required')">
                       Check-in date is required
@@ -73,24 +74,6 @@
                       <mat-icon matSuffix class="!text-gray-400">meeting_room</mat-icon>
                       <mat-hint>Auto-calculated based on added rooms</mat-hint>
                     </mat-form-field>
-<!--                    <div matSuffix class="flex flex-col gap-0 mb-1">-->
-<!--                      <button-->
-<!--                        mat-button-->
-<!--                        type="button"-->
-<!--                        (click)="incrementRooms()"-->
-<!--                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white"-->
-<!--                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">-->
-<!--                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>-->
-<!--                      </button>-->
-<!--                      <button-->
-<!--                        mat-button-->
-<!--                        type="button"-->
-<!--                        (click)="decrementRooms()"-->
-<!--                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white"-->
-<!--                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">-->
-<!--                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>-->
-<!--                      </button>-->
-<!--                    </div>-->
 
                     <mat-error *ngIf="reservationForm.get('numberOfRooms')?.hasError('required')">
                       Number of rooms is required
@@ -101,7 +84,10 @@
                   <mat-form-field appearance="fill">
                     <mat-label>Reservation Type</mat-label>
                     <mat-select formControlName="reservationType">
-                      <mat-option *ngFor="let resType of availableReservationTypes" [value]="resType.value">
+                      <mat-option
+                        *ngFor="let resType of availableReservationTypes"
+                        [value]="resType.value"
+                        class="!text-xs">
                           {{ resType.label }}
                       </mat-option>
                     </mat-select>
@@ -117,7 +103,10 @@
                   <mat-form-field appearance="fill">
                     <mat-label>Booking Source</mat-label>
                     <mat-select formControlName="bookingSource">
-                      <mat-option *ngFor="let bSource of availableBookingSources" [value]="bSource.value">
+                      <mat-option
+                        *ngFor="let bSource of availableBookingSources"
+                        [value]="bSource.value"
+                        class="!text-xs">
                         {{ bSource.label }}
                       </mat-option>
                     </mat-select>
@@ -143,11 +132,6 @@
                     formControlName="isGroupReservation"
                     class="!m-0">
                     <span class="text-sm font-medium text-gray-700">Group Reservation</span>
-                    <mat-icon
-                      class="!w-4 !h-4 !text-[16px] !text-gray-400 ml-1"
-                      matTooltip="Check this to add multiple rooms">
-                      info_outline
-                    </mat-icon>
                   </mat-checkbox>
 <!--                  <mat-checkbox-->
 <!--                    formControlName="isGroupReservation"-->
@@ -169,7 +153,7 @@
                             *ngFor="let roomType of availableRoomTypes"
                             [value]="roomType.value"
                             [disabled]="roomType.availableCount === 0">
-                            <span class="room-label">{{ roomType.label }}</span>
+                            <span class="room-label text-xs">{{ roomType.label }}</span>
                             <span class="room-count-badge">{{ roomType.availableCount }}</span>
                           </mat-option>
                         </mat-select>
@@ -186,7 +170,8 @@
                           </mat-option>
                           <mat-option
                             *ngFor="let room of getAvailableRoomsForIndex(i)"
-                            [value]="room.id">
+                            [value]="room.id"
+                            class="!text-xs">
                             {{ room.roomNumber }}
                           </mat-option>
                         </mat-select>
@@ -356,7 +341,7 @@
               </div>
 
               <!-- Guest Information Section -->
-              <div class="mb-8">
+              <div class="mb-4">
                 <div class="flex items-center gap-2 mb-6">
                   <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                     <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">person</mat-icon>
@@ -444,6 +429,15 @@
                     <input matInput formControlName="zipCode" placeholder="12345">
                   </mat-form-field>
                 </div>
+              </div>
+
+              <div class="flex justify-end mb-4">
+                <mat-checkbox
+                  formControlName="confirmationVoucher"
+                  class="!m-0"
+                  [class.opacity-50]="reservationForm.get('confirmationVoucher')?.disabled">
+                  <span class="text-sm font-medium text-gray-700">Send Confirmation Voucher</span>
+                </mat-checkbox>
               </div>
 
               <!-- Action Buttons -->

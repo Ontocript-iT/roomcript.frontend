@@ -15,6 +15,7 @@ import { ReservationService } from '../../../core/services/reservation.service';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {RoomService} from '../../../core/services/room.service';
 import {MatCheckbox} from '@angular/material/checkbox';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-reservation-form',
@@ -33,6 +34,7 @@ import {MatCheckbox} from '@angular/material/checkbox';
     MatSnackBarModule,
     MatProgressSpinnerModule,
     MatCheckbox,
+    MatTooltipModule,
   ],
   templateUrl: './reservation-form.component.html',
   styleUrls: ['./reservation-form.component.scss']
@@ -91,6 +93,7 @@ export class ReservationFormComponent implements OnInit {
     this.propertyCode;
     this.subscribeToDateChanges();
     this.subscribeToFormChanges();
+    this.subscribeToReservationTypeChanges();
   }
 
   initForm(): void {
@@ -102,6 +105,7 @@ export class ReservationFormComponent implements OnInit {
       bookingSource: ['', Validators.required],
       discount: [0, [Validators.min(0), Validators.max(100)]],
       isGroupReservation: [false],
+      confirmationVoucher: [{ value: false, disabled: true }],
       rooms: this.fb.array([this.createRoomGroup()]),
       guestTitle: ['MR', Validators.required],
       guestName: ['', Validators.required],
@@ -139,6 +143,24 @@ export class ReservationFormComponent implements OnInit {
         rate: 0
       });
     });
+  }
+
+  private subscribeToReservationTypeChanges(): void {
+    this.reservationForm.get('reservationType')?.valueChanges.subscribe(value => {
+      this.handleReservationTypeChange(value);
+    });
+  }
+
+  private handleReservationTypeChange(reservationType: string): void {
+    const voucherControl = this.reservationForm.get('confirmationVoucher');
+
+    // Enable checkbox only if reservation type is "CONFIRMED"
+    if (reservationType === 'CONFIRMED') {
+      voucherControl?.enable();
+    } else {
+      voucherControl?.disable();
+      voucherControl?.setValue(false); // Uncheck when disabled
+    }
   }
 
   toggleDiscountField(): void {
@@ -408,7 +430,10 @@ export class ReservationFormComponent implements OnInit {
 
     const reservationCategory = formValue.isGroupReservation ? 'GROUP' : 'INDIVIDUAL';
     const isGroupReservationNumeric = formValue.isGroupReservation ? 1 : 0;
-    // Return transformed data matching target JSON structure
+
+    const rawFormValue = this.reservationForm.getRawValue();
+    const sendVoucher = rawFormValue.confirmationVoucher ?? false;
+
     return {
       name: guestFullName,
       email: formValue.email,
@@ -425,6 +450,7 @@ export class ReservationFormComponent implements OnInit {
       isGroupReservation: isGroupReservationNumeric,
       reservationType: formValue.reservationType,
       bookingSource: formValue.bookingSource,
+      sendVoucher: sendVoucher,
       discountPercentage: formValue.discount || 0,
       discountAmount: this.billingSummary.discount,
       subtotal: this.billingSummary.roomCharges,
