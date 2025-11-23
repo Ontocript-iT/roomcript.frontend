@@ -50,7 +50,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'addUser',
+    path: 'users/addUser',
     component: UserAddComponent,
     canActivate: [authGuard]
   },
@@ -60,7 +60,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'assignUserRoles',
+    path: 'users/all',
     component: UserAssign,
     canActivate: [authGuard]
   },
