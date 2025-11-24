@@ -1,5 +1,5 @@
 <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
-  <mat-card-title class="!pl-4 mb-2 text-lg font-semibold text-gray-800">Search Reservations</mat-card-title>
+  <mat-card-title class="!pl-4 mb-2 !text-md font-semibold text-gray-800">Search Reservations</mat-card-title>
   <mat-card-content>
     <form [formGroup]="filterForm" (ngSubmit)="onSubmit()">
       <!-- Row 1: Reservation Dates -->
@@ -95,9 +95,26 @@
         </mat-form-field>
       </div>
 
-      <button mat-raised-button type="submit" color="primary" class="w-full !rounded-lg !font-semibold !shadow">
-        Search
-      </button>
+      <!-- Buttons Row -->
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          mat-raised-button
+          type="submit"
+          color="primary"
+          class="w-full !rounded-lg !font-semibold !shadow">
+          <mat-icon class="!mr-1 !text-[18px]">search</mat-icon>
+          Search
+        </button>
+        <button
+          mat-raised-button
+          type="button"
+          color="primary"
+          (click)="onClear()"
+          class="w-full !rounded-lg !font-semibold !shadow !bg-gray-300 hover:!bg-gray-400">
+          <mat-icon class="!mr-1 !text-[18px]">clear</mat-icon>
+          Clear
+        </button>
+      </div>
     </form>
   </mat-card-content>
 </mat-card>

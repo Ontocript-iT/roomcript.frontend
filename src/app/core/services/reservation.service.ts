@@ -286,20 +286,20 @@ export class ReservationService {
       }
     });
 
-    return this.http.get<any>(url, {
-      headers: headers,
-      params
-    }).pipe(
-      map((response: any) => {
+    return this.http.get<any>(url, { headers, params }).pipe(
+      tap(response => console.log('Filtered raw response:', response)),
+      map(response => {
         let data: any[] = [];
-
-        if (response && response.body && Array.isArray(response.body)) {
+        if (response?.body && Array.isArray(response.body)) {
           data = response.body;
         } else if (Array.isArray(response)) {
           data = response;
         }
 
+        console.log('Extracted data array:', data);
+
         return data.map(item => {
+          console.log('Reservation item:', item);
           const reservation: any = {
             id: item.id,
             confirmationNumber: item.confirmationNumber,
@@ -316,25 +316,24 @@ export class ReservationService {
             reservationType: item.reservationType,
             bookingSource: item.bookingSource,
             specialRequests: item.specialRequests,
-            // Add more fields here if used in UI, e.g. address, numberOfGuests etc.
+            // Normalize roomDetails from multiple possible sources or create from flat room info
+            roomDetails: item.roomDetails && Array.isArray(item.roomDetails)
+              ? item.roomDetails
+              : item.rooms && Array.isArray(item.rooms)
+                ? item.rooms
+                : (item.roomNumber && item.roomType)
+                  ? [{
+                    roomId: item.roomId,
+                    roomNumber: item.roomNumber,
+                    roomType: item.roomType,
+                    roomRate: item.currentRate || item.roomRate || 0,
+                    numberOfAdults: item.numberOfAdults || 0,
+                    numberOfChildren: item.numberOfChildren || 0,
+                  }]
+                  : []
           };
-
-          reservation.reservationRooms = (item.rooms && Array.isArray(item.rooms))
-            ? item.rooms.map((room: any) => ({
-              room: {
-                id: room.roomId,
-                roomNumber: room.roomNumber,
-                roomType: room.roomType,
-                basePrice: room.roomRate,
-              },
-              roomRate: room.roomRate,
-              numberOfAdults: room.numberOfAdults || 0,
-              numberOfChildren: room.numberOfChildren || 0,
-            }))
-            : [];
-
-          return reservation;
-        }) as Reservation[];
+          return reservation as Reservation;
+        });
       }),
       catchError(err => {
         console.error('Error fetching filtered reservations', err);
