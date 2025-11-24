@@ -274,19 +274,19 @@ export class ReservationListComponent implements OnInit {
     Swal.fire({
       title: 'Cancel Reservation',
       html: `
-      <div class="text-left space-y-2" style="font-size: 14px;">
-        <div class="w-full mb-2">
-          <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700">Cancellation Reason</label>
-          <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="" disabled selected>Select a reason</option>
-            ${optionsHtml}
-          </select>
-        </div>
-        <div class="mt-4 text-center">
-          Are you sure you want to cancel reservation for <strong>${reservation.name}</strong>?
-        </div>
+    <div class="text-left space-y-2" style="font-size: 14px;">
+      <div class="w-full mb-2">
+        <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700">Cancellation Reason</label>
+        <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="" disabled selected>Select a reason</option>
+          ${optionsHtml}
+        </select>
       </div>
-    `,
+      <div class="mt-4 text-center">
+        Are you sure you want to cancel reservation for <strong>${reservation.name}</strong>?
+      </div>
+    </div>
+  `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
@@ -301,7 +301,7 @@ export class ReservationListComponent implements OnInit {
         cancelButton: 'text-xs px-4 py-2 rounded-lg'
       },
       preConfirm: () => {
-        const select = (Swal.getPopup() as HTMLElement).querySelector<HTMLInputElement>('#cancel-reason');
+        const select = (Swal.getPopup() as HTMLElement).querySelector<HTMLSelectElement>('#cancelReasonSelect');
         if (!select || !select.value) {
           Swal.showValidationMessage('Please select a cancellation reason');
           return null;
@@ -309,8 +309,8 @@ export class ReservationListComponent implements OnInit {
         return select.value;
       }
     }).then((result) => {
-      if (result.isConfirmed) {
-        this.reservationService.cancelReservation(reservation.id).subscribe({
+      if (result.isConfirmed && result.value) {
+        this.reservationService.cancelReservation(reservation.id, result.value).subscribe({
           next: () => {
             this.showSuccess(`Reservation for ${reservation.name} cancelled successfully.`);
             this.loadReservations();

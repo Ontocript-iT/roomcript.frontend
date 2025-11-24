@@ -204,11 +204,14 @@ export class ReservationService {
     );
   }
 
-  cancelReservation(reservationId: number): Observable<any> {
+  cancelReservation(reservationId: number, reason: string): Observable<any> {
     const url = `${this.apiUrl}/${reservationId}/cancel`;
 
+    const params = new HttpParams().set('reason', reason);
+
     return this.http.delete<any>(url, {
-      headers: this.getHeaders()
+      headers: this.getHeaders(),
+      params: params
     }).pipe(
       catchError(error => {
         console.error('Error canceling reservation:', error);
@@ -217,7 +220,7 @@ export class ReservationService {
     );
   }
 
-    // ========== ADDED: Stay View Method START ==========
+  // ========== ADDED: Stay View Method START ==========
   /**
    * Get all reservations by month for stay view calendar
    * @param month - Month number (1-12)
