@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders,HttpParams} from '@angular/common/http';
 import {catchError, map, Observable, of} from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Reservation } from '../models/reservation.model';
+import { Reservation, ReservationFilter } from '../models/reservation.model';
 import { AvailableRooms } from '../models/room.model';
 import {tap} from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -123,7 +123,36 @@ export class ReservationService {
 
   createGroupReservation(propertyCode: string, reservationData: any): Observable<any> {
     const url = `${this.apiUrl}/addGroupReservation?PropertyCode=${propertyCode}`;
-    return this.http.post(url, reservationData);
+
+    // Add headers including X-Property-Code
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    console.log('🔄 Creating group reservation:', {
+      url: url,
+      propertyCode: propertyCode,
+      data: reservationData
+    });
+
+    return this.http.post<any>(url, reservationData, {
+      headers: headers
+    }).pipe(
+      map((response: any) => {
+        console.log('✅ Group reservation response:', response);
+
+        // Extract body if backend returns ResponseEntity structure
+        if (response && response.body) {
+          return response.body;
+        }
+        return response;
+      }),
+      tap(data => {
+        console.log('Processed reservation data:', data);
+      }),
+      catchError(error => {
+        console.error('Error creating group reservation:', error);
+        throw error;
+      })
+    );
   }
 
   updateReservation(id: number, reservationData: any): Observable<any> {
@@ -197,14 +226,14 @@ export class ReservationService {
    * @returns Observable of StayViewResponse with room types and reservations
    */
   getAllReservationsByMonth(
-    month: number, 
-    year: number, 
+    month: number,
+    year: number,
     propertyCode: string
   ): Observable<StayViewResponse> {
     const url = `${this.apiUrl}/getAllReservationsDatesAndGuestDetailsAndRoomDetailsByPropertyAndMonth`;
-    
+
     const headers = this.getHeaders().set('X-Property-Code', propertyCode);
-    
+
     const params = new HttpParams()
       .set('month', month.toString())
       .set('year', year.toString());
@@ -216,18 +245,18 @@ export class ReservationService {
       propertyCode: propertyCode
     });
 
-    return this.http.get<StayViewResponse>(url, { 
-      headers, 
-      params 
+    return this.http.get<StayViewResponse>(url, {
+      headers,
+      params
     }).pipe(
       tap(response => {
-        console.log('✅ Stay view data loaded:', {
+        console.log('Stay view data loaded:', {
           totalReservations: response.body.totalReservations,
           roomTypes: response.body.roomTypes.length
         });
       }),
       catchError(error => {
-        console.error('❌ Error fetching stay view:', error);
+        console.error('Error fetching stay view:', error);
         throw error;
       })
     );
@@ -240,5 +269,77 @@ export class ReservationService {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
+  }
+
+  getFilteredReservations(
+    filters: Partial<ReservationFilter>,
+    propertyCode: string
+  ): Observable<Reservation[]> {
+    const url = `${this.apiUrl}/filter`;
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    let params = new HttpParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '' && value !== null) {
+        params = params.set(key, String(value));
+      }
+    });
+
+    return this.http.get<any>(url, {
+      headers: headers,
+      params
+    }).pipe(
+      map((response: any) => {
+        let data: any[] = [];
+
+        if (response && response.body && Array.isArray(response.body)) {
+          data = response.body;
+        } else if (Array.isArray(response)) {
+          data = response;
+        }
+
+        return data.map(item => {
+          const reservation: any = {
+            id: item.id,
+            confirmationNumber: item.confirmationNumber,
+            name: item.guestName || item.name || 'N/A',
+            email: item.guestEmail || item.email || '',
+            phone: item.guestPhone || item.phone || '',
+            checkInDate: item.checkInDate,
+            checkOutDate: item.checkOutDate,
+            totalAmount: item.totalAmount || 0,
+            status: item.status || 'PENDING',
+            paymentStatus: item.paymentStatus,
+            roomCount: item.roomCount || 0,
+            groupReservationId: item.groupReservationId,
+            reservationType: item.reservationType,
+            bookingSource: item.bookingSource,
+            specialRequests: item.specialRequests,
+            // Add more fields here if used in UI, e.g. address, numberOfGuests etc.
+          };
+
+          reservation.reservationRooms = (item.rooms && Array.isArray(item.rooms))
+            ? item.rooms.map((room: any) => ({
+              room: {
+                id: room.roomId,
+                roomNumber: room.roomNumber,
+                roomType: room.roomType,
+                basePrice: room.roomRate,
+              },
+              roomRate: room.roomRate,
+              numberOfAdults: room.numberOfAdults || 0,
+              numberOfChildren: room.numberOfChildren || 0,
+            }))
+            : [];
+
+          return reservation;
+        }) as Reservation[];
+      }),
+      catchError(err => {
+        console.error('Error fetching filtered reservations', err);
+        return of([]);
+      })
+    );
   }
 }

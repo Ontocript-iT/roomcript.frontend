@@ -35,12 +35,12 @@ export const routes: Routes = [
   //   canActivate: [authGuard]
   // },
   {
-    path: 'reservations',
+    path: 'reservations/all',
     component: ReservationListComponent,
     canActivate: [authGuard]
   },
     {
-    path: 'addReservation',
+    path: 'reservations/add',
     component: ReservationFormComponent,
     canActivate: [authGuard]
   },
@@ -50,7 +50,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'addUser',
+    path: 'users/addUser',
     component: UserAddComponent,
     canActivate: [authGuard]
   },
@@ -60,7 +60,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'assignUserRoles',
+    path: 'users/all',
     component: UserAssign,
     canActivate: [authGuard]
   },

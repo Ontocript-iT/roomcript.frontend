@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { AllRoles} from '../models/user.model';
 
 export interface CreateUserRequest {
   username: string;
@@ -12,6 +13,7 @@ export interface CreateUserRequest {
   lastName: string;
   propertyCode: string;
   role: string;
+  roleId: number;
 }
 
 export interface PropertyUser {
@@ -72,8 +74,6 @@ export class UserService {
   }
 
   createUser(userData: CreateUserRequest): Observable<UserResponse> {
-    console.log('Creating user with data:', userData);
-
     return this.http.post<UserResponse>(
       this.apiUrl,
       userData,
@@ -94,15 +94,9 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
       params
     }
   ).pipe(
-    tap(rawResponse => {
-      if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
-        console.log('Response keys:', Object.keys(rawResponse));
-      }
-    }),
     map(response => {
 
       if (Array.isArray(response)) {
-        console.log('Response is direct array, length:', response.length);
         return response as PropertyUser[];
       }
 
@@ -129,6 +123,26 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
     // })
   );
 }
+
+  getAllRoles(): Observable<AllRoles[]> {
+    const url = `${environment.apiUrl}/users/getAllRoles`;
+
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map(response => {
+        if (response && response.body && Array.isArray(response.body)) {
+          return response.body as AllRoles[];
+        }
+        if (Array.isArray(response)) {
+          return response as AllRoles[];
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error fetching roles:', error);
+        return of([]);
+      })
+    );
+  }
 
   revokeRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
     const params = {

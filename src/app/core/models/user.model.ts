@@ -26,5 +26,10 @@ export interface AuthResponse {
   name:string;
   roles:string[];
   propertyCode:string;
+}
 
+export interface AllRoles {
+  id: number;
+  name: string;
+  description: string;
 }
