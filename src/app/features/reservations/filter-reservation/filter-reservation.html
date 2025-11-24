@@ -1,0 +1,103 @@
+<mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+  <mat-card-title class="!pl-4 mb-2 text-lg font-semibold text-gray-800">Search Reservations</mat-card-title>
+  <mat-card-content>
+    <form [formGroup]="filterForm" (ngSubmit)="onSubmit()">
+      <!-- Row 1: Reservation Dates -->
+        <div>
+          <mat-checkbox formControlName="useResDate" class="font-semibold w-full mb-2">Res Date Range</mat-checkbox>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 mb-1 !px-0">
+
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Res Start</mat-label>
+              <input matInput [matDatepicker]="resStartPicker" formControlName="resStart" placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="resStartPicker"></mat-datepicker-toggle>
+              <mat-datepicker #resStartPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Res End</mat-label>
+              <input matInput [matDatepicker]="resEndPicker" formControlName="resEnd" placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="resEndPicker"></mat-datepicker-toggle>
+              <mat-datepicker #resEndPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+        <div>
+          <mat-checkbox formControlName="useArrival" class="font-semibold w-full mb-2">Arrival Date Range</mat-checkbox>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 mb-1">
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Arrival End</mat-label>
+              <input matInput [matDatepicker]="arrivalStartPicker" formControlName="arrivalStart" placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="arrivalStartPicker"></mat-datepicker-toggle>
+              <mat-datepicker #arrivalStartPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="fill" class="w-full">
+              <mat-label>Arrival End</mat-label>
+              <input matInput [matDatepicker]="arrivalEndPicker" formControlName="arrivalEnd" placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="arrivalEndPicker"></mat-datepicker-toggle>
+              <mat-datepicker #arrivalEndPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+        </div>
+
+      <!-- Row 2: Source, Room Type -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-1 mb-1">
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Source</mat-label>
+          <mat-select formControlName="bookingSource">
+            <mat-option value="">-Select-</mat-option>
+            <mat-option *ngFor="let option of sourceOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Room Type</mat-label>
+          <mat-select formControlName="roomType">
+            <mat-option value="">-Select-</mat-option>
+            <mat-option *ngFor="let option of roomTypeOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Row 3: Status, Reservation Type -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-1">
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option value="">-Select-</mat-option>
+            <mat-option *ngFor="let option of statusOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Res. Type</mat-label>
+          <mat-select formControlName="reservationType">
+            <mat-option value="">-Select-</mat-option>
+            <mat-option *ngFor="let option of reservationTypeOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <!-- Row 4: Email, Phone -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-2">
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="guestEmail" placeholder="Email address" autocomplete="email"/>
+        </mat-form-field>
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="guestPhone" placeholder="Phone number" autocomplete="tel"/>
+        </mat-form-field>
+      </div>
+
+      <button mat-raised-button type="submit" color="primary" class="w-full !rounded-lg !font-semibold !shadow">
+        Search
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

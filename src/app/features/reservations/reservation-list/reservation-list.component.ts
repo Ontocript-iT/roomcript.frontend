@@ -16,6 +16,7 @@ import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UpdateReservation } from '../update-reservation/update-reservation';
 import {MatNativeDateModule} from '@angular/material/core';
+import {FilterReservation} from '../filter-reservation/filter-reservation';
 
 @Component({
   selector: 'app-reservation-list',
@@ -33,7 +34,8 @@ import {MatNativeDateModule} from '@angular/material/core';
     MatTooltipModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    FilterReservation,
   ],
   templateUrl: './reservation-list.component.html',
   styleUrls: ['./reservation-list.component.scss']
@@ -42,6 +44,7 @@ export class ReservationListComponent implements OnInit {
   reservations: Reservation[] = [];
   isLoading = false;
   propertyCode = localStorage.getItem("propertyCode") || '';
+  showFilter = false;
 
   constructor(
     private reservationService: ReservationService,
@@ -67,6 +70,32 @@ export class ReservationListComponent implements OnInit {
         console.error('Error loading reservations', err);
       }
     });
+  }
+
+  fetchFilteredReservations(filterParams: any): void {
+    this.isLoading = true;
+
+    this.reservationService.getFilteredReservations(filterParams, this.propertyCode).subscribe({
+      next: (data) => {
+        // Ensure filtered data normalized identically in service
+        this.reservations = data;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error fetching filtered reservations', err);
+        this.reservations = [];
+      }
+    });
+  }
+
+  toggleFilter(): void {
+    this.showFilter = !this.showFilter;
+
+    // Reload all reservations when filter is closed
+    if (!this.showFilter) {
+      this.loadReservations();
+    }
   }
 
   viewReservation(reservation: Reservation): void {
@@ -230,9 +259,34 @@ export class ReservationListComponent implements OnInit {
   }
 
   cancelReservation(reservation: any): void {
+    const cancellationReasons = [
+      'Guest request',
+      'Duplicate reservation',
+      'Unconfirmed reservation',
+      'Other'
+    ];
+
+    // Build the select HTML options
+    const optionsHtml = cancellationReasons.map(reason =>
+      `<option value="${reason}">${reason}</option>`
+    ).join('');
+
     Swal.fire({
       title: 'Cancel Reservation',
-      html: `Are you sure you want to cancel reservation for <br><strong>${reservation.name}</strong>?`,
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="w-full mb-2">
+          <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700">Cancellation Reason</label>
+          <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="" disabled selected>Select a reason</option>
+            ${optionsHtml}
+          </select>
+        </div>
+        <div class="mt-4 text-center">
+          Are you sure you want to cancel reservation for <strong>${reservation.name}</strong>?
+        </div>
+      </div>
+    `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
@@ -245,6 +299,14 @@ export class ReservationListComponent implements OnInit {
         htmlContainer: 'text-xs',
         confirmButton: 'text-xs px-4 py-2 rounded-lg',
         cancelButton: 'text-xs px-4 py-2 rounded-lg'
+      },
+      preConfirm: () => {
+        const select = (Swal.getPopup() as HTMLElement).querySelector<HTMLInputElement>('#cancel-reason');
+        if (!select || !select.value) {
+          Swal.showValidationMessage('Please select a cancellation reason');
+          return null;
+        }
+        return select.value;
       }
     }).then((result) => {
       if (result.isConfirmed) {
