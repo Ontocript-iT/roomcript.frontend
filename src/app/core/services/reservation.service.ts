@@ -146,10 +146,10 @@ export class ReservationService {
         return response;
       }),
       tap(data => {
-        console.log('✅ Processed reservation data:', data);
+        console.log('Processed reservation data:', data);
       }),
       catchError(error => {
-        console.error('❌ Error creating group reservation:', error);
+        console.error('Error creating group reservation:', error);
         throw error;
       })
     );
@@ -250,13 +250,13 @@ export class ReservationService {
       params
     }).pipe(
       tap(response => {
-        console.log('✅ Stay view data loaded:', {
+        console.log('Stay view data loaded:', {
           totalReservations: response.body.totalReservations,
           roomTypes: response.body.roomTypes.length
         });
       }),
       catchError(error => {
-        console.error('❌ Error fetching stay view:', error);
+        console.error('Error fetching stay view:', error);
         throw error;
       })
     );
@@ -272,67 +272,69 @@ export class ReservationService {
   }
 
   getFilteredReservations(
-    filters: ReservationFilter
+    filters: Partial<ReservationFilter>,
+    propertyCode: string
   ): Observable<Reservation[]> {
     const url = `${this.apiUrl}/filter`;
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
 
     let params = new HttpParams();
 
-    if (filters.status) {
-      params = params.set('status', filters.status);
-    }
-    if (filters.startReservationDate) {
-      params = params.set('startReservationDate', filters.startReservationDate);
-    }
-    if (filters.endReservationDate) {
-      params = params.set('endReservationDate', filters.endReservationDate);
-    }
-    if (filters.startCheckInDate) {
-      params = params.set('startCheckInDate', filters.startCheckInDate);
-    }
-    if (filters.endCheckInDate) {
-      params = params.set('endCheckInDate', filters.endCheckInDate);
-    }
-    if (filters.bookingSource) {
-      params = params.set('bookingSource', filters.bookingSource);
-    }
-    if (filters.roomType) {
-      params = params.set('roomType', filters.roomType);
-    }
-    if (filters.reservationType) {
-      params = params.set('reservationType', filters.reservationType);
-    }
-    if (filters.guestEmail) {
-      params = params.set('guestEmail', filters.guestEmail);
-    }
-    if (filters.guestPhone) {
-      params = params.set('guestPhone', filters.guestPhone);
-    }
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== '' && value !== null) {
+        params = params.set(key, String(value));
+      }
+    });
 
-    return this.http.get<Reservation[]>(url, {
-      headers: this.getHeaders(),
+    return this.http.get<any>(url, {
+      headers: headers,
       params
     }).pipe(
       map((response: any) => {
-        // adapt to your backend response shape like in getReservations
+        let data: any[] = [];
+
         if (response && response.body && Array.isArray(response.body)) {
-          return response.body as Reservation[];
+          data = response.body;
+        } else if (Array.isArray(response)) {
+          data = response;
         }
-        if (Array.isArray(response)) {
-          return response as Reservation[];
-        }
-        if (response && typeof response === 'object') {
-          if (response.data && Array.isArray(response.data)) {
-            return response.data as Reservation[];
-          }
-          const keys = Object.keys(response);
-          for (const key of keys) {
-            if (Array.isArray(response[key])) {
-              return response[key] as Reservation[];
-            }
-          }
-        }
-        return [];
+
+        return data.map(item => {
+          const reservation: any = {
+            id: item.id,
+            confirmationNumber: item.confirmationNumber,
+            name: item.guestName || item.name || 'N/A',
+            email: item.guestEmail || item.email || '',
+            phone: item.guestPhone || item.phone || '',
+            checkInDate: item.checkInDate,
+            checkOutDate: item.checkOutDate,
+            totalAmount: item.totalAmount || 0,
+            status: item.status || 'PENDING',
+            paymentStatus: item.paymentStatus,
+            roomCount: item.roomCount || 0,
+            groupReservationId: item.groupReservationId,
+            reservationType: item.reservationType,
+            bookingSource: item.bookingSource,
+            specialRequests: item.specialRequests,
+            // Add more fields here if used in UI, e.g. address, numberOfGuests etc.
+          };
+
+          reservation.reservationRooms = (item.rooms && Array.isArray(item.rooms))
+            ? item.rooms.map((room: any) => ({
+              room: {
+                id: room.roomId,
+                roomNumber: room.roomNumber,
+                roomType: room.roomType,
+                basePrice: room.roomRate,
+              },
+              roomRate: room.roomRate,
+              numberOfAdults: room.numberOfAdults || 0,
+              numberOfChildren: room.numberOfChildren || 0,
+            }))
+            : [];
+
+          return reservation;
+        }) as Reservation[];
       }),
       catchError(err => {
         console.error('Error fetching filtered reservations', err);
