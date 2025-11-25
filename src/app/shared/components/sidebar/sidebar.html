@@ -1,13 +1,14 @@
 <ng-container *ngIf="isAuthenticated; else noSidebar">
   <mat-sidenav-container class="h-screen">
     <!-- Left Sidebar - Resizable -->
-    <mat-sidenav 
-      #sidenav 
-      mode="side" 
-      [opened]="sidenavOpened" 
+    <mat-sidenav
+      *ngIf="sidenavOpened"
+      #sidenav
+      mode="side"
+      opened
       [style.width.px]="sidenavWidth"
       class="bg-black border-r border-gray-800 relative">
-      
+
       <!-- Sidebar Header - Compact -->
       <div class="flex flex-col items-center py-4 px-3 border-b border-gray-800">
         <div
@@ -70,7 +71,7 @@
       </div>
 
       <!-- Resize Handle -->
-      <div 
+      <div
         class="resize-handle"
         (mousedown)="onResizeStart($event)">
       </div>

@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-  <div class="max-w-7xl mx-auto">
+  <div class="mx-auto">
     <!-- Header Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between">
@@ -50,32 +50,32 @@
           <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   User
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   Username
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   Role
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   Assigned Date
                 </th>
-                <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-center text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 text-xs">
+            <tbody class="bg-white divide-y divide-gray-200 text-[11px]">
               <tr *ngFor="let user of users; let i = index"
                   [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
                   class="transition-colors duration-150 border-b border-gray-200">
                 <!-- User Name -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md">
                       <ng-container *ngIf="user.firstName && user.lastName">
@@ -91,14 +91,14 @@
                 </td>
 
                 <!-- Username -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 py-2 whitespace-nowrap">
                   <div class="flex items-center">
                     <span class="text-gray-900">{{ user.username }}</span>
                   </div>
                 </td>
 
                 <!-- Role -->
-                <td class="px-6 py-4">
+                <td class="px-4 py-2">
                   <div class="flex flex-wrap gap-2">
                     <ng-container *ngIf="getRolesBadges(user).length > 0; else noRoles">
                 <span
@@ -117,15 +117,15 @@
                 </td>
 
                 <!-- Status -->
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span [class]="user.isActive ? 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800' : 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800'">
+                <td class="px-4 py-2 whitespace-nowrap">
+                  <span [class]="user.isActive ? 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-green-100 text-green-800' : 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-red-100 text-red-800'">
                     <span [class]="user.isActive ? 'w-2 h-2 bg-green-500 rounded-full mr-2' : 'w-2 h-2 bg-red-500 rounded-full mr-2'"></span>
                     {{ user.isActive ? 'Active' : 'Revoked' }}
                   </span>
                 </td>
 
                 <!-- Assigned Date -->
-                <td class="px-6 py-4 whitespace-nowrap text-gray-900">
+                <td class="px-4 py-2 whitespace-nowrap text-gray-900">
                   <div class="flex items-center">
                     <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
                     {{ user.assignedAt | date:'MMM d, y' }}
@@ -133,7 +133,7 @@
                 </td>
 
                 <!-- Actions -->
-                <td class="px-6 py-4 whitespace-nowrap text-center">
+                <td class="px-4 py-2 whitespace-nowrap text-center">
                   <div class="flex items-center justify-center gap-1">
                     <button
                       mat-icon-button

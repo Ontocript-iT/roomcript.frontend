@@ -43,7 +43,7 @@ export class Sidebar implements OnInit {
     if (this.isAuthenticated) {
       this.userRoles = this.authService.getUserRoles();
       this.navItems = this.getAuthorizedNavItems();
-     
+
          // Load saved sidebar state
       const savedWidth = localStorage.getItem('sidenavWidth');
       const savedState = localStorage.getItem('sidenavOpened');
@@ -103,5 +103,5 @@ export class Sidebar implements OnInit {
       localStorage.setItem('sidenavWidth', this.sidenavWidth.toString());
     }
   }
-  
+
 }

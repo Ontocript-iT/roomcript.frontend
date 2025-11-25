@@ -9,6 +9,7 @@ import {CommonModule} from '@angular/common';
 import {of} from 'rxjs';
 import {MatInputModule} from '@angular/material/input';
 import {MatButton} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
 
 @Component({
   selector: 'app-filter-reservation',
@@ -28,7 +29,7 @@ import {MatButton} from '@angular/material/button';
     CommonModule,
     MatInputModule,
     MatButton,
-
+    MatIconModule
   ],
   styleUrls: ['./filter-reservation.scss']
 })
@@ -137,5 +138,24 @@ export class FilterReservation {
 
     console.log('Emitting filter params:', filterParams);
     this.filterChanged.emit(filterParams);
+  }
+
+  onClear(): void {
+    this.filterForm.reset({
+      status: '',
+      useResDate: false,
+      resStart: '',
+      resEnd: '',
+      useArrival: false,
+      arrivalStart: '',
+      arrivalEnd: '',
+      bookingSource: '',
+      roomType: '',
+      reservationType: '',
+      guestEmail: '',
+      guestPhone: ''
+    });
+
+    this.filterChanged.emit({});
   }
 }

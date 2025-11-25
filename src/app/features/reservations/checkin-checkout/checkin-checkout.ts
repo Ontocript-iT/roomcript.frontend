@@ -10,6 +10,8 @@ import { Reservation } from '../../../core/models/reservation.model';
 import Swal from 'sweetalert2';
 import {RouterLink} from '@angular/router';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import {FilterReservation} from '../filter-reservation/filter-reservation';
+import {MatNativeDateModule} from '@angular/material/core';
 
 @Component({
   selector: 'app-checkin-checkout',
@@ -21,7 +23,9 @@ import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
     MatButtonModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    FilterReservation,
+    MatNativeDateModule,
   ],
   templateUrl: './checkin-checkout.html',
   styleUrls: ['./checkin-checkout.scss']
@@ -30,6 +34,7 @@ export class CheckinCheckoutComponent implements OnInit {
   reservations: Reservation[] = [];
   isLoading = false;
   propertyCode = localStorage.getItem("propertyCode") || '';
+  showFilter = false;
 
   constructor(
     private reservationService: ReservationService,
@@ -94,8 +99,8 @@ export class CheckinCheckoutComponent implements OnInit {
       if (result.isConfirmed) {
         this.reservationService.updateCheckInAndCheckOutStatus(
           reservation.id,
-          true,  // isCheckedIn
-          false  // isCheckedOut
+          true,
+          false
         ).subscribe({
           next: () => {
             this.showSuccess(`${reservation.name} checked in successfully`);
@@ -141,6 +146,32 @@ export class CheckinCheckoutComponent implements OnInit {
         });
       }
     });
+  }
+
+  fetchFilteredReservations(filterParams: any): void {
+    this.isLoading = true;
+
+    this.reservationService.getFilteredReservations(filterParams, this.propertyCode).subscribe({
+      next: (data) => {
+        // Ensure filtered data normalized identically in service
+        this.reservations = data;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error fetching filtered reservations', err);
+        this.reservations = [];
+      }
+    });
+  }
+
+  toggleFilter(): void {
+    this.showFilter = !this.showFilter;
+
+    // Reload all reservations when filter is closed
+    if (!this.showFilter) {
+      this.loadReservations();
+    }
   }
 
   private showSuccess(message: string): void {
