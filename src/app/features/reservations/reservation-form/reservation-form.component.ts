@@ -93,19 +93,19 @@ export class ReservationFormComponent implements OnInit {
     this.propertyCode;
     this.subscribeToDateChanges();
     this.subscribeToFormChanges();
-    this.subscribeToReservationTypeChanges();
+    this.subscribeToGroupReservationChanges();
   }
 
   initForm(): void {
     this.reservationForm = this.fb.group({
       checkIn: ['', Validators.required],
       checkOut: ['', Validators.required],
-      numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
+      numberOfRooms: [1, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
       discount: [0, [Validators.min(0), Validators.max(100)]],
       isGroupReservation: [false],
-      confirmationVoucher: [{ value: false, disabled: true }],
+      confirmationVoucher: [false],
       rooms: this.fb.array([this.createRoomGroup()]),
       guestTitle: ['MR', Validators.required],
       guestName: ['', Validators.required],
@@ -115,18 +115,20 @@ export class ReservationFormComponent implements OnInit {
       country: [''],
       state: [''],
       city: [''],
-      zipCode: ['']
+      zipCode: [''],
+      holdDate: [''],
+      remindBeforeDays: [0, [Validators.min(0)]]
     });
   }
 
   private subscribeToDateChanges(): void {
-    // Listen to check-in date changes
+    // Listen to check in date changes
     this.reservationForm.get('checkIn')?.valueChanges.subscribe((checkInDate) => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
     });
 
-    // Listen to check-out date changes
+    // Listen to check out date changes
     this.reservationForm.get('checkOut')?.valueChanges.subscribe((checkOutDate) => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
@@ -145,22 +147,26 @@ export class ReservationFormComponent implements OnInit {
     });
   }
 
-  private subscribeToReservationTypeChanges(): void {
-    this.reservationForm.get('reservationType')?.valueChanges.subscribe(value => {
-      this.handleReservationTypeChange(value);
+  private subscribeToGroupReservationChanges(): void {
+    this.reservationForm.get('isGroupReservation')?.valueChanges.subscribe((isGroupReservation) => {
+      if (!isGroupReservation) {
+        // When unchecked, remove all rooms except the first one
+        while (this.rooms.length > 1) {
+          this.rooms.removeAt(this.rooms.length - 1);
+        }
+
+        // Clear the room index map for removed rooms
+        this.availableRoomsByIndex.clear();
+
+        // Update the number of rooms field
+        this.updateNumberOfRooms();
+
+        // Optionally show a message to the user
+        if (this.rooms.length > 1) {
+          this.showSuccess('Additional rooms removed. Only the first room remains.');
+        }
+      }
     });
-  }
-
-  private handleReservationTypeChange(reservationType: string): void {
-    const voucherControl = this.reservationForm.get('confirmationVoucher');
-
-    // Enable checkbox only if reservation type is "CONFIRMED"
-    if (reservationType === 'CONFIRMED') {
-      voucherControl?.enable();
-    } else {
-      voucherControl?.disable();
-      voucherControl?.setValue(false); // Uncheck when disabled
-    }
   }
 
   toggleDiscountField(): void {
@@ -175,11 +181,11 @@ export class ReservationFormComponent implements OnInit {
   createRoomGroup(): FormGroup {
     return this.fb.group({
       roomType: ['', Validators.required],
-      rateType: ['STANDARD', Validators.required],
-      roomNumber: ['', Validators.required],
-      adults: [1, [Validators.required, Validators.min(1)]],
+      rateType: ['STANDARD'],
+      roomNumber: [''],
+      adults: [1, [Validators.min(1)]],
       children: [0, [Validators.min(0)]],
-      rate: [0, [Validators.required, Validators.min(0)]],
+      rate: [0, [Validators.min(0)]],
       manualRate: [false]
     });
   }
@@ -263,17 +269,17 @@ export class ReservationFormComponent implements OnInit {
     );
   }
 
-  // incrementRooms(): void {
-  //   const current = this.reservationForm.get('numberOfRooms')?.value || 0;
-  //   this.reservationForm.patchValue({ numberOfRooms: current + 1 });
-  // }
-  //
-  // decrementRooms(): void {
-  //   const current = this.reservationForm.get('numberOfRooms')?.value || 0;
-  //   if (current > 1) {
-  //     this.reservationForm.patchValue({ numberOfRooms: current - 1 });
-  //   }
-  // }
+  incrementRooms(): void {
+    const current = this.reservationForm.get('numberOfRooms')?.value || 0;
+    this.reservationForm.patchValue({ numberOfRooms: current + 1 });
+  }
+
+  decrementRooms(): void {
+    const current = this.reservationForm.get('numberOfRooms')?.value || 0;
+    if (current > 1) {
+      this.reservationForm.patchValue({ numberOfRooms: current - 1 });
+    }
+  }
 
   incrementAdults(index: number): void {
     const room = this.rooms.at(index);
@@ -300,6 +306,20 @@ export class ReservationFormComponent implements OnInit {
     const current = room.get('children')?.value || 0;
     if (current > 0) {
       room.patchValue({ children: current - 1 });
+    }
+  }
+
+  incrementRemindBeforeDays(): void {
+    const current = this.reservationForm.get('remindBeforeDays')?.value || 0;
+    if (current < 365) {
+      this.reservationForm.patchValue({ remindBeforeDays: current + 1 });
+    }
+  }
+
+  decrementRemindBeforeDays(): void {
+    const current = this.reservationForm.get('remindBeforeDays')?.value || 0;
+    if (current > 0) {
+      this.reservationForm.patchValue({ remindBeforeDays: current - 1 });
     }
   }
 
@@ -456,7 +476,8 @@ export class ReservationFormComponent implements OnInit {
       subtotal: this.billingSummary.roomCharges,
       totalAmount: this.billingSummary.totalAmount,
       specialRequests: formValue.specialRequests || '',
-      roomGuests: roomGuests
+      roomGuests: roomGuests,
+      isOnHold: false,
     };
   }
 
@@ -487,7 +508,7 @@ export class ReservationFormComponent implements OnInit {
           this.showSuccess('Reservation created successfully!');
 
           setTimeout(() => {
-            this.router.navigate(['/reservations']);
+            this.router.navigate(['/reservations/all']);
           }, 1500);
 
           this.reservationForm.reset();

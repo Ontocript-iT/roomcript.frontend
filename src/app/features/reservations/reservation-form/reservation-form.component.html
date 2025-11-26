@@ -61,19 +61,24 @@
                       readonly
                       class="pr-10 text-left">
 
-                    <!-- Stacked increment/decrement buttons -->
-                    <mat-form-field appearance="fill">
-                      <mat-label>Rooms</mat-label>
-                      <input
-                        matInput
-                        type="number"
-                        formControlName="numberOfRooms"
-                        placeholder="0"
-                        readonly
-                        class="text-left">
-                      <mat-icon matSuffix class="!text-gray-400">meeting_room</mat-icon>
-                      <mat-hint>Auto-calculated based on added rooms</mat-hint>
-                    </mat-form-field>
+                    <div matSuffix class="flex flex-col gap-0 mb-1">
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="incrementRooms()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                      </button>
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="decrementRooms()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                      </button>
+                    </div>
 
                     <mat-error *ngIf="reservationForm.get('numberOfRooms')?.hasError('required')">
                       Number of rooms is required
@@ -427,6 +432,67 @@
                   <mat-form-field appearance="fill">
                     <mat-label>Zip Code</mat-label>
                     <input matInput formControlName="zipCode" placeholder="12345">
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <!-- Hold Reservation Section -->
+              <div class="mb-4 pb-4 border-b border-gray-300">
+                <div class="flex items-center gap-2 mb-6">
+                  <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                    <mat-icon class="!text-orange-600 !w-5 !h-5 !text-[20px]">schedule</mat-icon>
+                  </div>
+                  <h2 class="text-md font-semibold text-gray-800">Hold Reservation</h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <!-- Hold Date -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Hold Until Date</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="holdDatePicker"
+                      formControlName="holdDate"
+                      placeholder="Select date">
+                    <mat-datepicker-toggle matSuffix [for]="holdDatePicker"></mat-datepicker-toggle>
+                    <mat-datepicker #holdDatePicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <!-- Remind Before Days -->
+                  <mat-form-field appearance="fill" class="lg:col-span-1">
+                    <mat-label>Remind Before Days</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="remindBeforeDays"
+                      placeholder="0"
+                      readonly
+                      class="pr-10 text-left"
+                      min="0"
+                      max="365">
+
+                    <div matSuffix class="flex flex-col gap-0 mb-1">
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="incrementRemindBeforeDays()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                      </button>
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="decrementRemindBeforeDays()"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                      </button>
+                    </div>
+
+                    <mat-error *ngIf="reservationForm.get('remindBeforeDays')?.hasError('min')">
+                      Must be 0 or greater
+                    </mat-error>
                   </mat-form-field>
                 </div>
               </div>
