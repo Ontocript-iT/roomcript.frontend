@@ -60,36 +60,46 @@
               <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Guest Name
                   </th>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Room No.
                   </th>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Room Type
                   </th>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Check-In
                   </th>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Check-Out
                   </th>
-                  <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Total
                   </th>
-                  <th class="px-4 py-2 text-center text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Status
                   </th>
-                  <th class="px-4 py-2 text-center text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Check In/Out
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200 text-[11px]">
+                <tbody class="bg-white divide-y divide-gray-200 text-xs">
                 <tr *ngFor="let res of reservations; let i = index"
                     [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
                     class="transition-colors duration-150 border-b border-gray-200">
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="font-semibold text-gray-900">
+                      {{ i+1 }}
+                    </span>
+                  </td>
                   <!-- Guest Name -->
                   <td class="px-4 py-2 whitespace-nowrap">
                     <div class="flex items-center">
@@ -155,6 +165,39 @@
                     </span>
                   </td>
 
+                  <!-- Check In/Check out -->
+                  <td class="px-4 py-2 whitespace-nowrap text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <!-- Check-In Button: Show if check_in_status is 0 -->
+                      <button
+                        *ngIf="!res.checkInStatus"
+                        mat-raised-button
+                        (click)="onCheckIn(res)"
+                        class="!h-8 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">login</mat-icon>
+                        Check In
+                      </button>
+
+                      <!-- Check-Out Button: Show if check_in_status is 1 and check_out_status is 0 -->
+                      <button
+                        *ngIf="res.checkInStatus && !res.checkOutStatus"
+                        mat-raised-button
+                        (click)="onCheckOut(res)"
+                        class="!h-8 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">logout</mat-icon>
+                        Check Out
+                      </button>
+
+                      <!-- Completed: Show if both check_in_status and check_out_status are 1 -->
+                      <span
+                        *ngIf="res.checkInStatus && res.checkOutStatus"
+                        class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        <mat-icon class="!w-4 !h-4 !text-[16px] !mr-1">check_circle</mat-icon>
+                        Completed
+                      </span>
+
+                    </div>
+                  </td>
                                     <!-- Actions -->
                   <td class="px-4 py-2 whitespace-nowrap text-center">
                     <div class="flex items-center justify-center gap-1">

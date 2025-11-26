@@ -5,18 +5,18 @@ export interface RoomDetail {
   numberOfAdults: number | null;
   numberOfChildren: number | null;
   roomRate: number;
-  roomTotal?: number | null;        // optional, as seen in filtered data
+  roomTotal?: number | null;
   confirmationNumber?: string | null;
 }
 
 export interface Reservation {
   id: number;
-  confirmationNumber?: string;      // in API but missing from your model
-  guestId?: number;                 // from API
+  confirmationNumber?: string;
+  guestId?: number;
   name: string;
   email: string;
   phone: string;
-  roomDetails: RoomDetail[];        // normalize full list and filtered 'rooms'
+  roomDetails: RoomDetail[];
   checkInDate: string;
   checkOutDate: string;
   totalAmount: number;

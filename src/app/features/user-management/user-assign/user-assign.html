@@ -50,30 +50,37 @@
           <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                </th>
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   User
                 </th>
-                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Username
                 </th>
-                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Role
                 </th>
-                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th class="px-4 py-2 text-left text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Assigned Date
                 </th>
-                <th class="px-4 py-2 text-center text-[11px] font-semibold text-gray-600 uppercase tracking-wider">
+                <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200 text-[11px]">
+            <tbody class="bg-white divide-y divide-gray-200 text-xs">
               <tr *ngFor="let user of users; let i = index"
                   [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
                   class="transition-colors duration-150 border-b border-gray-200">
+                <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="font-semibold text-gray-900">
+                      {{ i+1 }}
+                    </span>
+                </td>
                 <!-- User Name -->
                 <td class="px-4 py-2 whitespace-nowrap">
                   <div class="flex items-center">
@@ -118,7 +125,7 @@
 
                 <!-- Status -->
                 <td class="px-4 py-2 whitespace-nowrap">
-                  <span [class]="user.isActive ? 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-green-100 text-green-800' : 'inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold bg-red-100 text-red-800'">
+                  <span [class]="user.isActive ? 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800' : 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800'">
                     <span [class]="user.isActive ? 'w-2 h-2 bg-green-500 rounded-full mr-2' : 'w-2 h-2 bg-red-500 rounded-full mr-2'"></span>
                     {{ user.isActive ? 'Active' : 'Revoked' }}
                   </span>
@@ -134,7 +141,7 @@
 
                 <!-- Actions -->
                 <td class="px-4 py-2 whitespace-nowrap text-center">
-                  <div class="flex items-center justify-center gap-1">
+                  <div class="flex items-center justify-center">
                     <button
                       mat-icon-button
                       matTooltip="Assign Role"
