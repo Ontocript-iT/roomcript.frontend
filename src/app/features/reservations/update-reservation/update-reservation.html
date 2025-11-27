@@ -27,21 +27,29 @@
             <mat-label>Check-In Date</mat-label>
             <input
               matInput
+              [matDatepicker]="checkInPicker"
               formControlName="checkIn"
-              readonly
-              class="!cursor-not-allowed !bg-gray-100">
-            <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
+              placeholder="Select date">
+            <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+            <mat-datepicker #checkInPicker></mat-datepicker>
+            <mat-error *ngIf="updateReservationForm.get('checkIn')?.hasError('required')">
+              Check-in date is required
+            </mat-error>
           </mat-form-field>
 
-          <!-- Check Out Date  -->
+          <!-- Check Out Date -->
           <mat-form-field appearance="fill">
             <mat-label>Check-Out Date</mat-label>
             <input
               matInput
+              [matDatepicker]="checkOutPicker"
               formControlName="checkOut"
-              readonly
-              class="!cursor-not-allowed !bg-gray-100">
-            <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
+              placeholder="Select date">
+            <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
+            <mat-datepicker #checkOutPicker></mat-datepicker>
+            <mat-error *ngIf="updateReservationForm.get('checkOut')?.hasError('required')">
+              Check-out date is required
+            </mat-error>
           </mat-form-field>
 
           <!-- Number of Rooms -->

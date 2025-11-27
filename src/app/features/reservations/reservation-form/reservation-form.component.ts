@@ -511,17 +511,6 @@ export class ReservationFormComponent implements OnInit {
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
 
-    // Build complete address string
-    const addressParts = [
-      formValue.address,
-      formValue.city,
-      formValue.state,
-      formValue.country,
-      formValue.zipCode
-    ].filter(part => part && part.trim() !== '');
-
-    const fullAddress = addressParts.join(', ');
-
     const reservationCategory = formValue.isGroupReservation ? 'GROUP' : 'INDIVIDUAL';
     const isGroupReservationNumeric = formValue.isGroupReservation ? 1 : 0;
 
@@ -533,7 +522,12 @@ export class ReservationFormComponent implements OnInit {
       name: guestFullName,
       email: formValue.email,
       phone: formValue.mobile,
-      address: fullAddress,
+      address: formValue.address || '',
+      city: formValue.city || '',
+      state: formValue.state || '',
+      country: formValue.country || '',
+      zipCode: formValue.zipCode || '',
+
       roomIds: roomIds,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
@@ -541,6 +535,7 @@ export class ReservationFormComponent implements OnInit {
       numberOfAdults: totalAdults,
       numberOfChildren: totalChildren,
       roomCount: formValue.rooms.length,
+
       reservationCategory: reservationCategory,
       isGroupReservation: isGroupReservationNumeric,
       reservationType: formValue.reservationType,
