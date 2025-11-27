@@ -1,21 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { MatError, MatFormFieldModule, MatLabel } from '@angular/material/form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ReservationService } from '../../../core/services/reservation.service';
-import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
-import {RoomService} from '../../../core/services/room.service';
-import {MatCheckbox} from '@angular/material/checkbox';
-import {MatTooltipModule} from '@angular/material/tooltip';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { RoomService } from '../../../core/services/room.service';
+import { MatCheckbox } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatetimepickerModule } from '@mat-datetimepicker/core';
+import { MatNativeDatetimeModule } from '@mat-datetimepicker/core';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-reservation-form',
@@ -35,7 +38,11 @@ import {MatTooltipModule} from '@angular/material/tooltip';
     MatProgressSpinnerModule,
     MatCheckbox,
     MatTooltipModule,
+    FormsModule,
+    MatDatetimepickerModule,
+    MatNativeDatetimeModule,
   ],
+  providers: [DatePipe],
   templateUrl: './reservation-form.component.html',
   styleUrls: ['./reservation-form.component.scss']
 })
@@ -86,6 +93,7 @@ export class ReservationFormComponent implements OnInit {
     private reservationService: ReservationService,
     private roomService: RoomService,
     private snackBar: MatSnackBar,
+    private datePipe: DatePipe,
 ) {}
 
   ngOnInit(): void {
@@ -94,6 +102,8 @@ export class ReservationFormComponent implements OnInit {
     this.subscribeToDateChanges();
     this.subscribeToFormChanges();
     this.subscribeToGroupReservationChanges();
+    this.subscribeToReservationTypeChanges();
+    this.subscribeToHoldReservationChanges();
   }
 
   initForm(): void {
@@ -106,6 +116,8 @@ export class ReservationFormComponent implements OnInit {
       discount: [0, [Validators.min(0), Validators.max(100)]],
       isGroupReservation: [false],
       confirmationVoucher: [false],
+      isOnhold: [false],
+      isOnHold: [{ value: false, disabled: true }],
       rooms: this.fb.array([this.createRoomGroup()]),
       guestTitle: ['MR', Validators.required],
       guestName: ['', Validators.required],
@@ -117,8 +129,22 @@ export class ReservationFormComponent implements OnInit {
       city: [''],
       zipCode: [''],
       holdDate: [''],
-      remindBeforeDays: [0, [Validators.min(0)]]
+      remindBeforeDays: [0, [Validators.min(0)]],
+      releaseDateTime: [{ value: '', disabled: true }],
+      remindDaysBeforeRelease: [{ value: 0, disabled: true }, [Validators.min(0)]]
     });
+  }
+
+  getFormattedReleaseDateTime(): string | null {
+    const releaseDateTime = this.reservationForm.get('releaseDateTime')?.value;
+    if (!releaseDateTime) return null;
+
+    // releaseDateTime could be a Date object or string
+    const date = new Date(releaseDateTime);
+    if (isNaN(date.getTime())) return null;
+
+    // Format as 'yyyy-MM-ddTHH:mm:ss' (no timezone offset)
+    return this.datePipe.transform(date, "yyyy-MM-dd'T'HH:mm:ss") || null;
   }
 
   private subscribeToDateChanges(): void {
@@ -176,6 +202,48 @@ export class ReservationFormComponent implements OnInit {
   removeDiscount(): void {
     this.reservationForm.patchValue({ discount: 0 });
     this.showDiscountField = false;
+  }
+
+  private subscribeToReservationTypeChanges(): void {
+    this.reservationForm.get('reservationType')?.valueChanges.subscribe((reservationType) => {
+      const holdReservationControl = this.reservationForm.get('isOnHold');
+      const holdDateControl = this.reservationForm.get('releaseDateTime');
+      const remindBeforeDaysControl = this.reservationForm.get('remindDaysBeforeRelease');
+
+      if (reservationType === 'CONFIRMED') {
+        // Disable and uncheck the "Hold Reservation" checkbox for Confirm Booking
+        holdReservationControl?.disable();
+        holdReservationControl?.setValue(false);
+
+        // Also disable the hold date and remind fields
+        holdDateControl?.disable();
+        holdDateControl?.setValue('');
+        remindBeforeDaysControl?.disable();
+        remindBeforeDaysControl?.setValue(0);
+      } else {
+        // Enable the "Hold Reservation" checkbox for other reservation types
+        holdReservationControl?.enable();
+      }
+    });
+  }
+
+  private subscribeToHoldReservationChanges(): void {
+    this.reservationForm.get('isOnHold')?.valueChanges.subscribe((isHoldReservation) => {
+      const holdDateControl = this.reservationForm.get('releaseDateTime');
+      const remindBeforeDaysControl = this.reservationForm.get('remindDaysBeforeRelease');
+
+      if (isHoldReservation) {
+        // Enable hold date and remind before days fields when checked
+        holdDateControl?.enable();
+        remindBeforeDaysControl?.enable();
+      } else {
+        // Disable and clear the fields when unchecked
+        holdDateControl?.disable();
+        holdDateControl?.setValue('');
+        remindBeforeDaysControl?.disable();
+        remindBeforeDaysControl?.setValue(0);
+      }
+    });
   }
 
   createRoomGroup(): FormGroup {
@@ -310,16 +378,22 @@ export class ReservationFormComponent implements OnInit {
   }
 
   incrementRemindBeforeDays(): void {
-    const current = this.reservationForm.get('remindBeforeDays')?.value || 0;
+    const control = this.reservationForm.get('remindDaysBeforeRelease');
+    if (!control) return;
+
+    const current = control.value || 0;
     if (current < 365) {
-      this.reservationForm.patchValue({ remindBeforeDays: current + 1 });
+      control.setValue(current + 1);
     }
   }
 
   decrementRemindBeforeDays(): void {
-    const current = this.reservationForm.get('remindBeforeDays')?.value || 0;
+    const control = this.reservationForm.get('remindDaysBeforeRelease');
+    if (!control) return;
+
+    const current = control.value || 0;
     if (current > 0) {
-      this.reservationForm.patchValue({ remindBeforeDays: current - 1 });
+      control.setValue(current - 1);
     }
   }
 
@@ -437,28 +511,23 @@ export class ReservationFormComponent implements OnInit {
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
 
-    // Build complete address string
-    const addressParts = [
-      formValue.address,
-      formValue.city,
-      formValue.state,
-      formValue.country,
-      formValue.zipCode
-    ].filter(part => part && part.trim() !== '');
-
-    const fullAddress = addressParts.join(', ');
-
     const reservationCategory = formValue.isGroupReservation ? 'GROUP' : 'INDIVIDUAL';
     const isGroupReservationNumeric = formValue.isGroupReservation ? 1 : 0;
 
     const rawFormValue = this.reservationForm.getRawValue();
     const sendVoucher = rawFormValue.confirmationVoucher ?? false;
+    const formattedDateTime = this.getFormattedReleaseDateTime();
 
     return {
       name: guestFullName,
       email: formValue.email,
       phone: formValue.mobile,
-      address: fullAddress,
+      address: formValue.address || '',
+      city: formValue.city || '',
+      state: formValue.state || '',
+      country: formValue.country || '',
+      zipCode: formValue.zipCode || '',
+
       roomIds: roomIds,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
@@ -466,6 +535,7 @@ export class ReservationFormComponent implements OnInit {
       numberOfAdults: totalAdults,
       numberOfChildren: totalChildren,
       roomCount: formValue.rooms.length,
+
       reservationCategory: reservationCategory,
       isGroupReservation: isGroupReservationNumeric,
       reservationType: formValue.reservationType,
@@ -477,7 +547,9 @@ export class ReservationFormComponent implements OnInit {
       totalAmount: this.billingSummary.totalAmount,
       specialRequests: formValue.specialRequests || '',
       roomGuests: roomGuests,
-      isOnHold: false,
+      isOnHold: formValue.isOnHold,
+      releaseDateTime: formattedDateTime,
+      remindDaysBeforeRelease: formValue.remindDaysBeforeRelease,
     };
   }
 

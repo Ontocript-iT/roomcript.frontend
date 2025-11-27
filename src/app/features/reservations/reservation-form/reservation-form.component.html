@@ -24,7 +24,7 @@
             <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()">
 
               <!-- Reservation Details Section -->
-              <div class="mb-8 border-b border-gray-300">
+              <div class="mb-2 border-b border-gray-300">
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
                   <!-- Check In Date -->
@@ -123,7 +123,7 @@
               </div>
 
               <!-- Room Details Section -->
-              <div class="mb-8 pb-4 border-b border-gray-300">
+              <div class="mb-2 pb-4 border-b border-gray-300">
                 <div class="flex items-center justify-between mb-4">
                   <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -136,7 +136,7 @@
                   <mat-checkbox
                     formControlName="isGroupReservation"
                     class="!m-0">
-                    <span class="text-sm font-medium text-gray-700">Group Reservation</span>
+                    <span class="text-sm font-medium text-gray-700 mr-16">Group Reservation</span>
                   </mat-checkbox>
 <!--                  <mat-checkbox-->
 <!--                    formControlName="isGroupReservation"-->
@@ -346,7 +346,7 @@
               </div>
 
               <!-- Guest Information Section -->
-              <div class="mb-4">
+              <div class="mb-2 border-b border-gray-300">
                 <div class="flex items-center gap-2 mb-6">
                   <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                     <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">person</mat-icon>
@@ -437,25 +437,34 @@
               </div>
 
               <!-- Hold Reservation Section -->
-              <div class="mb-4 pb-4 border-b border-gray-300">
-                <div class="flex items-center gap-2 mb-6">
-                  <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                    <mat-icon class="!text-orange-600 !w-5 !h-5 !text-[20px]">schedule</mat-icon>
+              <div class="mb-2">
+                <div class="flex items-center justify-between mb-6">
+
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <mat-icon class="!text-orange-600 !w-5 !h-5 !text-[20px]">schedule</mat-icon>
+                    </div>
+                    <h2 class="text-md font-semibold text-gray-800">Hold Reservation</h2>
                   </div>
-                  <h2 class="text-md font-semibold text-gray-800">Hold Reservation</h2>
+
+                  <mat-checkbox
+                    formControlName="isOnHold"
+                    class="!m-0">
+                    <span class="text-sm font-medium text-gray-700 mr-16">Hold Reservation</span>
+                  </mat-checkbox>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <!-- Hold Date -->
                   <mat-form-field appearance="fill">
-                    <mat-label>Hold Until Date</mat-label>
+                    <mat-label>Release Date & Time</mat-label>
                     <input
                       matInput
-                      [matDatepicker]="holdDatePicker"
-                      formControlName="holdDate"
-                      placeholder="Select date">
-                    <mat-datepicker-toggle matSuffix [for]="holdDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #holdDatePicker></mat-datepicker>
+                      [matDatetimepicker]="holdDateTimePicker"
+                      formControlName="releaseDateTime"
+                      placeholder="Select date and time">
+                    <mat-datetimepicker-toggle matSuffix [for]="holdDateTimePicker"></mat-datetimepicker-toggle>
+                    <mat-datetimepicker #holdDateTimePicker type="datetime"></mat-datetimepicker>
                   </mat-form-field>
 
                   <!-- Remind Before Days -->
@@ -464,7 +473,7 @@
                     <input
                       matInput
                       type="number"
-                      formControlName="remindBeforeDays"
+                      formControlName="remindDaysBeforeRelease"
                       placeholder="0"
                       readonly
                       class="pr-10 text-left"

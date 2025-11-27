@@ -111,16 +111,6 @@ export class ReservationService {
     );
   }
 
-  getReservationById(id: number): Observable<Reservation> {
-    return this.http.get<Reservation>(`${this.apiUrl}/${id}`, {
-      headers: this.getHeaders()
-    });
-  }
-
-  createReservation(reservation: Partial<Reservation>): Observable<Reservation> {
-    return this.http.post<Reservation>(this.apiUrl, reservation);
-  }
-
   createGroupReservation(propertyCode: string, reservationData: any): Observable<any> {
     const url = `${this.apiUrl}/addGroupReservation?PropertyCode=${propertyCode}`;
 
@@ -137,7 +127,7 @@ export class ReservationService {
       headers: headers
     }).pipe(
       map((response: any) => {
-        console.log('✅ Group reservation response:', response);
+        console.log('Group reservation response:', response);
 
         // Extract body if backend returns ResponseEntity structure
         if (response && response.body) {
