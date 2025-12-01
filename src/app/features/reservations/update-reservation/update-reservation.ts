@@ -94,7 +94,7 @@ export class UpdateReservation implements OnInit {
     this.updateReservationForm = this.fb.group({
       checkIn: ['', Validators.required],
       checkOut: ['', Validators.required],
-      numberOfRooms: [1, [Validators.required, Validators.min(1)]],
+      numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
       rooms: this.fb.array([this.createRoomGroup()]),
