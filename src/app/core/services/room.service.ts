@@ -163,4 +163,30 @@ export class RoomService {
       })
     );
   }
+
+  getRoomsByProperty(propertyCode: string): Observable<Room[]> {
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    return this.http.get<any>(this.apiUrl, { headers }).pipe(
+      map(response => {
+        let roomsArray: Room[] = [];
+
+        if (Array.isArray(response)) {
+          roomsArray = response;
+        }
+        else if (response && response.body && Array.isArray(response.body)) {
+          roomsArray = response.body;
+        }
+        else if (response && response.data && Array.isArray(response.data)) {
+          roomsArray = response.data;
+        }
+
+        return roomsArray as Room[];
+      }),
+      catchError(error => {
+        console.error('Error fetching rooms for property:', error);
+        return of([]);
+      })
+    );
+  }
 }

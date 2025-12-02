@@ -70,7 +70,7 @@ export const NAV_ITEMS: NavItem[] = [
       },
       {
         title: 'Add Room',
-        route: '/roomCreate',
+        route: '/rooms/create',
         icon: 'add',
         roles: ['SUPER_ADMIN']
       },

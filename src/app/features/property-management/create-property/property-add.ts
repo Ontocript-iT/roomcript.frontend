@@ -15,8 +15,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
-import { PropertyService, Property } from '../../../core/services/property.service';
-
+import { PropertyService } from '../../../core/services/property.service';
+import { Property } from '../../../core/models/property.model'
 
 
 
@@ -76,7 +76,7 @@ export class PropertyAddComponent implements OnInit {
   onSubmit(): void {
         if (this.propertyForm.valid) {
       this.isLoading = true;
-      
+
       const propertyData: Property = this.propertyForm.value;
 
       this.propertyService.createProperty(propertyData)
@@ -136,7 +136,7 @@ export class PropertyAddComponent implements OnInit {
 
   private handleError(error: any): void {
     let errorMessage = 'An error occurred while creating the property';
-    
+
     if (error.status === 401) {
       errorMessage = 'Unauthorized. Please login again.';
       this.authService.logout();
@@ -146,7 +146,7 @@ export class PropertyAddComponent implements OnInit {
     } else if (error.error?.message) {
       errorMessage = error.error.message;
     }
-    
+
     this.showError(errorMessage);
     console.error('Error creating property:', error);
   }
