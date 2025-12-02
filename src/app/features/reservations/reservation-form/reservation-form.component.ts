@@ -19,6 +19,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatetimepickerModule } from '@mat-datetimepicker/core';
 import { MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { DatePipe } from '@angular/common';
+import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
 
 @Component({
   selector: 'app-reservation-form',
@@ -41,6 +42,7 @@ import { DatePipe } from '@angular/common';
     FormsModule,
     MatDatetimepickerModule,
     MatNativeDatetimeModule,
+    NgxMaterialTimepickerModule,
   ],
   providers: [DatePipe],
   templateUrl: './reservation-form.component.html',
@@ -130,31 +132,37 @@ export class ReservationFormComponent implements OnInit {
       zipCode: [''],
       holdDate: [''],
       remindBeforeDays: [0, [Validators.min(0)]],
-      releaseDateTime: [{ value: '', disabled: true }],
+      releaseDate: [{ value: '', disabled: true }],
+      releaseTime: [{ value: '', disabled: true }],
       remindDaysBeforeRelease: [{ value: 0, disabled: true }, [Validators.min(0)]]
     });
   }
 
-  getFormattedReleaseDateTime(): string | null {
-    const releaseDateTime = this.reservationForm.get('releaseDateTime')?.value;
-    if (!releaseDateTime) return null;
+  private getCombinedReleaseDateTime(): string | null {
+    const date = this.reservationForm.get('releaseDate')?.value;
+    const time = this.reservationForm.get('releaseTime')?.value;
 
-    // releaseDateTime could be a Date object or string
-    const date = new Date(releaseDateTime);
-    if (isNaN(date.getTime())) return null;
+    if (!date) return null;
 
-    // Format as 'yyyy-MM-ddTHH:mm:ss' (no timezone offset)
-    return this.datePipe.transform(date, "yyyy-MM-dd'T'HH:mm:ss") || null;
+    const combinedDate = new Date(date);
+
+    if (time) {
+      const [hours, minutes] = time.split(':');
+      combinedDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    } else {
+      combinedDate.setHours(0, 0, 0, 0);
+    }
+
+    return this.datePipe.transform(combinedDate, "yyyy-MM-dd'T'HH:mm:ss") || null;
   }
 
   private subscribeToDateChanges(): void {
-    // Listen to check in date changes
+
     this.reservationForm.get('checkIn')?.valueChanges.subscribe((checkInDate) => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
     });
 
-    // Listen to check out date changes
     this.reservationForm.get('checkOut')?.valueChanges.subscribe((checkOutDate) => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
@@ -176,18 +184,13 @@ export class ReservationFormComponent implements OnInit {
   private subscribeToGroupReservationChanges(): void {
     this.reservationForm.get('isGroupReservation')?.valueChanges.subscribe((isGroupReservation) => {
       if (!isGroupReservation) {
-        // When unchecked, remove all rooms except the first one
         while (this.rooms.length > 1) {
           this.rooms.removeAt(this.rooms.length - 1);
         }
 
-        // Clear the room index map for removed rooms
         this.availableRoomsByIndex.clear();
-
-        // Update the number of rooms field
         this.updateNumberOfRooms();
 
-        // Optionally show a message to the user
         if (this.rooms.length > 1) {
           this.showSuccess('Additional rooms removed. Only the first room remains.');
         }
@@ -207,21 +210,21 @@ export class ReservationFormComponent implements OnInit {
   private subscribeToReservationTypeChanges(): void {
     this.reservationForm.get('reservationType')?.valueChanges.subscribe((reservationType) => {
       const holdReservationControl = this.reservationForm.get('isOnHold');
-      const holdDateControl = this.reservationForm.get('releaseDateTime');
+      const releaseDateControl = this.reservationForm.get('releaseDate');
+      const releaseTimeControl = this.reservationForm.get('releaseTime');
       const remindBeforeDaysControl = this.reservationForm.get('remindDaysBeforeRelease');
 
       if (reservationType === 'CONFIRMED') {
-        // Disable and uncheck the "Hold Reservation" checkbox for Confirm Booking
         holdReservationControl?.disable();
         holdReservationControl?.setValue(false);
 
-        // Also disable the hold date and remind fields
-        holdDateControl?.disable();
-        holdDateControl?.setValue('');
+        releaseDateControl?.disable();
+        releaseDateControl?.setValue('');
+        releaseTimeControl?.disable();
+        releaseTimeControl?.setValue('');
         remindBeforeDaysControl?.disable();
         remindBeforeDaysControl?.setValue(0);
       } else {
-        // Enable the "Hold Reservation" checkbox for other reservation types
         holdReservationControl?.enable();
       }
     });
@@ -229,17 +232,19 @@ export class ReservationFormComponent implements OnInit {
 
   private subscribeToHoldReservationChanges(): void {
     this.reservationForm.get('isOnHold')?.valueChanges.subscribe((isHoldReservation) => {
-      const holdDateControl = this.reservationForm.get('releaseDateTime');
+      const releaseDateControl = this.reservationForm.get('releaseDate');
+      const releaseTimeControl = this.reservationForm.get('releaseTime');
       const remindBeforeDaysControl = this.reservationForm.get('remindDaysBeforeRelease');
 
       if (isHoldReservation) {
-        // Enable hold date and remind before days fields when checked
-        holdDateControl?.enable();
+        releaseDateControl?.enable();
+        releaseTimeControl?.enable();
         remindBeforeDaysControl?.enable();
       } else {
-        // Disable and clear the fields when unchecked
-        holdDateControl?.disable();
-        holdDateControl?.setValue('');
+        releaseDateControl?.disable();
+        releaseDateControl?.setValue('');
+        releaseTimeControl?.disable();
+        releaseTimeControl?.setValue('');
         remindBeforeDaysControl?.disable();
         remindBeforeDaysControl?.setValue(0);
       }
@@ -270,7 +275,6 @@ export class ReservationFormComponent implements OnInit {
       return;
     }
 
-    // Format dates to YYYY-MM-DD
     const formattedCheckIn = this.formatDate(checkInDate);
     const formattedCheckOut = this.formatDate(checkOutDate);
 
@@ -335,18 +339,6 @@ export class ReservationFormComponent implements OnInit {
       { numberOfRooms: roomCount },
       { emitEvent: false }
     );
-  }
-
-  incrementRooms(): void {
-    const current = this.reservationForm.get('numberOfRooms')?.value || 0;
-    this.reservationForm.patchValue({ numberOfRooms: current + 1 });
-  }
-
-  decrementRooms(): void {
-    const current = this.reservationForm.get('numberOfRooms')?.value || 0;
-    if (current > 1) {
-      this.reservationForm.patchValue({ numberOfRooms: current - 1 });
-    }
   }
 
   incrementAdults(index: number): void {
@@ -415,7 +407,6 @@ export class ReservationFormComponent implements OnInit {
       rate: 0
     });
 
-    // Fetch available rooms for this type
     this.fetchAvailableRoomsByType(roomType, index);
   }
 
@@ -424,11 +415,9 @@ export class ReservationFormComponent implements OnInit {
       return;
     }
 
-    // Get check-in and check-out dates from form
     const checkInDate = this.reservationForm.get('checkIn')?.value;
     const checkOutDate = this.reservationForm.get('checkOut')?.value;
 
-    // Validate dates are selected
     if (!checkInDate || !checkOutDate) {
       this.showError('Please select check-in and check-out dates first');
       // Reset room type selection
@@ -437,11 +426,9 @@ export class ReservationFormComponent implements OnInit {
       return;
     }
 
-    // Format dates to YYYY-MM-DD
     const formattedCheckIn = this.formatDate(checkInDate);
     const formattedCheckOut = this.formatDate(checkOutDate);
 
-    // Call service with propertyCode, roomType, and dates
     this.roomService.getAvailableRoomsByType(
       this.propertyCode,
       roomType,
@@ -449,10 +436,8 @@ export class ReservationFormComponent implements OnInit {
       formattedCheckOut
     ).subscribe({
       next: (rooms) => {
-        // Store available rooms for this specific index
         this.availableRoomsByIndex.set(index, rooms);
 
-        // Show message if no rooms available
         if (rooms.length === 0) {
           this.showError(`No ${roomType} rooms available for selected dates`);
         }
@@ -474,7 +459,6 @@ export class ReservationFormComponent implements OnInit {
     const roomGroup = roomsArray.at(index);
     const selectedRoomId = roomGroup.get('roomNumber')?.value;
 
-    // Get available rooms for this index
     const availableRooms = this.getAvailableRoomsForIndex(index);
     const selectedRoom = availableRooms.find(room => room.id === selectedRoomId);
 
@@ -504,10 +488,8 @@ export class ReservationFormComponent implements OnInit {
       });
     });
 
-    // Combine guest title and name
     const guestFullName = `${formValue.guestTitle}. ${formValue.guestName}`;
 
-    // Format dates to YYYY-MM-DD
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
 
@@ -516,7 +498,7 @@ export class ReservationFormComponent implements OnInit {
 
     const rawFormValue = this.reservationForm.getRawValue();
     const sendVoucher = rawFormValue.confirmationVoucher ?? false;
-    const formattedDateTime = this.getFormattedReleaseDateTime();
+    const formattedDateTime = this.getCombinedReleaseDateTime();
 
     return {
       name: guestFullName,
@@ -584,7 +566,7 @@ export class ReservationFormComponent implements OnInit {
           }, 1500);
 
           this.reservationForm.reset();
-          this.initForm(); // Reinitialize form with default values
+          this.initForm();
         },
         error: (error) => {
           this.isLoading = false;

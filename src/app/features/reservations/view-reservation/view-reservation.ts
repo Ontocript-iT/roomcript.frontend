@@ -17,11 +17,13 @@ import {MatInputModule} from '@angular/material/input';
 export interface ViewReservationDialogData {
   reservation: Reservation;
 }
+
 interface AvailableRoomOption {
   roomId: number;
   roomNumber: string;
   roomType: string;
 }
+
 @Component({
   selector: 'app-view-reservation',
   standalone: true,
@@ -39,16 +41,16 @@ interface AvailableRoomOption {
   templateUrl: './view-reservation.html',
   styleUrl: './view-reservation.scss'
 })
-export class ViewReservation implements OnInit{
-  isEditMode = false;
+export class ViewReservation implements OnInit {
+  editingRowIndex: number | null = null;  // Track which row is being edited
   editingCell: { rowIndex: number | null, field: string | null } = { rowIndex: null, field: null };
   availableRooms: AvailableRoomOption[] = [];
   availableRoomsByType: { [roomType: string]: AvailableRoomOption[] } = {};
   loadingRooms = false;
   originalRoomDetails: any[] = [];
+  rowOriginalData: { [key: number]: any } = {};  // Store original data per row
   propertyCode = localStorage.getItem("propertyCode")||'';
   roomTempIds: number[] = [];
-  hasChanges = false;
 
   @ViewChildren('rateInput') rateInputs!: QueryList<ElementRef>;
   @ViewChildren('adultsInput') adultsInputs!: QueryList<ElementRef>;
@@ -68,17 +70,115 @@ export class ViewReservation implements OnInit{
     });
   }
 
-  assignMoveRoom(): void {
-    this.isEditMode = true;
-    this.loadAvailableRooms();
+  isRowEditing(rowIndex: number): boolean {
+    return this.editingRowIndex === rowIndex;
   }
 
   isEditingCell(rowIndex: number, field: string): boolean {
     return this.editingCell.rowIndex === rowIndex && this.editingCell.field === field;
   }
 
+  enableRowEdit(rowIndex: number): void {
+    this.editingRowIndex = rowIndex;
+    // Store original data for this row
+    this.rowOriginalData[rowIndex] = JSON.parse(JSON.stringify(this.data.reservation.roomDetails[rowIndex]));
+
+    this.loadAvailableRoomsForRow(rowIndex);
+
+    console.log(`Edit mode enabled for row ${rowIndex}`);
+  }
+
+  loadAvailableRoomsForRow(rowIndex: number): void {
+    this.loadingRooms = true;
+
+    const room = this.data.reservation.roomDetails[rowIndex];
+    const checkInDate = this.data.reservation.checkInDate;
+    const checkOutDate = this.data.reservation.checkOutDate;
+
+    this.roomService.getAvailableRoomsByType(
+      this.propertyCode,
+      room.roomType,
+      checkInDate,
+      checkOutDate
+    ).pipe(
+      map((rooms: any[]) => rooms.map((r: any) => ({
+        roomId: r.id || r.roomId,
+        roomNumber: r.roomNumber,
+        roomType: r.roomType
+      })))
+    ).subscribe({
+      next: (rooms) => {
+        this.availableRoomsByType[room.roomType] = rooms;
+        console.log(`Available rooms loaded for ${room.roomType}:`, rooms);
+        this.loadingRooms = false;
+      },
+      error: (error) => {
+        console.error('Error loading available rooms:', error);
+        this.loadingRooms = false;
+      }
+    });
+  }
+
+  hasRowChanges(rowIndex: number): boolean {
+    if (!this.rowOriginalData[rowIndex]) return false;
+
+    const current = this.data.reservation.roomDetails[rowIndex];
+    const original = this.rowOriginalData[rowIndex];
+
+    return (
+      this.roomTempIds[rowIndex] !== original.roomId ||
+      current.roomRate !== original.roomRate ||
+      current.numberOfAdults !== original.numberOfAdults ||
+      current.numberOfChildren !== original.numberOfChildren
+    );
+  }
+
+  saveRowChanges(rowIndex: number): void {
+    this.editingCell = { rowIndex: null, field: null };
+
+    const room = this.data.reservation.roomDetails[rowIndex];
+
+    const assignmentData = {
+      reservationId: this.data.reservation.id,
+      roomType: room.roomType,
+      roomIds: [this.roomTempIds[rowIndex] || room.roomId],
+      numberOfAdults: room.numberOfAdults || 0,
+      numberOfChildren: room.numberOfChildren || 0
+    };
+
+    console.log(`Saving row ${rowIndex}:`, assignmentData);
+
+    this.reservationService.assignOrMoveRooms(assignmentData).subscribe({
+      next: (response) => {
+        console.log('Room updated successfully:', response);
+
+        // Update only this row's original data
+        this.originalRoomDetails[rowIndex] = JSON.parse(JSON.stringify(room));
+        this.editingRowIndex = null;
+        delete this.rowOriginalData[rowIndex];
+      },
+      error: (error) => {
+        console.error('Error saving row:', error);
+        this.cancelRowEdit(rowIndex);
+      }
+    });
+  }
+
+  // Cancel edit for a specific row
+  cancelRowEdit(rowIndex: number): void {
+    if (this.rowOriginalData[rowIndex]) {
+      // Restore original data
+      this.data.reservation.roomDetails[rowIndex] = JSON.parse(JSON.stringify(this.rowOriginalData[rowIndex]));
+      this.roomTempIds[rowIndex] = this.rowOriginalData[rowIndex].roomId;
+    }
+    this.editingRowIndex = null;
+    this.editingCell = { rowIndex: null, field: null };
+    delete this.rowOriginalData[rowIndex];
+  }
+
+  // Handle cell double-click
   onRoomCellDoubleClick(rowIndex: number, field: string): void {
-    if (!this.isEditMode) {
+    if (!this.isRowEditing(rowIndex)) {
       return;
     }
 
@@ -86,10 +186,8 @@ export class ViewReservation implements OnInit{
       return;
     }
 
-    // Close any other open cell
     this.editingCell = { rowIndex, field };
 
-    // Auto-focus input fields after view update
     setTimeout(() => {
       this.focusInputField(field);
     }, 100);
@@ -117,32 +215,30 @@ export class ViewReservation implements OnInit{
   closeEditCell(): void {
     setTimeout(() => {
       this.editingCell = { rowIndex: null, field: null };
-      this.checkForChanges();
     }, 150);
   }
 
   cancelEdit(index: number): void {
-    const original = this.originalRoomDetails[index];
-    const current = this.data.reservation.roomDetails[index];
+    if (this.rowOriginalData[index]) {
+      const original = this.rowOriginalData[index];
+      const current = this.data.reservation.roomDetails[index];
 
-    // Restore original values
-    if (this.editingCell.field === 'rate') {
-      current.roomRate = original.roomRate;
-    } else if (this.editingCell.field === 'adults') {
-      current.numberOfAdults = original.numberOfAdults;
-    } else if (this.editingCell.field === 'children') {
-      current.numberOfChildren = original.numberOfChildren;
+      if (this.editingCell.field === 'rate') {
+        current.roomRate = original.roomRate;
+      } else if (this.editingCell.field === 'adults') {
+        current.numberOfAdults = original.numberOfAdults;
+      } else if (this.editingCell.field === 'children') {
+        current.numberOfChildren = original.numberOfChildren;
+      }
     }
 
     this.closeEditCell();
   }
 
-  //Handle dropdown open/close
   onDropdownOpenChange(isOpen: boolean, index: number, field: string): void {
     if (!isOpen) {
       setTimeout(() => {
         this.editingCell = { rowIndex: null, field: null };
-        this.checkForChanges();
       }, 200);
     }
   }
@@ -159,93 +255,8 @@ export class ViewReservation implements OnInit{
       roomDetails.roomType = selectedRoom.roomType;
 
       console.log(`Room ${index + 1} selected:`, selectedRoom);
-
-      // Close the dropdown after selection
       this.editingCell = { rowIndex: null, field: null };
-      this.checkForChanges();
     }
-  }
-
-  checkForChanges(): void {
-    this.hasChanges = false;
-
-    for (let i = 0; i < this.data.reservation.roomDetails.length; i++) {
-      const current = this.data.reservation.roomDetails[i];
-      const original = this.originalRoomDetails[i];
-
-      // Check room changes
-      if (this.roomTempIds[i] !== original.roomId) {
-        this.hasChanges = true;
-        break;
-      }
-
-      // Check rate changes
-      if (current.roomRate !== original.roomRate) {
-        this.hasChanges = true;
-        break;
-      }
-
-      // Check adults changes
-      if (current.numberOfAdults !== original.numberOfAdults) {
-        this.hasChanges = true;
-        break;
-      }
-
-      // Check children changes
-      if (current.numberOfChildren !== original.numberOfChildren) {
-        this.hasChanges = true;
-        break;
-      }
-    }
-
-    console.log('Has changes:', this.hasChanges);
-  }
-
-  loadAvailableRooms(): void {
-    this.loadingRooms = true;
-
-    const checkInDate = this.data.reservation.checkInDate;
-    const checkOutDate = this.data.reservation.checkOutDate;
-
-    const uniqueRoomTypes = [...new Set(this.data.reservation.roomDetails.map((room: any) => room.roomType))];
-
-    const roomTypeObservables: Observable<any>[] = uniqueRoomTypes.map(roomType =>
-      this.roomService.getAvailableRoomsByType(
-        this.propertyCode,
-        roomType,
-        checkInDate,
-        checkOutDate
-      ).pipe(
-        map((rooms: any[]) => ({
-          roomType,
-          rooms: rooms.map((room: any) => ({
-            roomId: room.id || room.roomId,
-            roomNumber: room.roomNumber,
-            roomType: room.roomType
-          }))
-        }))
-      )
-    );
-
-    forkJoin(roomTypeObservables).subscribe({
-      next: (results) => {
-        this.availableRooms = [];
-        results.forEach(result => {
-          this.availableRoomsByType[result.roomType] = result.rooms;
-          this.availableRooms.push(...result.rooms);
-        });
-
-        console.log('Available rooms loaded:', {
-          totalRooms: this.availableRooms.length,
-          byType: this.availableRoomsByType
-        });
-        this.loadingRooms = false;
-      },
-      error: (error) => {
-        console.error('Error loading available rooms:', error);
-        this.loadingRooms = false;
-      }
-    });
   }
 
   getAvailableRoomsForIndex(index: number): AvailableRoomOption[] {
@@ -254,54 +265,18 @@ export class ViewReservation implements OnInit{
     return this.availableRoomsByType[room.roomType] || [];
   }
 
-  saveRoomAssignments(): void {
-    if (!this.hasChanges) {
-      console.log('No changes to save');
-      return;
-    }
-
-    this.editingCell = { rowIndex: null, field: null };
-
-    console.log('roomTempIds:', this.roomTempIds);
-    console.log('roomDetails:', this.data.reservation.roomDetails);
-    console.log('reservationId:', this.data.reservation.id);
-
-    // Backend expects roomIds array
-    const roomIds = this.data.reservation.roomDetails.map((room, index) =>
-      this.roomTempIds[index] || room.roomId
-    );
-
-    const assignmentData = {
-      reservationId: this.data.reservation.id,
-      roomIds: roomIds  // Send as roomIds array
-    };
-
-    console.log('Sending room assignment data:', assignmentData);
-
-    this.reservationService.assignOrMoveRooms(assignmentData).subscribe({
-      next: (response) => {
-        console.log('Rooms assigned successfully:', response);
-        this.isEditMode = false;
-        this.hasChanges = false;
-        this.dialogRef.close({ saved: true });
-      },
-      error: (error) => {
-        console.error('Error saving room assignments:', error);
-        this.resetRoomChanges();
-      }
-    });
-  }
-
-  private resetRoomChanges(): void {
-    this.editingCell = { rowIndex: null, field: null };
-    this.data.reservation.roomDetails = JSON.parse(JSON.stringify(this.originalRoomDetails));
-    this.roomTempIds = this.originalRoomDetails.map(room => room.roomId || 0);
-    this.isEditMode = false;
-    this.hasChanges = false;
-  }
-
   autoAllocateRooms(): void {
     console.log('Auto allocate rooms clicked');
+  }
+
+  shouldShowActionButtons(): boolean {
+    const res = this.data.reservation;
+    if (!res) return false;
+
+    const isCancelled = res.status?.toUpperCase() === 'CANCELLED';
+    const isCompleted = res.checkInStatus && res.checkOutStatus;
+
+    return !(isCancelled || isCompleted);
   }
 
   onCancel(): void {
@@ -348,8 +323,8 @@ export class ViewReservation implements OnInit{
   <thead>
     <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
       <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">#</th>
-      <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Room Number</th>
       <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Room Type</th>
+      <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Room Number</th>
       <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Rate</th>
       <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Adults</th>
       <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Children</th>
