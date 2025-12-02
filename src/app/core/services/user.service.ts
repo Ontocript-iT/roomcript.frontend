@@ -43,6 +43,52 @@ export interface PropertyUser {
   lastName: string;
 }
 
+// Add these new interfaces after your existing interfaces
+export interface PropertyDetails {
+  id: number;
+  propertyCode: string;
+  propertyName: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  floorCount: number | null;
+  status: string;
+  totalRooms: number;
+  createdAt: string;
+  updatedAt: string | null;
+  timeZone: string;
+  currency: string;
+}
+
+export interface UserDetails {
+  id: number;
+  userId: string;
+  email: string | null;
+  username: string;
+  propertyCode: string;
+  isPrivate: boolean;
+  dateTimeCreated: string;
+  status: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AccountResponse {
+  headers: any;
+  body: {
+    propertyDetails: PropertyDetails;
+    userDetails: UserDetails;
+    status: number;
+  };
+  statusCode: string;
+  statusCodeValue: number;
+}
+
+
 
 export interface UserResponse {
   id: number;
@@ -84,6 +130,29 @@ export class UserService {
       })
     );
   }
+
+  // Add this method inside the UserService class
+getUserAccountDetails(userId: string): Observable<{ propertyDetails: PropertyDetails; userDetails: UserDetails }> {
+  const params = new HttpParams().set('userId', userId);
+  
+  return this.http.get<AccountResponse>(
+    `${environment.apiUrl}/users/getUserDetails`,
+    {
+      headers: this.getHeaders(),
+      params: params
+    }
+  ).pipe(
+    map(response => ({
+      propertyDetails: response.body.propertyDetails,
+      userDetails: response.body.userDetails
+    })),
+    catchError(error => {
+      console.error('Error fetching user account details:', error);
+      throw error;
+    })
+  );
+}
+
 
 getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
   const params = { propertyCode };

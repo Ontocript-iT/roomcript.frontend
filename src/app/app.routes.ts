@@ -16,6 +16,7 @@ import {CheckinCheckoutComponent} from './features/reservations/checkin-checkout
 import {GuestListComponent} from './features/guest-management/guest-list/guest-list';
 
 import { StayView } from './features/stay-view/stay-view';
+import { UserAccount } from './features/user-management/user-account/user-account';
 
 
 
@@ -84,6 +85,12 @@ export const routes: Routes = [
   {
     path: 'guest/list',
     component: GuestListComponent,
+    canActivate: [authGuard]
+  }
+    ,
+  {
+    path: 'user/account',
+    component: UserAccount,
     canActivate: [authGuard]
   }
 
