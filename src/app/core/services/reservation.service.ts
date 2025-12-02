@@ -334,4 +334,25 @@ export class ReservationService {
       })
     );
   }
+
+  assignOrMoveRooms(assignmentData: any): Observable<any> {
+    const url = `${this.apiUrl}/assignRooms`;
+
+    console.log('🔄 Assigning/Moving rooms:', {
+      url,
+      data: assignmentData
+    });
+
+    return this.http.post<any>(url, assignmentData, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('Assign/Move rooms response:', response);
+      }),
+      catchError(error => {
+        console.error('Error assigning/moving rooms:', error);
+        throw error;
+      })
+    );
+  }
 }

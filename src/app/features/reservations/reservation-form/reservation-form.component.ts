@@ -110,7 +110,7 @@ export class ReservationFormComponent implements OnInit {
     this.reservationForm = this.fb.group({
       checkIn: ['', Validators.required],
       checkOut: ['', Validators.required],
-      numberOfRooms: [1, [Validators.required, Validators.min(1)]],
+      numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
       discount: [0, [Validators.min(0), Validators.max(100)]],

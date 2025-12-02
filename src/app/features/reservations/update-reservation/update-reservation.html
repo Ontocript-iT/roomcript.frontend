@@ -56,18 +56,6 @@
           <mat-form-field appearance="fill">
             <mat-label>Rooms</mat-label>
             <input matInput type="number" formControlName="numberOfRooms" readonly>
-            <div matSuffix class="flex flex-col gap-0 mb-1">
-              <button mat-button type="button" (click)="incrementRooms()"
-                      class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                      style="line-height: 1; border-radius: 4px 4px 0 0;">
-                <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
-              </button>
-              <button mat-button type="button" (click)="decrementRooms()"
-                      class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                      style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
-                <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
-              </button>
-            </div>
           </mat-form-field>
 
           <!-- Reservation Type -->
