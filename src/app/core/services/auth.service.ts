@@ -32,6 +32,7 @@ export class AuthService {
         localStorage.setItem(this.NAME_KEY, response.name);
         localStorage.setItem(this.USERNAME_KEY, response.username);
         localStorage.setItem("propertyCode", response.propertyCode);
+        localStorage.setItem("userId", response.userId);
 
         const primaryRole = response.roles?.[0] || 'GUEST';
         localStorage.setItem(this.ROLE_KEY, primaryRole);

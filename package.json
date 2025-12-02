@@ -23,6 +23,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular-material-components/datetime-picker": "^16.0.1",
     "@angular/animations": "^20.3.6",
     "@angular/cdk": "^20.2.9",
     "@angular/common": "^20.3.0",
@@ -34,7 +35,7 @@
     "@angular/platform-server": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@angular/ssr": "^20.3.4",
-    "@mat-datetimepicker/core": "^16.0.1",
+    "@mat-datetimepicker/core": "^17.0.0",
     "express": "^5.1.0",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.3",
