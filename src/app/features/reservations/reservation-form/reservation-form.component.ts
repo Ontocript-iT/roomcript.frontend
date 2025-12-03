@@ -467,7 +467,6 @@ export class ReservationFormComponent implements OnInit {
     }
   }
 
-
   private transformFormData(formValue: any): any {
     let totalAdults = 0;
     let totalChildren = 0;
@@ -596,6 +595,15 @@ export class ReservationFormComponent implements OnInit {
         control?.markAsTouched();
       }
     });
+  }
+
+  onTimePickerIconClick(picker: any): void {
+    const releaseTimeControl = this.reservationForm.get('releaseTime');
+
+    // Only open picker if the control is not disabled
+    if (releaseTimeControl && !releaseTimeControl.disabled) {
+      picker.open();
+    }
   }
 
   private showSuccess(message: string): void {

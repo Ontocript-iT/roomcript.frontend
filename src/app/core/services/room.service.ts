@@ -62,13 +62,13 @@ export class RoomService {
     });
   }
 
-  createRoom(roomData: CreateRoomRequest): Observable<RoomResponse> {
-    console.log('Creating room with data:', roomData);
+  createRoom(roomData: CreateRoomRequest, propertyCode: string): Observable<RoomResponse> {
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
 
     return this.http.post<RoomResponse>(
       this.apiUrl,
       roomData,
-      { headers: this.getHeaders() }
+      { headers }
     ).pipe(
       tap(response => {
         console.log('Room creation response:', response);

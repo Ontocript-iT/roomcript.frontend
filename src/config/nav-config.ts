@@ -40,7 +40,7 @@ export const NAV_ITEMS: NavItem[] = [
       },]
   },
   {
-    title: 'Property Management',
+    title: 'Property',
     icon: 'dashboard',
     roles: ['SUPER_ADMIN'],
      subItems: [
