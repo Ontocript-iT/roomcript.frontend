@@ -9,8 +9,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatBadgeModule } from '@angular/material/badge';
 
-import { DashboardService, GuestCount, DashboardStats, RevenueStats } from '../../core/services/dashboard.service';
+import { DashboardService, GuestCount, DashboardStats, RevenueStats, AuditLog } from '../../core/services/dashboard.service';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -24,7 +25,8 @@ import { AuthService } from '../../core/services/auth.service';
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatTooltipModule,
-    MatDividerModule
+    MatDividerModule,
+    MatBadgeModule
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -39,6 +41,7 @@ export class DashboardComponent implements OnInit {
   guestCounts: GuestCount | null = null;
   dashboardStats: DashboardStats | null = null;
   revenueStats: RevenueStats | null = null;
+  auditLogs: AuditLog[] = [];
 
   constructor(
     private dashboardService: DashboardService,
@@ -60,14 +63,9 @@ export class DashboardComponent implements OnInit {
   checkAdminRole(): void {
     const userRoles = this.authService.getUserRoles?.() || [];
     this.isAdmin = userRoles.includes('ADMIN');
-    // Option 2: If you store roles in localStorage
-    // const roles = JSON.parse(localStorage.getItem('userRoles') || '[]');
-    // this.isAdmin = roles.includes('ROLE_ADMIN');
     
     if (!this.isAdmin) {
       this.showError('Access Denied: Admin privileges required');
-      // Uncomment to redirect
-      // this.router.navigate(['/unauthorized']);
     }
   }
 
@@ -78,10 +76,16 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
 
     this.dashboardService.getAllDashboardData(this.propertyCode).subscribe({
-      next: (data: { guestCounts: GuestCount; dashboardStats: DashboardStats; revenueStats: RevenueStats }) => {
+      next: (data: { 
+        guestCounts: GuestCount; 
+        dashboardStats: DashboardStats; 
+        revenueStats: RevenueStats;
+        auditLogs: AuditLog[];
+      }) => {
         this.guestCounts = data.guestCounts;
         this.dashboardStats = data.dashboardStats;
         this.revenueStats = data.revenueStats;
+        this.auditLogs = data.auditLogs;
         this.isLoading = false;
       },
       error: (error: any) => {
@@ -97,7 +101,6 @@ export class DashboardComponent implements OnInit {
     this.showSuccess('Dashboard data refreshed');
   }
 
-
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-LK', {
       style: 'currency',
@@ -106,9 +109,67 @@ export class DashboardComponent implements OnInit {
     }).format(amount);
   }
 
-  
+  /**
+   * Format timestamp to readable format
+   */
+  formatTimestamp(timestamp: string): string {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  /**
+   * Get action badge class
+   */
+  getActionBadgeClass(action: string): string {
+    const actionMap: { [key: string]: string } = {
+      'CANCEL_RESERVATION': 'bg-red-100 text-red-700',
+      'CREATE_RESERVATION': 'bg-green-100 text-green-700',
+      'UPDATE_RESERVATION': 'bg-blue-100 text-blue-700',
+      'CHECK_IN': 'bg-indigo-100 text-indigo-700',
+      'CHECK_OUT': 'bg-purple-100 text-purple-700',
+      'DELETE': 'bg-gray-100 text-gray-700'
+    };
+    return actionMap[action] || 'bg-gray-100 text-gray-700';
+  }
+
+  /**
+   * Get status icon
+   */
+  getStatusIcon(status: string): string {
+    return status === 'SUCCESS' ? 'check_circle' : 'error';
+  }
+
+  /**
+   * Get status color class
+   */
+  getStatusColorClass(status: string): string {
+    return status === 'SUCCESS' ? 'text-green-600' : 'text-red-600';
+  }
+
+  /**
+   * Format action name for display
+   */
+  formatActionName(action: string): string {
+    return action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  }
+
   navigateTo(route: string): void {
     this.router.navigate([route]);
+  }
+
+  viewAllAuditLogs(): void {
+    this.router.navigate(['/audit-logs']);
   }
 
   private showSuccess(message: string): void {

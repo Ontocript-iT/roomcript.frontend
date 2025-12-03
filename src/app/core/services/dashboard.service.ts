@@ -33,6 +33,30 @@ export interface RevenueStats {
   yearRevenue: number;
 }
 
+// ========== NEW AUDIT LOG INTERFACES ========== //
+export interface AuditLog {
+  id: number;
+  user: string | null;
+  action: string;
+  entityType: string;
+  entityId: number;
+  propertyCode: string;
+  oldValue: string;
+  newValue: string;
+  ipAddress: string;
+  timestamp: string;
+  remarks: string;
+  status: string;
+}
+
+export interface AuditLogResponse {
+  headers: any;
+  body: AuditLog[];
+  statusCode: string;
+  statusCodeValue: number;
+}
+// ========== END AUDIT LOG INTERFACES ========== //
+
 @Injectable({
   providedIn: 'root'
 })
@@ -102,6 +126,29 @@ export class DashboardService {
     });
   }
 
+  // ========== NEW METHOD: GET LATEST AUDIT LOGS ========== //
+  /**
+   * Get latest audit logs for property
+   */
+  getLatestAuditLogs(propertyCode: string): Observable<AuditLog[]> {
+    const params = new HttpParams().set('propertyCode', propertyCode);
+    
+    return this.http.get<AuditLogResponse>(
+      `${environment.apiUrl}/audit/getLatestAuditsByPropertyCode`,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      map(response => response.body || []),
+      catchError(error => {
+        console.error('Error fetching audit logs:', error);
+        return of([]);
+      })
+    );
+  }
+  // ========== END NEW METHOD ========== //
+
   /**
    * Get all dashboard data at once
    */
@@ -109,11 +156,13 @@ export class DashboardService {
     guestCounts: GuestCount;
     dashboardStats: DashboardStats;
     revenueStats: RevenueStats;
+    auditLogs: AuditLog[];
   }> {
     return forkJoin({
       guestCounts: this.getGuestCounts(propertyCode),
       dashboardStats: this.getDashboardStats(propertyCode),
-      revenueStats: this.getRevenueStats(propertyCode)
+      revenueStats: this.getRevenueStats(propertyCode),
+      auditLogs: this.getLatestAuditLogs(propertyCode)
     });
   }
 }
