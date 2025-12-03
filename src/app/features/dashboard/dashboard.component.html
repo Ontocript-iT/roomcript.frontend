@@ -4,57 +4,54 @@
     <!-- Header Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-            <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">dashboard</mat-icon>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md">
+            <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">dashboard</mat-icon>
           </div>
           <div>
             <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p class="text-gray-500 mt-1">Overview of {{ propertyName }}</p>
+            <p class="text-sm text-gray-500 mt-0.5">Overview of {{ propertyName }}</p>
           </div>
         </div>
         <button
           mat-raised-button
           (click)="refreshData()"
           [disabled]="isLoading"
-          class="!h-11 !px-5 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-          <mat-icon class="!mr-2 !text-[20px]">refresh</mat-icon>
-          Refresh Data
+          class="!h-10 !px-4 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-medium !shadow-md hover:!shadow-lg !transition-all !duration-300 !text-sm">
+          <mat-icon class="!mr-1.5 !w-4 !h-4 !text-[16px]">refresh</mat-icon>
+          Refresh
         </button>
       </div>
     </div>
 
     <!-- Loading Spinner -->
     <div *ngIf="isLoading" class="flex items-center justify-center py-16">
-      <mat-spinner diameter="50"></mat-spinner>
+      <mat-spinner diameter="40"></mat-spinner>
     </div>
 
     <!-- Dashboard Content -->
     <div *ngIf="!isLoading && isAdmin" class="space-y-6">
       
       <!-- Top Row: Guest Status Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         
         <!-- Checked-In Guests Card -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between">
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-start justify-between">
               <div class="flex-1">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md">
-                    <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">login</mat-icon>
+                <div class="flex items-center gap-2.5 mb-3">
+                  <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-sm">
+                    <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">login</mat-icon>
                   </div>
-                  <div>
-                    <p class="text-sm text-gray-600 font-medium">Checked-In Guests</p>
-                    <p class="text-xs text-gray-500">Currently staying</p>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Checked-In</p>
+                    <p class="text-lg font-bold text-gray-900 leading-tight">{{ guestCounts?.checkedInCount || 0 }}</p>
                   </div>
                 </div>
-                <div class="mt-4">
-                  <p class="text-4xl font-bold text-gray-900">{{ guestCounts?.checkedInCount || 0 }}</p>
-                  <p class="text-sm text-green-600 font-semibold mt-2 flex items-center">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">trending_up</mat-icon>
-                    Active guests
-                  </p>
+                <div class="flex items-center text-xs text-green-600 font-medium mt-2">
+                  <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">trending_up</mat-icon>
+                  <span>Active guests</span>
                 </div>
               </div>
             </div>
@@ -62,25 +59,22 @@
         </mat-card>
 
         <!-- Checked-Out Guests Card -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between">
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-start justify-between">
               <div class="flex-1">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-md">
-                    <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">logout</mat-icon>
+                <div class="flex items-center gap-2.5 mb-3">
+                  <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
+                    <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">logout</mat-icon>
                   </div>
-                  <div>
-                    <p class="text-sm text-gray-600 font-medium">Checked-Out Guests</p>
-                    <p class="text-xs text-gray-500">Today's departures</p>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Checked-Out</p>
+                    <p class="text-lg font-bold text-gray-900 leading-tight">{{ guestCounts?.checkedOutCount || 0 }}</p>
                   </div>
                 </div>
-                <div class="mt-4">
-                  <p class="text-4xl font-bold text-gray-900">{{ guestCounts?.checkedOutCount || 0 }}</p>
-                  <p class="text-sm text-blue-600 font-semibold mt-2 flex items-center">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">check_circle</mat-icon>
-                    Completed stays
-                  </p>
+                <div class="flex items-center text-xs text-indigo-600 font-medium mt-2">
+                  <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">check_circle</mat-icon>
+                  <span>Today's departures</span>
                 </div>
               </div>
             </div>
@@ -88,27 +82,24 @@
         </mat-card>
 
         <!-- Total Guest Activity Card -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between">
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-start justify-between">
               <div class="flex-1">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
-                    <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">people</mat-icon>
+                <div class="flex items-center gap-2.5 mb-3">
+                  <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-sm">
+                    <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">people</mat-icon>
                   </div>
-                  <div>
-                    <p class="text-sm text-gray-600 font-medium">Total Activity</p>
-                    <p class="text-xs text-gray-500">Combined movement</p>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Activity</p>
+                    <p class="text-lg font-bold text-gray-900 leading-tight">
+                      {{ (guestCounts?.checkedInCount || 0) + (guestCounts?.checkedOutCount || 0) }}
+                    </p>
                   </div>
                 </div>
-                <div class="mt-4">
-                  <p class="text-4xl font-bold text-gray-900">
-                    {{ (guestCounts?.checkedInCount || 0) + (guestCounts?.checkedOutCount || 0) }}
-                  </p>
-                  <p class="text-sm text-purple-600 font-semibold mt-2 flex items-center">
-                    <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">sync</mat-icon>
-                    Guest transactions
-                  </p>
+                <div class="flex items-center text-xs text-gray-700 font-medium mt-2">
+                  <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">sync</mat-icon>
+                  <span>Guest transactions</span>
                 </div>
               </div>
             </div>
@@ -117,170 +108,164 @@
       </div>
 
       <!-- Second Row: Room Statistics -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         
         <!-- Total Rooms -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-md">
-                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-4 !h-4 !text-[16px]">hotel</mat-icon>
               </div>
-              <p class="text-sm text-gray-600 font-medium">Total Rooms</p>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Total</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ dashboardStats?.totalRooms || 0 }}</p>
-            <p class="text-xs text-gray-500 mt-2">Property capacity</p>
+            <p class="text-2xl font-bold text-gray-900">{{ dashboardStats?.totalRooms || 0 }}</p>
+            <p class="text-xs text-gray-500 mt-1.5">Rooms</p>
           </mat-card-content>
         </mat-card>
 
         <!-- Occupied Rooms -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-md">
-                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">meeting_room</mat-icon>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-4 !h-4 !text-[16px]">meeting_room</mat-icon>
               </div>
-              <p class="text-sm text-gray-600 font-medium">Occupied</p>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Occupied</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ dashboardStats?.occupiedRooms || 0 }}</p>
-            <p class="text-xs text-orange-600 mt-2 font-semibold">Currently in use</p>
+            <p class="text-2xl font-bold text-gray-900">{{ dashboardStats?.occupiedRooms || 0 }}</p>
+            <p class="text-xs text-indigo-600 mt-1.5 font-medium">In use</p>
           </mat-card-content>
         </mat-card>
 
         <!-- Available Rooms -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center shadow-md">
-                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">check_circle</mat-icon>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-4 !h-4 !text-[16px]">check_circle</mat-icon>
               </div>
-              <p class="text-sm text-gray-600 font-medium">Available</p>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Available</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ dashboardStats?.availableRooms || 0 }}</p>
-            <p class="text-xs text-green-600 mt-2 font-semibold">Ready to book</p>
+            <p class="text-2xl font-bold text-gray-900">{{ dashboardStats?.availableRooms || 0 }}</p>
+            <p class="text-xs text-green-600 mt-1.5 font-medium">Ready</p>
           </mat-card-content>
         </mat-card>
 
         <!-- Occupancy Rate -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-md">
-                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">analytics</mat-icon>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-4 !h-4 !text-[16px]">analytics</mat-icon>
               </div>
-              <p class="text-sm text-gray-600 font-medium">Occupancy</p>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Occupancy</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ dashboardStats?.occupancyRate || 0 }}%</p>
-            <p class="text-xs text-yellow-600 mt-2 font-semibold">Current rate</p>
+            <p class="text-2xl font-bold text-gray-900">{{ dashboardStats?.occupancyRate || 0 }}%</p>
+            <p class="text-xs text-gray-700 mt-1.5 font-medium">Rate</p>
           </mat-card-content>
         </mat-card>
       </div>
 
       <!-- Third Row: Revenue Statistics -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         
         <!-- Today's Revenue -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-md">
-                  <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">today</mat-icon>
-                </div>
-                <p class="text-sm text-gray-600 font-medium">Today's Revenue</p>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">today</mat-icon>
               </div>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Today's Revenue</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.todayRevenue || 0) }}</p>
-            <p class="text-xs text-emerald-600 mt-2 font-semibold flex items-center">
-              <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">arrow_upward</mat-icon>
-              Daily earnings
-            </p>
+            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.todayRevenue || 0) }}</p>
+            <div class="flex items-center text-xs text-green-600 font-medium mt-2">
+              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">arrow_upward</mat-icon>
+              <span>Daily earnings</span>
+            </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Monthly Revenue -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
-                  <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">calendar_month</mat-icon>
-                </div>
-                <p class="text-sm text-gray-600 font-medium">Monthly Revenue</p>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">calendar_month</mat-icon>
               </div>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Monthly Revenue</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.monthRevenue || 0) }}</p>
-            <p class="text-xs text-blue-600 mt-2 font-semibold flex items-center">
-              <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">trending_up</mat-icon>
-              This month
-            </p>
+            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.monthRevenue || 0) }}</p>
+            <div class="flex items-center text-xs text-indigo-600 font-medium mt-2">
+              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">trending_up</mat-icon>
+              <span>This month</span>
+            </div>
           </mat-card-content>
         </mat-card>
 
         <!-- Yearly Revenue -->
-        <mat-card class="!shadow-xl !rounded-xl overflow-hidden hover:!shadow-2xl !transition-all !duration-300">
-          <mat-card-content class="!p-6">
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
-                  <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">calendar_today</mat-icon>
-                </div>
-                <p class="text-sm text-gray-600 font-medium">Yearly Revenue</p>
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center gap-2.5 mb-3">
+              <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-sm">
+                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">calendar_today</mat-icon>
               </div>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Yearly Revenue</p>
             </div>
-            <p class="text-3xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.yearRevenue || 0) }}</p>
-            <p class="text-xs text-purple-600 mt-2 font-semibold flex items-center">
-              <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">star</mat-icon>
-              Annual total
-            </p>
+            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.yearRevenue || 0) }}</p>
+            <div class="flex items-center text-xs text-gray-700 font-medium mt-2">
+              <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">star</mat-icon>
+              <span>Annual total</span>
+            </div>
           </mat-card-content>
         </mat-card>
       </div>
 
       <!-- Fourth Row: Quick Actions -->
-      <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
-        <mat-card-content class="!p-6">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-md">
-              <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">bolt</mat-icon>
+      <mat-card class="!shadow-lg !rounded-xl overflow-hidden !border !border-gray-100">
+        <mat-card-content class="!p-5">
+          <div class="flex items-center gap-2.5 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
+              <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">bolt</mat-icon>
             </div>
             <div>
-              <h3 class="text-lg font-bold text-gray-900">Quick Actions</h3>
-              <p class="text-sm text-gray-500">Common administrative tasks</p>
+              <h3 class="text-base font-bold text-gray-900">Quick Actions</h3>
+              <p class="text-xs text-gray-500">Common tasks</p>
             </div>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button
-              mat-raised-button
+              mat-stroked-button
               (click)="navigateTo('/users')"
-              class="!h-20 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-gray-50 !border !border-gray-200 !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
-              <mat-icon class="!text-indigo-600 !mb-2">people</mat-icon>
-              <span class="text-sm font-semibold text-gray-700">Manage Users</span>
+              class="!h-16 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-indigo-50 !border !border-gray-200 hover:!border-indigo-300 !rounded-lg !transition-all">
+              <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px] !mb-1">people</mat-icon>
+              <span class="text-xs font-semibold text-gray-700">Users</span>
             </button>
 
             <button
-              mat-raised-button
+              mat-stroked-button
               (click)="navigateTo('/rooms')"
-              class="!h-20 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-gray-50 !border !border-gray-200 !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
-              <mat-icon class="!text-purple-600 !mb-2">hotel</mat-icon>
-              <span class="text-sm font-semibold text-gray-700">Room Status</span>
+              class="!h-16 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-indigo-50 !border !border-gray-200 hover:!border-indigo-300 !rounded-lg !transition-all">
+              <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px] !mb-1">hotel</mat-icon>
+              <span class="text-xs font-semibold text-gray-700">Rooms</span>
             </button>
 
             <button
-              mat-raised-button
+              mat-stroked-button
               (click)="navigateTo('/reservations')"
-              class="!h-20 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-gray-50 !border !border-gray-200 !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
-              <mat-icon class="!text-green-600 !mb-2">event</mat-icon>
-              <span class="text-sm font-semibold text-gray-700">Reservations</span>
+              class="!h-16 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-green-50 !border !border-gray-200 hover:!border-green-300 !rounded-lg !transition-all">
+              <mat-icon class="!text-green-600 !w-5 !h-5 !text-[20px] !mb-1">event</mat-icon>
+              <span class="text-xs font-semibold text-gray-700">Bookings</span>
             </button>
 
             <button
-              mat-raised-button
+              mat-stroked-button
               (click)="navigateTo('/reports')"
-              class="!h-20 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-gray-50 !border !border-gray-200 !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
-              <mat-icon class="!text-orange-600 !mb-2">assessment</mat-icon>
-              <span class="text-sm font-semibold text-gray-700">Reports</span>
+              class="!h-16 !flex !flex-col !items-center !justify-center !bg-white hover:!bg-gray-100 !border !border-gray-200 hover:!border-gray-400 !rounded-lg !transition-all">
+              <mat-icon class="!text-gray-700 !w-5 !h-5 !text-[20px] !mb-1">assessment</mat-icon>
+              <span class="text-xs font-semibold text-gray-700">Reports</span>
             </button>
           </div>
         </mat-card-content>
@@ -290,16 +275,17 @@
 
     <!-- Unauthorized Access -->
     <div *ngIf="!isLoading && !isAdmin" class="flex flex-col items-center justify-center py-16 px-4">
-      <mat-icon class="!w-20 !h-20 !text-[80px] !text-red-300 mb-4">block</mat-icon>
-      <h3 class="text-xl font-semibold text-gray-700 mb-2">Access Denied</h3>
-      <p class="text-gray-500 mb-6">You need administrator privileges to view this dashboard</p>
+      <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+        <mat-icon class="!w-8 !h-8 !text-[32px] !text-red-600">block</mat-icon>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
+      <p class="text-sm text-gray-500 mb-5 text-center">Administrator privileges required</p>
       <button
         mat-raised-button
-        color="primary"
         (click)="navigateTo('/')"
-        class="!rounded-lg">
-        <mat-icon class="!mr-2">home</mat-icon>
-        Go to Home
+        class="!rounded-lg !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !h-10 !px-5 !text-sm">
+        <mat-icon class="!mr-1.5 !w-4 !h-4 !text-[16px]">home</mat-icon>
+        Go Home
       </button>
     </div>
 
