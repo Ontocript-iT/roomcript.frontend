@@ -11,7 +11,7 @@ import {MatCardModule} from '@angular/material/card';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {CommonModule} from '@angular/common';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {Property, PropertyResponse} from '../../../core/models/property.model';
+import {PropertyResponse} from '../../../core/models/property.model';
 import {PropertyService} from '../../../core/services/property.service';
 import {FormControl, ReactiveFormsModule} from '@angular/forms';
 import {map, Observable, startWith} from 'rxjs';
@@ -46,7 +46,7 @@ export class RoomListComponent implements OnInit {
   propertyControl = new FormControl('');
   properties: PropertyResponse[] = [];
   filteredProperties!: Observable<PropertyResponse[]>;
-  selectedPropertyCode: string = '';  // ✅ Initialize as empty string
+  selectedPropertyCode: string = '';
 
   constructor(
     private propertyService: PropertyService,
@@ -66,7 +66,6 @@ export class RoomListComponent implements OnInit {
       next: (properties) => {
         this.properties = properties;
 
-        // ✅ Use first property if no property is selected in localStorage
         if (this.properties.length > 0) {
           const storedPropertyCode = localStorage.getItem('propertyCode');
 
@@ -77,15 +76,12 @@ export class RoomListComponent implements OnInit {
               this.selectedPropertyCode = stored.propertyCode;
               this.propertyControl.setValue(`${stored.propertyName} (${stored.propertyCode})`);
             } else {
-              // If stored property not found, use first property
               this.setFirstProperty();
             }
           } else {
-            // ✅ No stored property, use first property from list
             this.setFirstProperty();
           }
 
-          // Load rooms after setting property
           this.loadRooms();
         }
 
@@ -101,7 +97,7 @@ export class RoomListComponent implements OnInit {
     });
   }
 
-  // ✅ Helper method to set first property
+  // set first property
   private setFirstProperty(): void {
     if (this.properties.length > 0) {
       const firstProperty = this.properties[0];
@@ -109,7 +105,6 @@ export class RoomListComponent implements OnInit {
       this.propertyControl.setValue(`${firstProperty.propertyName} (${firstProperty.propertyCode})`);
       localStorage.setItem('propertyCode', firstProperty.propertyCode);
 
-      console.log('Using first property:', firstProperty.propertyName);
     }
   }
 
@@ -130,9 +125,6 @@ export class RoomListComponent implements OnInit {
       this.selectedPropertyCode = match[1];
       localStorage.setItem('propertyCode', this.selectedPropertyCode);
 
-      console.log('Selected property code:', this.selectedPropertyCode);
-
-      // Reload rooms for the selected property
       this.loadRooms();
     }
   }
@@ -142,9 +134,8 @@ export class RoomListComponent implements OnInit {
   }
 
   loadRooms(): void {
-    // ✅ Check if property code is set
+    // Check if property code is set
     if (!this.selectedPropertyCode || this.selectedPropertyCode.trim() === '') {
-      console.warn('No property selected');
       this.rooms = [];
       return;
     }
@@ -154,7 +145,6 @@ export class RoomListComponent implements OnInit {
       next: (rooms: Room[]) => {
         this.rooms = rooms;
         this.isLoading = false;
-        console.log('Loaded rooms:', rooms);
       },
       error: (error) => {
         console.error('Error loading rooms:', error);
@@ -175,8 +165,6 @@ export class RoomListComponent implements OnInit {
         propertyCode: selectedProperty?.propertyCode || this.selectedPropertyCode || 'N/A'
       }
     };
-
-    console.log('Dialog data:', dialogData); // ✅ Debug log
 
     const dialogRef = this.dialog.open(ViewRoomDetailsComponent, {
       width: '800px',

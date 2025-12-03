@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject, Observable } from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
 
 // Angular Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -13,9 +15,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 
 // Services
 import { RoomService, CreateRoomRequest } from '../../../core/services/room.service';
+import { PropertyService } from '../../../core/services/property.service';
+import { PropertyResponse } from '../../../core/models/property.model';
 
 @Component({
   selector: 'app-room-add',
@@ -31,28 +36,44 @@ import { RoomService, CreateRoomRequest } from '../../../core/services/room.serv
     MatSelectModule,
     MatCheckboxModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatAutocompleteModule
   ],
   templateUrl: './room-create.html',
   styleUrls: ['./room-create.scss']
 })
-export class RoomCreate implements OnInit {
+export class RoomCreate implements OnInit, OnDestroy {
   roomForm!: FormGroup;
   isLoading = false;
+
+  // Property autocomplete properties
+  properties: PropertyResponse[] = [];
+  propertyControl = new FormControl();
+  filteredProperties!: Observable<PropertyResponse[]>;
+  private _onDestroy = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private snackBar: MatSnackBar,
-    private roomService: RoomService
+    private roomService: RoomService,
+    private propertyService: PropertyService // Add PropertyService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+    this.loadProperties();
+    this.setupPropertyAutocomplete();
+  }
+
+  ngOnDestroy(): void {
+    this._onDestroy.next();
+    this._onDestroy.complete();
   }
 
   private initializeForm(): void {
     this.roomForm = this.fb.group({
+      propertyCode: ['', [Validators.required]], // Hidden field for property code
       roomNumber: ['', [Validators.required]],
       roomType: ['', [Validators.required]],
       basePrice: ['', [Validators.required, Validators.min(0)]],
@@ -70,6 +91,36 @@ export class RoomCreate implements OnInit {
     });
   }
 
+  loadProperties(): void {
+    this.propertyService.getAllProperties().subscribe({
+      next: (properties: PropertyResponse[]) => {
+        this.properties = properties;
+      },
+      error: (error) => {
+        this.showError('Failed to load properties');
+      }
+    });
+  }
+
+  setupPropertyAutocomplete(): void {
+    this.filteredProperties = this.propertyControl.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        const name = typeof value === 'string' ? value : value?.propertyName;
+        return name ? this._filter(name as string) : this.properties.slice();
+      }),
+      takeUntil(this._onDestroy)
+    );
+  }
+
+  private _filter(name: string): PropertyResponse[] {
+    const filterValue = name.toLowerCase();
+    return this.properties.filter(property =>
+      property.propertyName.toLowerCase().includes(filterValue) ||
+      property.propertyCode.toLowerCase().includes(filterValue)
+    );
+  }
+
   toggleCheckbox(controlName: string): void {
     const control = this.roomForm.get(controlName);
     if (control) {
@@ -81,24 +132,23 @@ export class RoomCreate implements OnInit {
     if (this.roomForm.valid) {
       this.isLoading = true;
 
+      const propertyCode = this.roomForm.get('propertyCode')?.value;
+
       const roomData: CreateRoomRequest = this.roomForm.value;
 
-      console.log('Submitting room data:', roomData);
-
-      this.roomService.createRoom(roomData).subscribe({
+      this.roomService.createRoom(roomData, propertyCode).subscribe({
         next: (response) => {
           this.isLoading = false;
-          console.log('Room created successfully:', response);
           this.showSuccess('Room created successfully!');
 
-          // Reset form and navigate
           this.roomForm.reset({
+            propertyCode: '',
             smokingAllowed: false,
             hasBalcony: false,
             hasSeaView: false
           });
           setTimeout(() => {
-            this.router.navigate(['/rooms']);
+            this.router.navigate(['/rooms/all']);
           }, 1500);
         },
         error: (error) => {
@@ -113,17 +163,16 @@ export class RoomCreate implements OnInit {
   }
 
   onCancel(): void {
-    if (this.roomForm.dirty) {
+    if (this.roomForm.dirty || this.propertyControl.dirty) {
       if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-        this.router.navigate(['/rooms']);
+        this.router.navigate(['/rooms/create']);
       }
     } else {
-      this.router.navigate(['/rooms']);
+      this.router.navigate(['/rooms/all']);
     }
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {
-    console.log('Marking form group as touched');
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
       control?.markAsTouched();

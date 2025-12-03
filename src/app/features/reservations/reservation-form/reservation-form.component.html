@@ -447,9 +447,19 @@
 
                     <!-- Time Picker (1/4 width) -->
                     <mat-form-field>
-                      <input matInput [ngxTimepicker]="picker" formControlName="releaseTime" readonly>
-                      <ngx-material-timepicker #picker></ngx-material-timepicker>
-                      <mat-icon matSuffix (click)="picker.open()">schedule</mat-icon>
+                      <input
+                        matInput
+                        [ngxTimepicker]="picker"
+                        formControlName="releaseTime"
+                        readonly>
+                      <ngx-material-timepicker
+                        #picker>
+                      </ngx-material-timepicker>
+                      <mat-icon
+                        matSuffix
+                        (click)="onTimePickerIconClick(picker)">
+                        schedule
+                      </mat-icon>
                     </mat-form-field>
                   </div>
 
@@ -471,6 +481,7 @@
                         mat-button
                         type="button"
                         (click)="incrementRemindBeforeDays()"
+                        [disabled]="reservationForm.get('remindDaysBeforeRelease')?.disabled"
                         class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
                         style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
                         <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
@@ -479,6 +490,7 @@
                         mat-button
                         type="button"
                         (click)="decrementRemindBeforeDays()"
+                        [disabled]="reservationForm.get('remindDaysBeforeRelease')?.disabled"
                         class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
                         style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
                         <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
@@ -489,6 +501,7 @@
                       Must be 0 or greater
                     </mat-error>
                   </mat-form-field>
+
                 </div>
 
                 <div class="flex justify-end mb-4">
