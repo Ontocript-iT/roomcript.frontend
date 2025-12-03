@@ -189,4 +189,35 @@ export class RoomService {
       })
     );
   }
+
+  updateRoom(roomId: number, roomData: CreateRoomRequest): Observable<RoomResponse> {
+    const url = `${this.apiUrl}/${roomId}`;
+    const headers = this.getHeaders();
+
+    return this.http.put<RoomResponse>(url, roomData, { headers }).pipe(
+      tap(response => {
+        console.log(`Room ${roomId} updated successfully:`, response);
+      }),
+      catchError(error => {
+        console.error(`Error updating room ${roomId}:`, error);
+        throw error;
+      })
+    );
+  }
+
+  removeRoom(roomId: number): Observable<any> {
+    const url = `${this.apiUrl}/${roomId}`;
+    const headers = this.getHeaders();
+
+    return this.http.delete(url, {
+      headers,
+      responseType: 'text' as 'json' 
+    }).pipe(
+      tap(() => console.log(`Room ${roomId} deleted successfully`)),
+      catchError(error => {
+        console.error(`Error deleting room ${roomId}:`, error);
+        throw error;
+      })
+    );
+  }
 }
