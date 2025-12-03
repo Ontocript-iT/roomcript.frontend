@@ -17,6 +17,7 @@ import {GuestListComponent} from './features/guest-management/guest-list/guest-l
 
 import { StayView } from './features/stay-view/stay-view';
 import { UserAccount } from './features/user-management/user-account/user-account';
+import {RoomListComponent} from './features/rooms/room-list/room-list';
 
 
 
@@ -30,11 +31,6 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard]
   },
-  // {
-  //   path: 'rooms',
-  //   component: RoomListComponent,
-  //   canActivate: [authGuard]
-  // },
   {
     path: 'reservations/all',
     component: ReservationListComponent,
@@ -69,10 +65,14 @@ export const routes: Routes = [
     path: 'propertyList',
     component: PropertyList,
     canActivate: [authGuard]
-  }
-  ,
+  },
   {
-    path: 'roomCreate',
+    path: 'rooms/all',
+    component: RoomListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'rooms/create',
     component: RoomCreate,
     canActivate: [authGuard]
   },

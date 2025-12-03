@@ -6,6 +6,20 @@ export interface Room {
   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE';
   propertyId: number;
   basePrice: number;
+
+  description?: string;
+  floor?: number;
+  capacity?: number;
+  bedType?: string;
+  smokingAllowed?: boolean;
+  hasBalcony?: boolean;
+  hasSeaView?: boolean;
+  amenities?: string;
+  remarks?: string | null;
+  maxAdults?: number | null;
+  maxChildren?: number | null;
+  createdBy?: string | null;
+  updatedAt?: string;
 }
 
 export interface AvailableRooms{

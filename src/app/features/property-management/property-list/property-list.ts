@@ -10,7 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Services
-import { PropertyService, PropertyResponse } from '../../../core/services/property.service';
+import { PropertyService } from '../../../core/services/property.service';
+import { PropertyResponse } from '../../../core/models/property.model'
 
 // SweetAlert2
 import Swal from 'sweetalert2';

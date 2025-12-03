@@ -90,7 +90,7 @@ export class RoomCreate implements OnInit {
           this.isLoading = false;
           console.log('Room created successfully:', response);
           this.showSuccess('Room created successfully!');
-          
+
           // Reset form and navigate
           this.roomForm.reset({
             smokingAllowed: false,
@@ -154,7 +154,7 @@ export class RoomCreate implements OnInit {
 
   private handleError(error: any): void {
     let errorMessage = 'An error occurred while creating the room';
-    
+
     if (error.status === 0) {
       errorMessage = 'Unable to connect to server';
     } else if (error.status === 401) {
@@ -166,7 +166,7 @@ export class RoomCreate implements OnInit {
     } else if (error.error?.message) {
       errorMessage = error.error.message;
     }
-    
+
     this.showError(errorMessage);
     console.error('Error creating room:', error);
   }

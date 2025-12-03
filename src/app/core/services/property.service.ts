@@ -3,47 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-
-export interface Property {
-  id?: number;
-  propertyName: string;
-  propertyCode: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
-  phone: string;
-  email: string;
-  totalRooms: number;
-  floorCount: number;
-  timeZone: string;
-  currency: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string | null;
- 
-}
-
-export interface PropertyResponse {
- id?: number;
-  propertyName: string;
-  propertyCode: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  zipCode: string;
-  phone: string;
-  email: string;
-  totalRooms: number;
-  floorCount: number;
-  timeZone: string;
-  currency: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string | null;
-}
+import {Property, PropertyResponse} from '../models/property.model';
 
 @Injectable({
   providedIn: 'root',
@@ -86,14 +46,14 @@ export class PropertyService {
   }
 
   getAllProperties(): Observable<PropertyResponse[]> {
-  return this.http.get<any>(
-    `${environment.apiUrl}/properties/getAllProperties`,
-    { headers: this.getHeaders() }
-  ).pipe(
-    map(response => response.body || response),
-    tap(properties => {
-      console.log('Properties fetched:', properties);
-    })
-  );
-}
+    return this.http.get<any>(
+      `${environment.apiUrl}/properties/getAllProperties`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.body || response),
+      tap(properties => {
+        console.log('Properties fetched:', properties);
+      })
+    );
+  }
 }
