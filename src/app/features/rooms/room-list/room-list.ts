@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import {Router, RouterLink} from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,6 +20,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatAutocompleteModule, MatAutocompleteTrigger} from '@angular/material/autocomplete';
 import {MatInputModule} from '@angular/material/input';
 import {ViewRoomDetailsComponent} from '../view-room-details/view-room-details';
+import Swal from 'sweetalert2';
+import {UpdateRoomComponent} from '../update-room/update-room';
 
 @Component({
   selector: 'app-room-list',
@@ -91,7 +94,7 @@ export class RoomListComponent implements OnInit {
           map(value => this._filterProperties(value || ''))
         );
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('Error loading properties:', error);
       }
     });
@@ -146,7 +149,7 @@ export class RoomListComponent implements OnInit {
         this.rooms = rooms;
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         console.error('Error loading rooms:', error);
         this.showError('Failed to load rooms');
         this.rooms = [];
@@ -175,29 +178,66 @@ export class RoomListComponent implements OnInit {
   }
 
   editRoom(room: Room): void {
-    this.router.navigate(['/rooms/edit', room.id]);
+    this.openUpdateRoomDialog(room);
   }
 
-  deleteRoom(room: Room): void {
-    const confirmDelete = confirm(
-      `Are you sure you want to delete room ${room.roomNumber}?`
-    );
+  openUpdateRoomDialog(room: Room): void {
+    const dialogRef = this.dialog.open(UpdateRoomComponent, {
+      width: '1200px',
+      maxWidth: '95vw',
+      data: { room: room },
+      disableClose: true,
+      panelClass: 'swal-style-dialog',
+    });
 
-    if (confirmDelete) {
-      // Implement delete functionality when you have the API endpoint
-      // this.roomService.deleteRoom(room.id).subscribe({
-      //   next: () => {
-      //     this.showSuccess('Room deleted successfully');
-      //     this.loadRooms();
-      //   },
-      //   error: (error) => {
-      //     console.error('Error deleting room:', error);
-      //     this.showError('Failed to delete room');
-      //   }
-      // });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadRooms();
+        this.showSuccess('Room updated successfully!');
+      }
+    });
+  }
 
-      this.showSuccess('Delete functionality to be implemented');
-    }
+  deleteRoom(room: any): void {
+    Swal.fire({
+      title: 'Delete Room',
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="mt-4 text-center">
+          Are you sure you want to delete room <strong>${room.roomNumber}</strong> (${room.roomType})?
+        </div>
+        <div class="text-sm text-center text-gray-600">
+          This action cannot be undone.
+        </div>
+      </div>
+    `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'No',
+      customClass: {
+        popup: 'text-xs',
+        title: 'text-sm font-bold',
+        htmlContainer: 'text-xs',
+        confirmButton: 'text-xs px-4 py-2 rounded-lg',
+        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.roomService.removeRoom(room.id).subscribe({
+          next: () => {
+            this.showSuccess(`Room ${room.roomNumber} deleted successfully.`);
+            this.loadRooms();
+          },
+          error: (error: HttpErrorResponse) => {
+            console.error('Delete room error:', error);
+            this.showError('Failed to delete room');
+          }
+        });
+      }
+    });
   }
 
   private showSuccess(message: string): void {
