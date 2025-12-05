@@ -335,22 +335,30 @@ export class ReservationService {
     );
   }
 
-  assignOrMoveRooms(assignmentData: any): Observable<any> {
-    const url = `${this.apiUrl}/assignRooms`;
+  moveExistingRoom(assignmentData: any): Observable<any> {
+    const url = `${this.apiUrl}/moveExistingRoomsOfReservation`;
 
-    console.log('🔄 Assigning/Moving rooms:', {
-      url,
-      data: assignmentData
-    });
+    console.log('Moving rooms:', { url, data: assignmentData });
 
     return this.http.post<any>(url, assignmentData, {
       headers: this.getHeaders()
     }).pipe(
-      tap(response => {
-        console.log('Assign/Move rooms response:', response);
+      map(response => {
+        console.log('Raw API response:', response);
+
+        // ✅ Check BODY statusCode, not response.statusCode
+        const bodyStatusCode = response.body?.statusCode || response.statusCode;
+
+        if (bodyStatusCode === 'BAD_REQUEST' || response.status === 400) {
+          const errorMsg = response.body?.error || 'Move operation failed';
+          throw new Error(errorMsg);
+        }
+
+        // ✅ Success - return the body data
+        return response.body;
       }),
       catchError(error => {
-        console.error('Error assigning/moving rooms:', error);
+        console.error('HTTP Error moving rooms:', error);
         throw error;
       })
     );

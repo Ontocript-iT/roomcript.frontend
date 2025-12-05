@@ -192,7 +192,8 @@ export class UpdateReservation implements OnInit {
               roomType: room.roomType,
               price: room.roomRate || 0,
               status: 'AVAILABLE',
-              propertyId: 0
+              propertyId: 0,
+              propertyCode: this.propertyCode || null
             });
           }
         });

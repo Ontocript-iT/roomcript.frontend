@@ -87,8 +87,45 @@
         <td style="padding: 10px; border: 1px solid #e5e7eb; color: #6b7280; vertical-align: middle;">{{ i + 1 }}</td>
 
         <!-- Room Type Cell - NOT Editable -->
-        <td style="padding: 10px; border: 1px solid #e5e7eb; color: #374151; vertical-align: middle;">
-          {{ room.roomType }}
+        <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: middle; height: 45px;"
+            [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
+            [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
+            [style.padding]="isEditingCell(i, 'roomType') ? '0' : '10px'"
+            [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
+            (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'roomType') : null">
+
+          <!-- Display Mode with Pencil Icon -->
+          <div *ngIf="!isEditingCell(i, 'roomType')" class="flex items-center justify-between">
+            <span style="color: #374151;">
+              {{ room.roomType }}
+            </span>
+            <!-- Pencil Icon - Show when row is editable -->
+            <button *ngIf="isRowEditing(i)"
+                    mat-icon-button
+                    (click)="onRoomCellDoubleClick(i, 'roomType')"
+                    class="!w-6 !h-6 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
+                    title="Edit Room Type">
+              <mat-icon class="!text-base">edit</mat-icon>
+            </button>
+          </div>
+
+          <!-- Edit Mode Dropdown -->
+          <mat-form-field *ngIf="isEditingCell(i, 'roomType')"
+                          appearance="outline"
+                          class="inline-edit-field w-full">
+            <mat-select
+              [(ngModel)]="room.roomType"
+              (selectionChange)="onRoomTypeSelect(i)"
+              (openedChange)="onDropdownOpenChange($event, i, 'roomType')"
+              class="!text-xs"
+              #roomTypeSelect>
+              <mat-option *ngFor="let roomType of availableRoomTypes"
+                          [value]="roomType.value"
+                          class="!text-xs">
+                {{ roomType.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </td>
 
         <!-- Room Number Cell - Double Click to Edit -->
@@ -99,12 +136,12 @@
             [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
             (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'roomNumber') : null">
 
-          <!-- Display Mode with Pencil Icon -->
+          <!-- Display Mode -->
           <div *ngIf="!isEditingCell(i, 'roomNumber')" class="flex items-center justify-between">
-    <span style="font-weight: 600; color: #111827;">
-      {{ room.roomNumber }}
-    </span>
-            <!-- ✅ Pencil Icon - Show when row is editable -->
+            <span style="font-weight: 600; color: #111827;">
+              {{ room.roomNumber }}
+            </span>
+
             <button *ngIf="isRowEditing(i)"
                     mat-icon-button
                     (click)="onRoomCellDoubleClick(i, 'roomNumber')"
@@ -120,6 +157,7 @@
                           class="inline-edit-field w-full">
             <mat-select
               [(ngModel)]="roomTempIds[i]"
+              placeholder="Select"
               (selectionChange)="onRoomSelect(i)"
               (openedChange)="onDropdownOpenChange($event, i, 'roomNumber')"
               class="!text-xs"
@@ -146,10 +184,10 @@
 
           <!-- Display Mode with Pencil Icon -->
           <div *ngIf="!isEditingCell(i, 'rate')" class="flex items-center justify-between">
-    <span style="color: #374151;">
-      ${{ room.roomRate.toFixed(2) }}
-    </span>
-            <!-- ✅ Pencil Icon - Show when row is editable -->
+            <span style="color: #374151;">
+              ${{ room.roomRate.toFixed(2) }}
+            </span>
+
             <button *ngIf="isRowEditing(i)"
                     mat-icon-button
                     (click)="onRoomCellDoubleClick(i, 'rate')"
@@ -185,10 +223,10 @@
 
           <!-- Display Mode with Pencil Icon -->
           <div *ngIf="!isEditingCell(i, 'adults')" class="flex items-center justify-center gap-2">
-    <span style="color: #374151;">
-      {{ room.numberOfAdults ?? 'N/A' }}
-    </span>
-            <!-- ✅ Pencil Icon - Show when row is editable -->
+            <span style="color: #374151;">
+              {{ room.numberOfAdults ?? 'N/A' }}
+            </span>
+
             <button *ngIf="isRowEditing(i)"
                     mat-icon-button
                     (click)="onRoomCellDoubleClick(i, 'adults')"
@@ -224,10 +262,10 @@
 
           <!-- Display Mode with Pencil Icon -->
           <div *ngIf="!isEditingCell(i, 'children')" class="flex items-center justify-center gap-2">
-    <span style="color: #374151;">
-      {{ room.numberOfChildren ?? 'N/A' }}
-    </span>
-            <!-- ✅ Pencil Icon - Show when row is editable -->
+            <span style="color: #374151;">
+              {{ room.numberOfChildren ?? 'N/A' }}
+            </span>
+
             <button *ngIf="isRowEditing(i)"
                     mat-icon-button
                     (click)="onRoomCellDoubleClick(i, 'children')"
@@ -285,6 +323,31 @@
       </tr>
       </tbody>
     </table>
+    <!-- Error/Success Message -->
+    <div *ngIf="showError"
+         class="mb-4 mt-4 p-3 rounded-lg border-l-4 flex items-center gap-3"
+         [ngClass]="{
+       'bg-red-50 border-red-400 text-red-800': !isSuccessMessage,
+       'bg-green-50 border-green-400 text-green-800': isSuccessMessage }">
+      <mat-icon [ngClass]="{
+        '!text-green-600': isSuccessMessage,
+        '!text-red-600': !isSuccessMessage
+      }">
+        {{ isSuccessMessage ? 'check_circle' : 'error' }}
+      </mat-icon>
+
+      <span class="flex-1">{{ errorMessage }}</span>
+
+      <button mat-icon-button
+              (click)="hideErrorMessage()"
+              class="!w-6 !h-6"
+              [ngClass]="{
+            '!text-green-600': isSuccessMessage,
+            '!text-red-600': !isSuccessMessage
+          }">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
   </div>
 
   <p *ngIf="!data.reservation.roomDetails || data.reservation.roomDetails.length === 0"
