@@ -211,7 +211,7 @@ export class RoomService {
 
     return this.http.delete(url, {
       headers,
-      responseType: 'text' as 'json' 
+      responseType: 'text' as 'json'
     }).pipe(
       tap(() => console.log(`Room ${roomId} deleted successfully`)),
       catchError(error => {

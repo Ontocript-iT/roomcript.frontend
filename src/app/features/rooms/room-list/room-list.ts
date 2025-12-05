@@ -21,7 +21,7 @@ import {MatAutocompleteModule, MatAutocompleteTrigger} from '@angular/material/a
 import {MatInputModule} from '@angular/material/input';
 import {ViewRoomDetailsComponent} from '../view-room-details/view-room-details';
 import Swal from 'sweetalert2';
-import {UpdateRoomComponent} from '../update-room/update-room';
+import {UpdateRoom} from '../update-room/update-room';
 
 @Component({
   selector: 'app-room-list',
@@ -178,11 +178,14 @@ export class RoomListComponent implements OnInit {
   }
 
   editRoom(room: Room): void {
+    console.log('// Opening dialog with room:', room);
     this.openUpdateRoomDialog(room);
   }
 
   openUpdateRoomDialog(room: Room): void {
-    const dialogRef = this.dialog.open(UpdateRoomComponent, {
+    console.log('🔍 Opening dialog with room:', room);
+
+    const dialogRef = this.dialog.open(UpdateRoom, {
       width: '1200px',
       maxWidth: '95vw',
       data: { room: room },
