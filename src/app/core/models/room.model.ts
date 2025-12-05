@@ -1,4 +1,5 @@
 export interface Room {
+  propertyCode: string | null;
   id: number;
   roomNumber: string;
   roomType: string;
