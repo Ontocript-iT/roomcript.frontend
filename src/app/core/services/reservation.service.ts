@@ -338,15 +338,10 @@ export class ReservationService {
   moveExistingRoom(assignmentData: any): Observable<any> {
     const url = `${this.apiUrl}/moveExistingRoomsOfReservation`;
 
-    console.log('Moving rooms:', { url, data: assignmentData });
-
     return this.http.post<any>(url, assignmentData, {
       headers: this.getHeaders()
     }).pipe(
       map(response => {
-        console.log('Raw API response:', response);
-
-        // ✅ Check BODY statusCode, not response.statusCode
         const bodyStatusCode = response.body?.statusCode || response.statusCode;
 
         if (bodyStatusCode === 'BAD_REQUEST' || response.status === 400) {
@@ -354,11 +349,35 @@ export class ReservationService {
           throw new Error(errorMsg);
         }
 
-        // ✅ Success - return the body data
         return response.body;
       }),
       catchError(error => {
         console.error('HTTP Error moving rooms:', error);
+        throw error;
+      })
+    );
+  }
+
+  assignRooms(assignmentData: any): Observable<any> {
+    const url = `${this.apiUrl}/assignRooms`;
+
+    return this.http.post<any>(url, assignmentData, {
+      headers: this.getHeaders()
+    }).pipe(
+      map(response => {
+        console.log('Raw API response:', response);
+
+        const bodyStatusCode = response.body?.statusCode || response.statusCode;
+
+        if (bodyStatusCode === 'BAD_REQUEST' || response.status === 400) {
+          const errorMsg = response.body?.error || 'Assign operation failed';
+          throw new Error(errorMsg);
+        }
+
+        return response.body;
+      }),
+      catchError(error => {
+        console.error('HTTP Error assigning rooms:', error);
         throw error;
       })
     );
