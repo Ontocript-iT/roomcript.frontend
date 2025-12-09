@@ -67,15 +67,15 @@ export class GuestListComponent implements OnInit {
         <!-- Personal Info -->
         <div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
           <div class="flex">
-            <span class="font-semibold">Name: </span>
+            <span class="font-semibold inline-block" style="min-width: 60px;">Name: </span>
             <span>${guest.name}</span>
           </div>
           <div class="flex">
-            <span class="font-semibold">Email: </span>
+            <span class="font-semibold inline-block" style="min-width: 60px;">Email: </span>
             <span>${guest.email || 'N/A'}</span>
           </div>
           <div class="flex">
-            <span class="font-semibold">Phone: </span>
+            <span class="font-semibold inline-block" style="min-width: 60px;">Phone: </span>
             <span>${guest.phone || 'N/A'}</span>
           </div>
         </div>
@@ -85,23 +85,23 @@ export class GuestListComponent implements OnInit {
         <h3 class="font-semibold text-lg mb-4 text-gray-800">Address Details</h3>
         <div class="grid grid-cols-2 gap-x-8 gap-y-4">
           <div class="flex">
-            <span class="font-semibold">Address: </span>
+            <span class="font-semibold inline-block" style="min-width: 65px;">Address: </span>
             <span>${guest.address || 'N/A'}</span>
           </div>
           <div class="flex">
-            <span class="font-semibold">City: </span>
+            <span class="font-semibold inline-block" style="min-width: 65px;">City: </span>
             <span>${guest.city || 'N/A'}</span>
           </div>
           <div class="flex">
-            <span class="font-semibold">State: </span>
+            <span class="font-semibold inline-block" style="min-width: 65px;">State: </span>
             <span>${guest.state || 'N/A'}</span>
           </div>
           <div class="flex">
-            <span class="font-semibold">Country: </span>
+            <span class="font-semibold inline-block" style="min-width: 65px;">Country: </span>
             <span>${guest.country || 'N/A'}</span>
           </div>
           <div class="col-span-2 flex">
-            <span class="font-semibold">Zip Code: </span>
+            <span class="font-semibold inline-block" style="min-width: 65px;">Zip Code: </span>
             <span>${guest.zipCode || 'N/A'}</span>
           </div>
         </div>
