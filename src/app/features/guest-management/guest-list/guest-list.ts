@@ -117,60 +117,85 @@ export class GuestListComponent implements OnInit {
         popup: 'rounded-xl',
         title: 'text-2xl font-bold text-gray-800',
         htmlContainer: 'text-sm',
-        confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+        confirmButton: 'swal-cancel-btn'
       }
     });
   }
 
+
+
+
+
   editGuest(guest: Guest): void {
     Swal.fire({
       title: 'Edit Guest',
+      width: '900px',
       html: `
       <div class="text-left space-y-2" style="font-size: 14px;">
         <div class="grid grid-cols-2 gap-x-8 gap-y-4">
           <div>
             <label class="block font-semibold mb-1">Name:</label>
-            <input id="editName" value="${guest.name}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="editName" value="${guest.name || ''}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label class="block font-semibold mb-1">Email:</label>
-            <input id="editEmail" value="${guest.email || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="editEmail" value="${guest.email || ''}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label class="block font-semibold mb-1">Phone:</label>
-            <input id="editPhone" value="${guest.phone || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input id="editPhone" value="${guest.phone || ''}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div class="col-span-2">
             <label class="block font-semibold mb-1">Address:</label>
-            <textarea id="editAddress" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${guest.address || ''}</textarea>
+            <textarea id="editAddress" rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${guest.address || ''}</textarea>
           </div>
         </div>
       </div>
     `,
       showCancelButton: true,
-      confirmButtonText: 'Update Guest',
-      confirmButtonColor: '#3b82f6',
-      cancelButtonText: 'Cancel',
-      cancelButtonColor: '#6b7280',
-      width: '700px',
+
+      // PMS-style button labels
+      confirmButtonText: `
+      <span style="display:flex;align-items:center;gap:6px;">
+        ✓
+        <span>Update Guest</span>
+      </span>
+    `,
+      cancelButtonText: `
+      <span style="display:flex;align-items:center;gap:6px;">
+        ✕
+        <span>Cancel</span>
+      </span>
+    `,
+
+
+      buttonsStyling: false,
+
       customClass: {
         popup: 'rounded-xl',
         title: 'text-2xl font-bold text-gray-800',
         htmlContainer: 'text-sm',
-        confirmButton: 'rounded-lg px-6 py-2 font-semibold',
-        cancelButton: 'rounded-lg px-6 py-2 font-semibold'
+        confirmButton: 'swal-update-btn',
+        cancelButton: 'swal-cancel-btn'
       },
+
       preConfirm: () => {
+        const popup = Swal.getPopup();
         return {
-          name: (Swal.getPopup()?.querySelector('#editName') as HTMLInputElement)?.value,
-          email: (Swal.getPopup()?.querySelector('#editEmail') as HTMLInputElement)?.value,
-          phone: (Swal.getPopup()?.querySelector('#editPhone') as HTMLInputElement)?.value,
-          address: (Swal.getPopup()?.querySelector('#editAddress') as HTMLTextAreaElement)?.value
+          name: (popup?.querySelector('#editName') as HTMLInputElement)?.value,
+          email: (popup?.querySelector('#editEmail') as HTMLInputElement)?.value,
+          phone: (popup?.querySelector('#editPhone') as HTMLInputElement)?.value,
+          address: (popup?.querySelector('#editAddress') as HTMLTextAreaElement)?.value
         };
       }
     }).then((result) => {
       if (result.isConfirmed) {
         const updatedGuest = { ...guest, ...result.value };
+
         this.guestService.updateGuest(guest.id, updatedGuest).subscribe({
           next: () => {
             this.showSuccess(`Guest ${updatedGuest.name} updated successfully!`);
@@ -186,28 +211,42 @@ export class GuestListComponent implements OnInit {
   }
 
 
+
   deleteGuest(guest: Guest): void {
     Swal.fire({
       title: 'Delete Guest',
       html: `
-        <div class="text-left space-y-2" style="font-size: 14px;">
-          <div class="mt-4 text-center">
-            Are you sure you want to delete guest <strong>${guest.name}</strong>?
-          </div>
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="mt-4 text-center">
+          Are you sure you want to delete guest <strong>${guest.name}</strong>?
         </div>
-      `,
+      </div>
+    `,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, Delete',
-      cancelButtonText: 'No',
+
+
+      confirmButtonText: `
+      <span style="display:flex;align-items:center;gap:6px;">
+        ✕
+        <span>Yes, Delete</span>
+      </span>
+    `,
+      cancelButtonText: `
+      <span style="display:flex;align-items:center;gap:6px;">
+        ⤺
+        <span>No</span>
+      </span>
+    `,
+
+
+      buttonsStyling: false,
       customClass: {
-        popup: 'text-xs',
-        title: 'text-sm font-bold',
-        htmlContainer: 'text-xs',
-        confirmButton: 'text-xs px-4 py-2 rounded-lg',
-        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+        popup: 'rounded-xl',
+        title: 'text-2xl font-bold text-gray-800',
+        htmlContainer: 'text-sm text-gray-700',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn'
       }
     }).then((result) => {
       if (result.isConfirmed) {
@@ -224,6 +263,8 @@ export class GuestListComponent implements OnInit {
       }
     });
   }
+
+
 
   private showSuccess(message: string): void {
     this.snackBar.open(message, 'Close', {
