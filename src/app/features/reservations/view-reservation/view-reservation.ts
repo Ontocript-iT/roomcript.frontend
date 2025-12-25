@@ -12,6 +12,9 @@ import { RoomService } from '../../../core/services/room.service';
 import { ReservationService } from '../../../core/services/reservation.service';
 import { map } from 'rxjs';
 import {MatInputModule} from '@angular/material/input';
+import {Router, RouterLink} from '@angular/router';
+import {MatMenuModule, MatMenuTrigger} from '@angular/material/menu';
+import {MatDivider} from '@angular/material/divider';
 
 export interface ViewReservationDialogData {
   reservation: Reservation;
@@ -35,7 +38,10 @@ interface AvailableRoomOption {
     MatFormFieldModule,
     MatSelectModule,
     FormsModule,
-    MatInputModule
+    MatInputModule,
+    MatMenuTrigger,
+    MatMenuModule,
+    MatDivider,
   ],
   templateUrl: './view-reservation.html',
   styleUrl: './view-reservation.scss'
@@ -54,6 +60,7 @@ export class ViewReservation implements OnInit {
   errorMessage: string = '';
   showError: boolean = false;
   isSuccessMessage: boolean = false;
+  roomDetails: [] | undefined;
 
   availableRoomTypes = [
     { value: 'Standard', label: 'Standard', availableCount: 0},
@@ -74,7 +81,8 @@ export class ViewReservation implements OnInit {
     public dialogRef: MatDialogRef<ViewReservation>,
     @Inject(MAT_DIALOG_DATA) public data: ViewReservationDialogData,
     private reservationService: ReservationService,
-    private roomService: RoomService
+    private roomService: RoomService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -484,6 +492,20 @@ export class ViewReservation implements OnInit {
     setTimeout(() => {
       this.onRoomCellDoubleClick(newIndex, 'roomType');
     }, 0);
+  }
+
+  editReservation(): void {
+    // Close the dialog first
+    this.dialogRef.close();
+
+    // Navigate to edit page with reservation data
+    this.router.navigate(['/reservations/folio-operations'], {
+      queryParams: {
+        id: this.data.reservation.id,
+        confirmationNumber: this.data.reservation.confirmationNumber,
+        // Add any other params you need
+      }
+    });
   }
 
   onCancel(): void {

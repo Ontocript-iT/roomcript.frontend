@@ -35,3 +35,63 @@
   height: 16px !important;
   font-size: 16px !important;
 }
+
+
+:host {
+  display: block;
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+.selecting {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+// 🔥 Right panel slide-in animation
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// 🔥 Custom styles for right panel
+:host ::ng-deep {
+  .swal-right-container {
+    align-items: flex-start !important;
+    justify-content: flex-end !important;
+  }
+
+  .swal-right-panel {
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
+
+    // 🔥 Custom scrollbar for panel
+    .swal2-html-container {
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+
+        &:hover {
+          background: #555;
+        }
+      }
+    }
+  }
+}

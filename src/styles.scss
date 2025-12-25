@@ -46,3 +46,33 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   border-right: none !important
 }
 
+.dialog-backdrop-dark {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.cdk-overlay-backdrop.dialog-backdrop-dark {
+  backdrop-filter: none;
+}
+
+.right-side-panel-dialog {
+  border-radius: 0 !important;
+}
+
+.right-side-panel-dialog .mat-mdc-dialog-container,
+.right-side-panel-dialog .mdc-dialog__surface {
+  border-radius: 0 !important;
+}
+
+// Override Material Dialog border radius
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-surface,
+.mdc-dialog__surface {
+  border-radius: 5px !important;
+}
+
+// Or apply to specific dialog only
+.context-menu-popup .mat-mdc-dialog-container,
+.context-menu-popup .mat-mdc-dialog-surface,
+.context-menu-popup .mdc-dialog__surface {
+  border-radius: 5px !important;
+}

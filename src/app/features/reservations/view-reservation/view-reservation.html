@@ -3,11 +3,20 @@
   <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">edit</mat-icon>
+        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">person</mat-icon>
       </div>
       <div>
-        <h2 class="text-xl font-bold text-gray-900">Reservation Details</h2>
-        <p class="text-sm text-gray-500">View reservation details</p>
+        <h2 class="text-xl font-bold text-gray-900">{{ data.reservation.name }}</h2>
+        <div class="flex items-center gap-3 text-sm text-gray-600 mt-1">
+          <span class="flex items-center gap-1">
+            <mat-icon class="!text-[16px] !w-4 !h-4">phone</mat-icon>
+            {{ data.reservation.phone || 'N/A' }}
+          </span>
+          <span class="flex items-center gap-1">
+            <mat-icon class="!text-[16px] !w-4 !h-4">email</mat-icon>
+            {{ data.reservation.email }}
+          </span>
+        </div>
       </div>
     </div>
     <button mat-icon-button (click)="onCancel()" class="!text-gray-500 hover:!text-gray-700">
@@ -15,380 +24,151 @@
     </button>
   </div>
 
-  <!-- Guest Information -->
-  <div class="grid grid-cols-2" style="gap: 0.5rem 2rem; margin-bottom: 20px;">
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 80px;">Name:</span>
-      <span>{{ data.reservation.name }}</span>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- LEFT COLUMN - Reservation Details -->
+    <div class="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-6">
+      <!-- Top Actions (Edit + Print) -->
+      <div class="flex flex-wrap !items-end gap-3 mb-4">
+        <button mat-raised-button
+                (click)="editReservation()"
+                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
+          <mat-icon class="!mr-2 !text-[20px]">edit</mat-icon>
+          Edit Reservation
+        </button>
+
+        <button mat-raised-button
+                (click)="printReservation()"
+                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
+          <mat-icon class="!mr-2 !text-[20px]">print</mat-icon>
+          Print
+        </button>
+      </div>
+
+      <!-- Booking Information -->
+        <div class="grid grid-cols-2 mb-6" style="gap: 0.5rem 2rem;">
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Check-In:</span>
+            <span>{{ data.reservation.checkInDate | date:'MMMM d, y' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Check-Out:</span>
+            <span>{{ data.reservation.checkOutDate | date:'MMMM d, y' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Total Guests:</span>
+            <span>{{ data.reservation.numberOfGuests || 'N/A' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Room Count:</span>
+            <span>{{ data.reservation.roomCount || data.reservation.roomDetails.length || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <!-- Room Details Table -->
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;" class="mb-6">
+          <thead>
+          <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 5%;"></th>
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 20%;">Room Type</th>
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Number</th>
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Rate</th>
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Adults</th>
+            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Children</th>
+          </tr>
+          </thead>
+
+          <tbody *ngIf="data?.reservation?.roomDetails && data.reservation.roomDetails.length > 0; else noRoomsBody">
+          <tr *ngFor="let room of data.reservation.roomDetails; let i = index"
+              [style.backgroundColor]="i % 2 === 0 ? '#ffffff' : '#f9fafb'"
+              style="border-bottom: 1px solid #e5e7eb; height: 45px;">
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ i + 1 }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ room.roomType || 'N/A' }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ room.roomNumber || 'N/A' }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
+              {{ room.roomRate != null ? (room.roomRate | number:'1.2-2') : 'N/A' }}
+            </td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
+              {{ room.numberOfAdults != null ? room.numberOfAdults : 'N/A' }}
+            </td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
+              {{ room.numberOfChildren != null ? room.numberOfChildren : 'N/A' }}
+            </td>
+          </tr>
+          </tbody>
+
+          <ng-template #noRoomsBody>
+            <tbody>
+            <tr>
+              <td colspan="6"
+                  style="padding: 12px; border: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb;">
+                No room details available
+              </td>
+            </tr>
+            </tbody>
+          </ng-template>
+        </table>
+
+        <!-- Total & Status -->
+        <div class="grid grid-cols-1 mb-6" style="gap: 0.5rem 2rem;">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="font-semibold" style="min-width: 120px;">Total Amount:</span>
+            <span>${{ data.reservation.totalAmount.toFixed(2) }}</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 120px;">Status:</span>
+            <span [ngStyle]="{
+                  'background-color': getStatusBgColor(),
+                  'color': getStatusTextColor(),
+                  'display': 'inline-block',
+                  'padding': '0.25rem 0.75rem',
+                  'border-radius': '9999px',
+                  'font-size': '12px',
+                  'font-weight': '600'
+                }">
+              {{ data.reservation.status }}
+            </span>
+          </div>
+        </div>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 80px;">Email:</span>
-      <span>{{ data.reservation.email }}</span>
-    </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 80px;">Phone:</span>
-      <span>{{ data.reservation.phone || 'N/A' }}</span>
-    </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 80px;">Address:</span>
-      <span>{{ data.reservation.address || 'N/A' }}</span>
-    </div>
-  </div>
 
-  <hr style="margin: 1rem 0; border-color: #d1d5db;" />
-
-  <!-- Booking Information -->
-  <div class="grid grid-cols-2" style="gap: 0.5rem 2rem; margin-bottom: 20px;">
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Check-In:</span>
-      <span>{{ data.reservation.checkInDate | date:'MMMM d, y' }}</span>
-    </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Check-Out:</span>
-      <span>{{ data.reservation.checkOutDate | date:'MMMM d, y' }}</span>
-    </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Total Guests:</span>
-      <span>{{ data.reservation.numberOfGuests || 'N/A' }}</span>
-    </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Room Count:</span>
-      <span>{{ data.reservation.roomCount || data.reservation.roomDetails.length || 'N/A' }}</span>
-    </div>
-  </div>
-
-  <!-- Room Details Table -->
-  <div style="margin-top: 1rem;">
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;">
-      <thead>
-        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 5%;">#</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Type</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Number</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Rate</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Adults</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Children</th>
-          <th *ngIf="shouldShowActionButtons()" style="padding: 10px; text-align: center; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Actions</th>
-        </tr>
-      </thead>
-      <tbody *ngIf="data.reservation.roomDetails && data.reservation.roomDetails.length > 0; else noRoomsBody">
-        <tr *ngFor="let room of data.reservation.roomDetails; let i = index"
-            [style.backgroundColor]="i % 2 === 0 ? '#ffffff' : '#f9fafb'"
-            style="border-bottom: 1px solid #e5e7eb; height: 45px;">
-          <td style="padding: 10px; border: 1px solid #e5e7eb; color: #6b7280; vertical-align: middle;">{{ i + 1 }}</td>
-
-          <!-- Room Type Cell - NOT Editable -->
-          <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: middle; height: 45px;"
-              [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
-              [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
-              [style.padding]="isEditingCell(i, 'roomType') ? '0' : '10px'"
-              [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
-              (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'roomType') : null">
-
-            <!-- Display Mode with Pencil Icon -->
-            <div *ngIf="!isEditingCell(i, 'roomType')" class="flex items-center justify-between">
-              <span style="color: #374151;">
-                {{ room.roomType }}
-              </span>
-              <!-- Pencil Icon - Show when row is editable -->
-              <button *ngIf="isRowEditing(i)"
-                      mat-icon-button
-                      (click)="onRoomCellDoubleClick(i, 'roomType')"
-                      class="!w-6 !h-6 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
-                      title="Edit Room Type">
-                <mat-icon class="!text-base">edit</mat-icon>
-              </button>
-            </div>
-
-            <!-- Edit Mode Dropdown -->
-            <mat-form-field *ngIf="isEditingCell(i, 'roomType')"
-                            appearance="outline"
-                            class="inline-edit-field w-full">
-              <mat-select
-                [(ngModel)]="room.roomType"
-                (selectionChange)="onRoomTypeSelect(i)"
-                (openedChange)="onDropdownOpenChange($event, i, 'roomType')"
-                class="!text-xs"
-                #roomTypeSelect>
-                <mat-option *ngFor="let roomType of availableRoomTypes"
-                            [value]="roomType.value"
-                            class="!text-xs">
-                  {{ roomType.label }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </td>
-
-          <!-- Room Number Cell - Double Click to Edit -->
-          <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: middle; height: 45px;"
-              [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
-              [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
-              [style.padding]="isEditingCell(i, 'roomNumber') ? '0' : '10px'"
-              [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
-              (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'roomNumber') : null">
-
-            <!-- Display Mode -->
-            <div *ngIf="!isEditingCell(i, 'roomNumber')" class="flex items-center justify-between">
-              <span style="font-weight: 600; color: #111827;">
-                {{ room.roomNumber }}
-              </span>
-
-              <button *ngIf="isRowEditing(i)"
-                      mat-icon-button
-                      (click)="onRoomCellDoubleClick(i, 'roomNumber')"
-                      class="!w-6 !h-6 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
-                      title="Edit Room Number">
-                <mat-icon class="!text-base">edit</mat-icon>
-              </button>
-            </div>
-
-            <!-- Edit Mode Dropdown -->
-            <mat-form-field *ngIf="isEditingCell(i, 'roomNumber')"
-                            appearance="outline"
-                            class="inline-edit-field w-full">
-              <mat-select
-                [(ngModel)]="roomTempIds[i]"
-                placeholder="Select"
-                (selectionChange)="onRoomSelect(i)"
-                (openedChange)="onDropdownOpenChange($event, i, 'roomNumber')"
-                class="!text-xs"
-                #roomSelect>
-                <mat-option *ngIf="getAvailableRoomsForIndex(i).length === 0" disabled>
-                  No rooms available
-                </mat-option>
-                <mat-option *ngFor="let availableRoom of getAvailableRoomsForIndex(i)"
-                            [value]="availableRoom.roomId"
-                            class="!text-xs">
-                  {{ availableRoom.roomNumber }}
-                </mat-option>
-              </mat-select>
-            </mat-form-field>
-          </td>
-
-          <!-- Rate Cell - Double Click to Edit -->
-          <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: middle; height: 45px;"
-              [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
-              [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
-              [style.padding]="isEditingCell(i, 'rate') ? '0' : '10px'"
-              [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
-              (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'rate') : null">
-
-            <!-- Display Mode with Pencil Icon -->
-            <div *ngIf="!isEditingCell(i, 'rate')" class="flex items-center justify-between">
-              <span style="color: #374151;">
-                ${{ room.roomRate.toFixed(2) }}
-              </span>
-
-              <button *ngIf="isRowEditing(i)"
-                      mat-icon-button
-                      (click)="onRoomCellDoubleClick(i, 'rate')"
-                      class="!w-6 !h-6 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
-                      title="Edit Rate">
-                <mat-icon class="!text-base">edit</mat-icon>
-              </button>
-            </div>
-
-            <!-- Edit Mode Input -->
-            <mat-form-field *ngIf="isEditingCell(i, 'rate')"
-                            appearance="outline"
-                            class="inline-edit-field w-full">
-              <input matInput
-                     type="number"
-                     [(ngModel)]="room.roomRate"
-                     (blur)="closeEditCell()"
-                     (keyup.enter)="closeEditCell()"
-                     (keyup.escape)="cancelEdit(i)"
-                     class="!text-xs"
-                     step="0.01"
-                     #rateInput>
-            </mat-form-field>
-          </td>
-
-          <!-- Adults Cell - Double Click to Edit -->
-          <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center; vertical-align: middle; height: 45px;"
-              [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
-              [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
-              [style.padding]="isEditingCell(i, 'adults') ? '0' : '10px'"
-              [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
-              (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'adults') : null">
-
-            <!-- Display Mode with Pencil Icon -->
-            <div *ngIf="!isEditingCell(i, 'adults')" class="flex items-center justify-center gap-2">
-              <span style="color: #374151;">
-                {{ room.numberOfAdults ?? 'N/A' }}
-              </span>
-
-              <button *ngIf="isRowEditing(i)"
-                      mat-icon-button
-                      (click)="onRoomCellDoubleClick(i, 'adults')"
-                      class="!w-5 !h-5 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
-                      title="Edit Adults">
-                <mat-icon class="!text-sm">edit</mat-icon>
-              </button>
-            </div>
-
-            <!-- Edit Mode Input -->
-            <mat-form-field *ngIf="isEditingCell(i, 'adults')"
-                            appearance="outline"
-                            class="inline-edit-field w-full">
-              <input matInput
-                     type="number"
-                     [(ngModel)]="room.numberOfAdults"
-                     (blur)="closeEditCell()"
-                     (keyup.enter)="closeEditCell()"
-                     (keyup.escape)="cancelEdit(i)"
-                     min="0"
-                     class="!text-xs"
-                     #adultsInput>
-            </mat-form-field>
-          </td>
-
-          <!-- Children Cell - Double Click to Edit -->
-          <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center; vertical-align: middle; height: 45px;"
-              [style.cursor]="isRowEditing(i) ? 'pointer' : 'default'"
-              [style.background-color]="isRowEditing(i) ? '#f0f9ff' : 'transparent'"
-              [style.padding]="isEditingCell(i, 'children') ? '0' : '10px'"
-              [title]="isRowEditing(i) ? 'Double-click to edit' : ''"
-              (dblclick)="isRowEditing(i) ? onRoomCellDoubleClick(i, 'children') : null">
-
-            <!-- Display Mode with Pencil Icon -->
-            <div *ngIf="!isEditingCell(i, 'children')" class="flex items-center justify-center gap-2">
-              <span style="color: #374151;">
-                {{ room.numberOfChildren ?? 'N/A' }}
-              </span>
-
-              <button *ngIf="isRowEditing(i)"
-                      mat-icon-button
-                      (click)="onRoomCellDoubleClick(i, 'children')"
-                      class="!w-5 !h-5 !p-0 !text-blue-500 hover:!text-blue-600 !bg-transparent"
-                      title="Edit Children">
-                <mat-icon class="!text-sm">edit</mat-icon>
-              </button>
-            </div>
-
-            <!-- Edit Mode Input -->
-            <mat-form-field *ngIf="isEditingCell(i, 'children')"
-                            appearance="outline"
-                            class="inline-edit-field w-full">
-              <input matInput
-                     type="number"
-                     [(ngModel)]="room.numberOfChildren"
-                     (blur)="closeEditCell()"
-                     (keyup.enter)="closeEditCell()"
-                     (keyup.escape)="cancelEdit(i)"
-                     min="0"
-                     class="!text-xs"
-                     #childrenInput>
-            </mat-form-field>
-          </td>
-
-          <!-- Actions Column -->
-          <td *ngIf="shouldShowActionButtons()" style="padding: 10px; border: 1px solid #e5e7eb; text-align: center; vertical-align: middle;">
-            <!-- Assign/Move Button (Show when row is NOT being edited) -->
-            <button *ngIf="!isRowEditing(i)"
-                    mat-icon-button
-                    (click)="enableRowEdit(i)"
-                    [title]="'Assign/Move Room'"
-                    class="!text-indigo-600 hover:!text-indigo-800">
-              <mat-icon>swap_horiz</mat-icon>
-            </button>
-
-            <!-- Save Button (Show when row IS being edited AND has changes) -->
-            <button *ngIf="isRowEditing(i) && hasRowChanges(i)"
-                    mat-icon-button
-                    (click)="saveRowChanges(i)"
-                    [title]="'Save Changes'"
-                    class="!text-green-600 hover:!text-green-800">
-              <mat-icon>save</mat-icon>
-            </button>
-
-            <!-- Cancel Button (Show when row IS being edited) -->
-            <button *ngIf="isRowEditing(i)"
-                    mat-icon-button
-                    (click)="cancelRowEdit(i)"
-                    [title]="'Cancel'"
-                    class="!text-red-600 hover:!text-red-800">
-              <mat-icon>close</mat-icon>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Auto Allocate Button Only -->
-    <div *ngIf="shouldShowActionButtons()" class="flex items-center justify-end gap-3 mb-4 mt-4 no-print">
-      <button mat-raised-button (click)="assignRoom()"
-              class="!px-6 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
-        <mat-icon class="!mr-2">assign</mat-icon>
-        Assign Room
+    <!-- RIGHT COLUMN - Actions Dropdown -->
+    <div class="lg:col-span-1 lg:pl-6">
+      <button mat-stroked-button matSuffix
+              [matMenuTriggerFor]="actionsMenu"
+              class="w-3/4 !px-6 !py-2 !text-black !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
+        More Options
+        <mat-icon>more_vert</mat-icon>
       </button>
+
+      <mat-menu #actionsMenu="matMenu" class="!w-full">
+          <button mat-menu-item (click)="assignRoom()" *ngIf="shouldShowActionButtons()">
+            <mat-icon>assign</mat-icon>
+            <span>Assign Room</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>login</mat-icon>
+            <span>Check In</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>logout</mat-icon>
+            <span>Check Out</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>cancel</mat-icon>
+            <span>Cancel Reservation</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item >
+            <mat-icon>email</mat-icon>
+            <span>Send Confirmation</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>note_add</mat-icon>
+            <span>Add Note</span>
+          </button>
+        </mat-menu>
     </div>
 
-    <ng-template #noRoomsBody>
-      <tbody>
-      <tr>
-        <td [attr.colspan]="shouldShowActionButtons() ? 7 : 6"
-            style="padding: 12px; border: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb;">
-          No room details available
-        </td>
-      </tr>
-      </tbody>
-    </ng-template>
-    <!-- Error/Success Message -->
-    <div *ngIf="showError"
-         class="mb-4 mt-4 p-3 rounded-lg border-l-4 flex items-center gap-3"
-         [ngClass]="{
-       'bg-red-50 border-red-400 text-red-800': !isSuccessMessage,
-       'bg-green-50 border-green-400 text-green-800': isSuccessMessage }">
-      <mat-icon [ngClass]="{
-        '!text-green-600': isSuccessMessage,
-        '!text-red-600': !isSuccessMessage
-      }">
-        {{ isSuccessMessage ? 'check_circle' : 'error' }}
-      </mat-icon>
-
-      <span class="flex-1">{{ errorMessage }}</span>
-
-      <button mat-icon-button
-              (click)="hideErrorMessage()"
-              class="!w-6 !h-6"
-              [ngClass]="{
-            '!text-green-600': isSuccessMessage,
-            '!text-red-600': !isSuccessMessage
-          }">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-  </div>
-
-  <hr style="margin: 1rem 0; border-color: #d1d5db;" />
-
-  <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-    <span class="font-semibold" style="min-width: 120px;">Total Amount:</span>
-    <span>${{ data.reservation.totalAmount.toFixed(2) }}</span>
-  </div>
-
-  <div style="display: flex; gap: 0.5rem;">
-    <span class="font-semibold" style="min-width: 120px;">Status:</span>
-    <span [ngStyle]="{
-            'background-color': getStatusBgColor(),
-            'color': getStatusTextColor(),
-            'display': 'inline-block',
-            'padding': '0.25rem 0.75rem',
-            'border-radius': '9999px',
-            'font-size': '12px',
-            'font-weight': '600'
-          }">
-      {{ data.reservation.status }}
-    </span>
-  </div>
-
-  <!-- Print Button Only -->
-  <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-    <button mat-raised-button (click)="printReservation()"
-            class="!px-6 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
-      <mat-icon class="!mr-2">print</mat-icon>
-      Print
-    </button>
   </div>
 </div>
