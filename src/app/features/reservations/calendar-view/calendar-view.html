@@ -1,0 +1,160 @@
+<div class="p-5 bg-gray-50">
+  <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-500 p-2 rounded-lg">
+          <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">hotel</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">Stay View</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calendar Container - No scroll -->
+  <div class="overflow-hidden">
+    <!-- Calendar Grid -->
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+
+      <!-- Header Row -->
+      <div class="flex border-b-2 border-gray-300">
+        <!-- Left Column Header (Room Type / Room #) - FIXED -->
+        <div class="bg-gray-100 border-r border-gray-300 flex items-center justify-center w-[200px] flex-shrink-0 px-4 py-2">
+          <span class="text-sm font-semibold text-gray-700">Room Type / Room #</span>
+        </div>
+
+        <!-- Left Navigation Button - FIXED -->
+        <div class="flex-shrink-0 border-r border-gray-200 w-[60px] flex items-center justify-center">
+          <div class="bg-indigo-600 hover:bg-indigo-700 rounded-md w-8 h-8 flex items-center justify-center cursor-pointer transition-colors"
+               (click)="navigatePrevious()"
+               matTooltip="Previous">
+            <mat-icon class="!text-white !text-base !text-center">chevron_left</mat-icon>
+          </div>
+        </div>
+
+        <!-- Date Headers Container - Equal width distribution -->
+        <div class="flex flex-1">
+          <div *ngFor="let dateCell of displayDates"
+               class="text-center border-r border-gray-200 px-1 py-2"
+               [class.bg-yellow-50]="dateCell.isToday"
+               [class.bg-gray-50]="dateCell.isWeekend && !dateCell.isToday"
+               [style.width.%]="100 / visibleDaysCount">
+            <div class="text-[10px] font-medium text-gray-600">{{ dateCell.dayName }}</div>
+            <div class="text-base font-bold text-gray-900 my-0.5">{{ dateCell.date }}</div>
+            <div *ngIf="dateCell.month" class="text-[10px] font-semibold text-indigo-600">
+              {{ dateCell.month }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Navigation Button - FIXED -->
+        <div class="flex-shrink-0 border-l border-gray-200 w-[60px] flex items-center justify-center">
+          <div class="bg-indigo-600 hover:bg-indigo-700 rounded-md w-8 h-8 flex items-center justify-center cursor-pointer transition-colors"
+               (click)="navigateNext()"
+               matTooltip="Next">
+            <mat-icon class="!text-white !text-base !text-center">chevron_right</mat-icon>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Type Rows -->
+      <ng-container *ngFor="let roomType of roomTypes; let isLast = last">
+
+        <!-- Room Type Header Row -->
+        <div class="flex border-b border-gray-100">
+          <!-- Room Type Name - FIXED -->
+          <div class="bg-indigo-50 border-r border-gray-300 cursor-pointer hover:bg-indigo-100 transition-colors flex items-center gap-2 w-[200px] flex-shrink-0 px-4 py-2"
+               (click)="toggleRoomType(roomType)">
+            <mat-icon class="!text-sm text-gray-600">
+              {{ roomType.isExpanded ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+            <span class="font-semibold text-sm text-gray-900">{{ roomType.name }}</span>
+            <span class="text-[10px] text-gray-600">
+              ({{ roomType.roomCount }} rooms, {{ roomType.reservationCount }} reservations)
+            </span>
+          </div>
+
+          <!-- Left Navigation Cell - FIXED -->
+          <div class="flex-shrink-0 bg-indigo-50 border-r border-gray-200 w-[60px]"></div>
+
+          <!-- Date Cells Container - Equal width distribution -->
+          <div class="flex flex-1">
+            <div *ngFor="let dateCell of displayDates"
+                 class="bg-indigo-50 border-r border-gray-200 py-2"
+                 [class.bg-yellow-50]="dateCell.isToday"
+                 [style.width.%]="100 / visibleDaysCount">
+            </div>
+          </div>
+
+          <!-- Right Navigation Cell - FIXED -->
+          <div class="flex-shrink-0 bg-indigo-50 border-l border-gray-200 w-[60px]"></div>
+        </div>
+
+        <!-- Individual Room Rows -->
+        <ng-container *ngIf="roomType.isExpanded">
+          <div class="flex border-b border-gray-200 hover:bg-blue-50 transition-colors group"
+               *ngFor="let room of roomType.rooms">
+
+            <!-- Room Name Cell - FIXED -->
+            <div class="bg-white border-r border-gray-300 flex items-center gap-2 w-[200px] flex-shrink-0 px-4 py-2 group-hover:bg-blue-50">
+              <mat-icon class="!text-base text-indigo-600">bed</mat-icon>
+              <span class="font-medium text-sm text-gray-900">{{ room.number }}</span>
+<!--              <span *ngIf="room.reservationCount > 0"-->
+<!--                    class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-semibold text-white bg-indigo-600 rounded-full">-->
+<!--                {{ room.reservationCount }}-->
+<!--              </span>-->
+            </div>
+
+            <!-- Left Navigation Cell - FIXED -->
+            <div class="flex-shrink-0 border-r border-gray-200 w-[60px] group-hover:bg-blue-50"></div>
+
+            <!-- Date Cells Container - Equal width distribution WITH SINGLE BARS -->
+            <div class="relative flex-1"
+                 [style.user-select]="'none'"
+                 [style.-webkit-user-select]="'none'">
+              <!-- Background day cells -->
+              <div class="flex">
+                <div *ngFor="let dateCell of displayDates; let idx = index"
+                     class="border-r border-gray-200 h-[35px] cursor-pointer transition-colors"
+                     [class.bg-yellow-50]="dateCell.isToday && !isCellSelected(roomType.name, room.number, idx)"
+                     [class.bg-gray-50]="dateCell.isWeekend && !dateCell.isToday && !isCellSelected(roomType.name, room.number, idx)"
+                     [class.bg-blue-200]="isCellSelected(roomType.name, room.number, idx)"
+                     [class.border-blue-400]="isCellSelected(roomType.name, room.number, idx)"
+                     [style.width.%]="100 / visibleDaysCount"
+                     (mousedown)="onCellMouseDown($event, roomType.name, room.number, idx)"
+                     (mouseenter)="onCellMouseEnter(roomType.name, room.number, idx)">
+                </div>
+              </div>
+
+              <!-- One bar per reservation spanning multiple days -->
+              <ng-container *ngFor="let res of room.reservations">
+                <ng-container *ngIf="getReservationPosition(res) as pos">
+                  <div class="absolute inset-y-1 flex items-center pointer-events-auto"
+                       [style.left.%]="pos.startIndex * (100 / visibleDaysCount)"
+                       [style.width.%]="pos.span * (100 / visibleDaysCount)"
+                       [matTooltip]="res.name + ' (' + (res.checkInDate | date:'MMM d') + ' - ' + (res.checkOutDate | date:'MMM d') + ')'">
+                    <button
+                      type="button"
+                      (click)="showReservationDetails(res)"
+                      class="w-full h-full rounded-md text-[10px] text-white flex items-center px-2
+           transform scale-95 hover:scale-100 transition-transform duration-150
+           shadow-sm hover:shadow-md cursor-pointer overflow-hidden"
+                      [ngClass]="getBookingSourceClasses(res)">
+                      <span class="font-medium truncate">{{ res.name }}</span>
+                    </button>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+
+            <!-- Right Navigation Cell - FIXED -->
+            <div class="flex-shrink-0 border-l border-gray-200 w-[60px] group-hover:bg-blue-50"></div>
+          </div>
+        </ng-container>
+
+      </ng-container>
+
+    </div>
+  </div>
+</div>

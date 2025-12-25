@@ -18,6 +18,9 @@ import {GuestListComponent} from './features/guest-management/guest-list/guest-l
 import { StayView } from './features/stay-view/stay-view';
 import { UserAccount } from './features/user-management/user-account/user-account';
 import {RoomListComponent} from './features/rooms/room-list/room-list';
+import {UpdateReservation} from './features/reservations/update-reservation/update-reservation';
+import {CalendarView} from './features/reservations/calendar-view/calendar-view';
+import {FolioOperations} from './features/reservations/folio-operations/folio-operations';
 
 
 
@@ -36,12 +39,22 @@ export const routes: Routes = [
     component: ReservationListComponent,
     canActivate: [authGuard]
   },
-    {
+  {
     path: 'reservations/add',
     component: ReservationFormComponent,
     canActivate: [authGuard]
   },
-      {
+  {
+    path: 'reservations/edit',
+    component: UpdateReservation,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'reservations/folio-operations',
+    component: FolioOperations,
+    canActivate: [authGuard]
+  },
+  {
     path: 'checkin-checkout',
     component: CheckinCheckoutComponent,
     canActivate: [authGuard]
@@ -78,7 +91,7 @@ export const routes: Routes = [
   },
     {
     path: 'stayView',
-    component: StayView,
+    component: CalendarView,
     canActivate: [authGuard]
   }
   ,
