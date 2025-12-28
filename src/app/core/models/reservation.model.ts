@@ -75,3 +75,15 @@ export interface ReservationFilter {
   guestEmail?: string;
   guestPhone?: string;
 }
+
+export interface MaintenanceBlock {
+  id: number;
+  roomId: string;
+  propertyCode: string;
+  startDate: string;
+  endDate: string;
+  status: 'ACTIVE' | 'COMPLETED';
+  reason: string;
+  createdAt: string;
+  updatedAt: string;
+}

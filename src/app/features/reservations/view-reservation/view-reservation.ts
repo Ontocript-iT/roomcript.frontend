@@ -1,4 +1,4 @@
-import {Component, ElementRef, Inject, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Component, ElementRef, Inject, OnInit, OnDestroy, QueryList, ViewChildren} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,11 +10,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { RoomService } from '../../../core/services/room.service';
 import { ReservationService } from '../../../core/services/reservation.service';
-import { map } from 'rxjs';
+import {map, ObservableInput, Subject} from 'rxjs';
 import {MatInputModule} from '@angular/material/input';
 import {Router, RouterLink} from '@angular/router';
 import {MatMenuModule, MatMenuTrigger} from '@angular/material/menu';
 import {MatDivider} from '@angular/material/divider';
+import { AssignRoomComponent} from '../assign-room/assign-room';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MoveRoomComponent} from '../move-room/move-room';
+import {takeUntil} from 'rxjs/operators';
 
 export interface ViewReservationDialogData {
   reservation: Reservation;
@@ -42,11 +46,14 @@ interface AvailableRoomOption {
     MatMenuTrigger,
     MatMenuModule,
     MatDivider,
+    AssignRoomComponent,
+    MatTooltipModule,
+    MoveRoomComponent,
   ],
   templateUrl: './view-reservation.html',
   styleUrl: './view-reservation.scss'
 })
-export class ViewReservation implements OnInit {
+export class ViewReservation implements OnInit, OnDestroy {
   editingRowIndex: number | null = null;
   editingCell: { rowIndex: number | null, field: string | null } = { rowIndex: null, field: null };
   availableRoomsByType: { [roomType: string]: AvailableRoomOption[] } = {};
@@ -61,6 +68,12 @@ export class ViewReservation implements OnInit {
   showError: boolean = false;
   isSuccessMessage: boolean = false;
   roomDetails: [] | undefined;
+  showAssignRoomForm = false;
+  showMoveRoomForm = false;
+  selectedRoomForMove: any = null;
+  selectedRoomIndex: number = -1;
+  availableRooms: AvailableRoomOption[] = [];
+  private destroy$ = new Subject<void>();
 
   availableRoomTypes = [
     { value: 'Standard', label: 'Standard', availableCount: 0},
@@ -97,6 +110,11 @@ export class ViewReservation implements OnInit {
     this.loadAvailableRoomCounts();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   formatDate(date: Date): string {
     if (!date) return '';
     const d = new Date(date);
@@ -104,6 +122,71 @@ export class ViewReservation implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  moveRoom(room: any, index: number): void {
+    this.showAssignRoomForm = false;
+    this.selectedRoomForMove = room;
+    this.selectedRoomIndex = index;
+    this.showMoveRoomForm = true;
+  }
+
+  onRoomMoved(response: any): void {
+    this.loadReservationData();
+  }
+
+  // New method to reload reservation data from server
+  loadReservationData(): void {
+    if (!this.data.reservation.id) return;
+
+    this.reservationService.getReservationById(this.data.reservation.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updatedReservation: any) => {
+
+          this.data.reservation.roomDetails = updatedReservation.roomDetails || [];
+          this.originalRoomDetails = JSON.parse(JSON.stringify(this.data.reservation.roomDetails));
+
+          // Reset editing state
+          this.editingRowIndex = null;
+          this.editingCell = { rowIndex: null, field: null };
+          this.rowOriginalData = {};
+
+          // Re-initialize room temp IDs
+          this.roomTempIds = [];
+          this.data.reservation.roomDetails.forEach((room, index) => {
+            this.roomTempIds[index] = room.roomId || 0;
+          });
+
+          // Hide the move room form
+          this.showMoveRoomForm = false;
+          this.selectedRoomForMove = null;
+          this.selectedRoomIndex = -1;
+
+          // Reload available room counts
+          this.loadAvailableRoomCounts();
+
+          // Show success message
+          this.showErrorMessage('Room moved successfully!', true);
+
+          // **IMPORTANT: Close dialog with refresh flag to update calendar**
+          // This tells the calendar view to refresh
+          this.dialogRef.close({ refreshCalendar: true });
+        },
+        error: (error: any) => {
+          this.showErrorMessage('Room moved but failed to refresh view. Please close and reopen.', false);
+
+          this.showMoveRoomForm = false;
+          this.selectedRoomForMove = null;
+          this.selectedRoomIndex = -1;
+        }
+      });
+  }
+
+  onMoveRoomCancelled(): void {
+    this.showMoveRoomForm = false;
+    this.selectedRoomForMove = null;
+    this.selectedRoomIndex = -1;
   }
 
   loadAvailableRoomCounts(): void {
@@ -350,23 +433,6 @@ export class ViewReservation implements OnInit {
     delete this.rowOriginalData[rowIndex];
   }
 
-  onRoomCellDoubleClick(rowIndex: number, field: string): void {
-    if (!this.isRowEditing(rowIndex)) {
-      return;
-    }
-
-    if (this.isEditingCell(rowIndex, field)) {
-      return;
-    }
-
-    this.editingCell = { rowIndex, field };
-
-    setTimeout(() => {
-      this.focusInputField(field);
-    }, 100);
-
-  }
-
   focusInputField(field: string): void {
     switch(field) {
       case 'rate':
@@ -466,44 +532,35 @@ export class ViewReservation implements OnInit {
   }
 
   assignRoom(): void {
-    const newRoom: any = {
-      id: null,
-      roomId: null,
-      roomNumber: '',
-      roomType: '',
-      roomRate: 0,
-      roomTotal: 0,
-      confirmationNumber: null,
-      roomConfirmationNumber: null,
-      numberOfAdults: 0,
-      numberOfChildren: 0
-    };
-    this.data.reservation.roomDetails = this.data.reservation.roomDetails || [];
-    this.data.reservation.roomDetails.push(newRoom);
+    this.showMoveRoomForm = false;
+    this.selectedRoomForMove = null;
+    this.selectedRoomIndex = -1;
+    this.showAssignRoomForm = true;
+  }
 
-    const newIndex = this.data.reservation.roomDetails.length - 1;
+  onRoomAssigned(response: any): void {
 
-    this.roomTempIds[newIndex] = 0;
-    this.rowOriginalData[newIndex] = JSON.parse(JSON.stringify(newRoom));
+    if (response.roomDetails && response.roomDetails.length > 0) {
+      const newRoom = response.roomDetails[response.roomDetails.length - 1];
+      this.data.reservation.roomDetails.push(newRoom);
+    }
 
-    this.editingRowIndex = newIndex;
-    this.editingCell = { rowIndex: null, field: null };
+    this.showAssignRoomForm = false;
+    this.loadAvailableRoomCounts();
+    this.showErrorMessage('Room assigned successfully!', true);
+  }
 
-    setTimeout(() => {
-      this.onRoomCellDoubleClick(newIndex, 'roomType');
-    }, 0);
+  onAssignRoomCancelled(): void {
+    this.showAssignRoomForm = false;
   }
 
   editReservation(): void {
-    // Close the dialog first
     this.dialogRef.close();
 
-    // Navigate to edit page with reservation data
     this.router.navigate(['/reservations/folio-operations'], {
       queryParams: {
         id: this.data.reservation.id,
         confirmationNumber: this.data.reservation.confirmationNumber,
-        // Add any other params you need
       }
     });
   }

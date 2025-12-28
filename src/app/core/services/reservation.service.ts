@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders,HttpParams} from '@angular/common/http';
-import {catchError, map, Observable, of} from 'rxjs';
+import {catchError, map, Observable, of, throwError} from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Reservation, ReservationFilter } from '../models/reservation.model';
+import { Reservation, ReservationFilter, MaintenanceBlock } from '../models/reservation.model';
 import { AvailableRooms } from '../models/room.model';
 import {tap} from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -382,4 +382,104 @@ export class ReservationService {
       })
     );
   }
+
+  createMaintenanceBlock(blockData: {
+    roomId: string;
+    propertyCode: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+  }): Observable<any> {
+    const url = `${environment.apiUrl}/maintenance-blocks`;
+
+    return this.http.post<any>(url, blockData, {
+      headers: this.getHeaders()
+    }).pipe(
+      tap(response => {
+        console.log('Maintenance block created successfully:', response);
+      }),
+      catchError(error => {
+        console.error('Error creating maintenance block:', error);
+        throw error;
+      })
+    );
+  }
+
+  getMaintenanceBlocks(propertyCode: string): Observable<MaintenanceBlock[]> {
+    const url = `${environment.apiUrl}/maintenance-blocks/property/${propertyCode}`;
+
+    const headers = this.getHeaders();
+
+    console.log('📋 Fetching maintenance blocks:', {
+      url: url,
+      propertyCode: propertyCode
+    });
+
+    return this.http.get<any>(url, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        console.log('Raw maintenance blocks response:', response);
+
+        // Extract array from response body
+        let maintenanceBlocks: MaintenanceBlock[] = [];
+
+        if (response && response.body && Array.isArray(response.body)) {
+          maintenanceBlocks = response.body;
+        } else if (Array.isArray(response)) {
+          maintenanceBlocks = response;
+        }
+
+        console.log('Extracted maintenance blocks:', maintenanceBlocks);
+        return maintenanceBlocks;
+      }),
+      tap(blocks => {
+        console.log('Maintenance blocks loaded:', {
+          count: blocks.length,
+          activeBlocks: blocks.filter(b => b.status === 'ACTIVE').length
+        });
+      }),
+      catchError(error => {
+        console.error('Error fetching maintenance blocks:', error);
+        return of([]);
+      })
+    );
+  }
+
+  deleteMaintenanceBlock(maintenanceId: number, roomId: string): Observable<any> {
+    const url = `${environment.apiUrl}/maintenance-blocks/${maintenanceId}`;
+    const headers = this.getHeaders();
+
+    console.log('🗑️ Deleting maintenance block:', {
+      url: url,
+      maintenanceId: maintenanceId,
+      roomId: roomId
+    });
+
+    return this.http.delete(url, {
+      headers: headers,
+      params: { roomId: roomId }
+    }).pipe(
+      tap(() => {
+        console.log('Maintenance block deleted successfully');
+      }),
+      catchError(error => {
+        console.error('Error deleting maintenance block:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  getReservationById(id: number): Observable<Reservation> {
+    const url = `${this.apiUrl}/reservations/${id}`;
+    const headers = this.getHeaders().set('X-Property-Code', localStorage.getItem('propertyCode') || '');
+
+    return this.http.get<Reservation>(url, { headers }).pipe(
+      catchError(error => {
+        console.error('Error fetching reservation:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
 }

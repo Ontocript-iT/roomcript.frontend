@@ -1,0 +1,95 @@
+<div class="bg-gray-50 rounded-lg p-6 mt-4 border border-gray-200">
+  <div class="flex items-center justify-between mb-4">
+    <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+      <mat-icon class="text-indigo-600">add_circle</mat-icon>
+      Assign New Room
+    </h3>
+  </div>
+
+  <form [formGroup]="assignRoomForm" (ngSubmit)="onSubmit()">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Room Type -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Room Type</mat-label>
+        <mat-select formControlName="roomType" (selectionChange)="onRoomTypeChange()">
+          <mat-option *ngFor="let type of availableRoomTypes" [value]="type.value">
+            {{ type.label }} ({{ type.availableCount }})
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="assignRoomForm.get('roomType')?.hasError('required')">
+          Room type is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Room Number -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Room Number</mat-label>
+        <mat-select formControlName="roomNumber" [disabled]="!assignRoomForm.get('roomType')?.value || loadingRooms">
+          <mat-option *ngIf="loadingRooms" disabled>Loading rooms...</mat-option>
+          <mat-option *ngFor="let room of availableRooms" [value]="room.roomId">
+            {{ room.roomNumber }}
+          </mat-option>
+        </mat-select>
+        <mat-error *ngIf="assignRoomForm.get('roomNumber')?.hasError('required')">
+          Room number is required
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Rate -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Rate</mat-label>
+        <input matInput type="number" formControlName="rate" placeholder="0.00" min="0" step="0.01">
+        <span matPrefix>$&nbsp;</span>
+        <mat-error *ngIf="assignRoomForm.get('rate')?.hasError('required')">
+          Rate is required
+        </mat-error>
+        <mat-error *ngIf="assignRoomForm.get('rate')?.hasError('min')">
+          Rate must be greater than 0
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Adults -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Adults</mat-label>
+        <input matInput type="number" formControlName="adults" placeholder="0" min="0">
+        <mat-error *ngIf="assignRoomForm.get('adults')?.hasError('required')">
+          Number of adults is required
+        </mat-error>
+        <mat-error *ngIf="assignRoomForm.get('adults')?.hasError('min')">
+          Must be at least 0
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Children -->
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-label>Children</mat-label>
+        <input matInput type="number" formControlName="children" placeholder="0" min="0">
+        <mat-error *ngIf="assignRoomForm.get('children')?.hasError('min')">
+          Must be at least 0
+        </mat-error>
+      </mat-form-field>
+    </div>
+
+    <!-- Error/Success Message -->
+    <div *ngIf="errorMessage" class="mt-4 p-3 rounded-lg"
+         [ngClass]="isSuccess ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'">
+      <div class="flex items-center gap-2">
+        <mat-icon class="!text-base">{{ isSuccess ? 'check_circle' : 'error' }}</mat-icon>
+        <span class="text-sm">{{ errorMessage }}</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-3 mt-6">
+      <button mat-stroked-button type="button" (click)="onCancel()">
+        Cancel
+      </button>
+      <button mat-raised-button color="primary" type="submit" [disabled]="assignRoomForm.invalid || submitting">
+        <mat-icon class="!mr-2" *ngIf="!submitting">save</mat-icon>
+        <mat-icon class="!mr-2 animate-spin" *ngIf="submitting">refresh</mat-icon>
+        {{ submitting ? 'Assigning...' : 'Assign Room' }}
+      </button>
+    </div>
+  </form>
+</div>
