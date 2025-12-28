@@ -66,51 +66,60 @@
         </div>
 
         <!-- Room Details Table -->
-        <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;" class="mb-6">
-          <thead>
-          <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 5%;"></th>
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 20%;">Room Type</th>
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Number</th>
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Rate</th>
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Adults</th>
-            <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Children</th>
-          </tr>
-          </thead>
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;">
+        <thead>
+        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 4%;"></th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 18%;">Room Type</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Number</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 13%;">Rate</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Adults</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 13%;">Children</th>
+          <th style="padding: 10px; text-align: center; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Action</th>
+        </tr>
+        </thead>
 
-          <tbody *ngIf="data?.reservation?.roomDetails && data.reservation.roomDetails.length > 0; else noRoomsBody">
-          <tr *ngFor="let room of data.reservation.roomDetails; let i = index"
-              [style.backgroundColor]="i % 2 === 0 ? '#ffffff' : '#f9fafb'"
-              style="border-bottom: 1px solid #e5e7eb; height: 45px;">
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ i + 1 }}</td>
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ room.roomType || 'N/A' }}</td>
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">{{ room.roomNumber || 'N/A' }}</td>
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
-              {{ room.roomRate != null ? (room.roomRate | number:'1.2-2') : 'N/A' }}
-            </td>
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
-              {{ room.numberOfAdults != null ? room.numberOfAdults : 'N/A' }}
-            </td>
-            <td style="padding: 8px 10px; border: 1px solid #e5e7eb;">
-              {{ room.numberOfChildren != null ? room.numberOfChildren : 'N/A' }}
+        <tbody *ngIf="data?.reservation?.roomDetails && data.reservation.roomDetails.length > 0; else noRoomsBody">
+        <tr *ngFor="let room of data.reservation.roomDetails; let i = index"
+            [style.backgroundColor]="i % 2 === 0 ? '#ffffff' : '#f9fafb'"
+            style="border-bottom: 1px solid #e5e7eb; height: 45px;">
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #6b7280;">{{ i + 1 }}</td>
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #374151;">{{ room.roomType || 'N/A' }}</td>
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; font-weight: 600; color: #111827;">{{ room.roomNumber || 'N/A' }}</td>
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #374151;">
+            {{ room.roomRate != null ? (room.roomRate | number:'1.2-2') : 'N/A' }}
+          </td>
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">
+            {{ room.numberOfAdults != null ? room.numberOfAdults : 'N/A' }}
+          </td>
+          <td style="padding: 8px 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">
+            {{ room.numberOfChildren != null ? room.numberOfChildren : 'N/A' }}
+          </td>
+          <td style="padding: 4px; border: 1px solid #e5e7eb; text-align: center;">
+            <button mat-icon-button
+                    (click)="moveRoom(room, i)"
+                    matTooltip="Move to another room"
+                    class="!text-indigo-600 hover:!text-indigo-800 !w-8 !h-8">
+              <mat-icon class="!text-[18px]">swap_horiz</mat-icon>
+            </button>
+          </td>
+        </tr>
+        </tbody>
+
+        <ng-template #noRoomsBody>
+          <tbody>
+          <tr>
+            <td colspan="7"
+                style="padding: 20px; border: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb; border-left: 4px solid #d1d5db;">
+              No room details available
             </td>
           </tr>
           </tbody>
-
-          <ng-template #noRoomsBody>
-            <tbody>
-            <tr>
-              <td colspan="6"
-                  style="padding: 12px; border: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb;">
-                No room details available
-              </td>
-            </tr>
-            </tbody>
-          </ng-template>
-        </table>
+        </ng-template>
+      </table>
 
         <!-- Total & Status -->
-        <div class="grid grid-cols-1 mb-6" style="gap: 0.5rem 2rem;">
+        <div class="grid grid-cols-1 mb-6 mt-6" style="gap: 0.5rem 2rem;">
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
             <span class="font-semibold" style="min-width: 120px;">Total Amount:</span>
             <span>${{ data.reservation.totalAmount.toFixed(2) }}</span>
@@ -168,6 +177,26 @@
             <span>Add Note</span>
           </button>
         </mat-menu>
+
+      <app-assign-room
+        *ngIf="showAssignRoomForm"
+        [reservationId]="data.reservation.id"
+        [checkInDate]="originalCheckInDate!"
+        [checkOutDate]="originalCheckOutDate!"
+        [propertyCode]="propertyCode"
+        (roomAssigned)="onRoomAssigned($event)"
+        (cancelled)="onAssignRoomCancelled()">
+      </app-assign-room>
+      <app-move-room
+        *ngIf="showMoveRoomForm && selectedRoomForMove"
+        [currentRoom]="selectedRoomForMove"
+        [reservationId]="data.reservation.id"
+        [checkInDate]="originalCheckInDate!"
+        [checkOutDate]="originalCheckOutDate!"
+        [propertyCode]="propertyCode"
+        (roomMoved)="onRoomMoved($event)"
+        (cancelled)="onMoveRoomCancelled()">
+      </app-move-room>
     </div>
 
   </div>

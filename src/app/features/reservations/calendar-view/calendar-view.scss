@@ -1,0 +1,39 @@
+.maintenance-stripes {
+  background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 6px,
+      rgba(249, 115, 22, 0.2) 6px,
+      rgba(249, 115, 22, 0.2) 12px
+  );
+}
+::ng-deep .mat-mdc-dialog-container .mdc-dialog__surface {
+  border-radius: 5px !important;
+}
+
+::ng-deep .mat-mdc-dialog-container {
+  // Close icon button
+  .mat-mdc-icon-button.text-red-600 {
+    color: #dc2626 !important;
+
+    &:hover {
+      color: #b91c1c !important;
+      background-color: rgba(220, 38, 38, 0.1);
+    }
+  }
+
+  // Warning icon
+  .text-red-icon {
+    color: #dc2626 !important;
+  }
+
+  // Delete button
+  .mat-mdc-raised-button.mat-warn {
+    background-color: #dc2626 !important;
+    color: white !important;
+
+    &:hover {
+      background-color: #b91c1c !important;
+    }
+  }
+}

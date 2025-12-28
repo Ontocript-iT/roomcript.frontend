@@ -57,16 +57,16 @@ export class ReservationFormComponent implements OnInit {
 
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
-    { value: 'UNCONFIRMED', label: 'Unconfirm Booking'},
-    { value: 'FAILED', label: 'Online Failed Booking'},
-    { value: 'HOLD-CONFIRMED', label: 'Hold Confirm Booking'},
-    { value: 'HOLD-UNCONFIRMED', label: 'Hold Unconfirm Booking'}
+    { value: 'TENTATIVE', label: 'Tentative Booking'},
   ];
 
   availableBookingSources = [
     { value: 'Direct', label: 'Direct'},
+    { value: 'Walking', label: 'Walking'},
     { value: 'Booking.com', label: 'Booking.com'},
     { value: 'Airbnb', label: 'Airbnb'},
+    { value: 'Expedia', label: 'Expedia'},
+    { value: 'Agoda', label: 'Agoda'},
   ];
 
   availableRoomTypes = [
