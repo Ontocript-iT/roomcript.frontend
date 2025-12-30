@@ -19,7 +19,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatetimepickerModule } from '@mat-datetimepicker/core';
 import { MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { DatePipe } from '@angular/common';
-import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { Observable } from 'rxjs';
+import { map, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { GuestService } from '../../../core/services/guest.service';
+
+interface Guest {
+  id: number;
+  name: string;
+  phone: string;
+  email: string;
+  address: string;
+}
 
 @Component({
   selector: 'app-reservation-form',
@@ -43,6 +55,7 @@ import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
     MatDatetimepickerModule,
     MatNativeDatetimeModule,
     NgxMaterialTimepickerModule,
+    MatAutocompleteModule,
   ],
   providers: [DatePipe],
   templateUrl: './reservation-form.component.html',
@@ -54,6 +67,11 @@ export class ReservationFormComponent implements OnInit {
   propertyCode = localStorage.getItem("propertyCode") || '';
   availableRoomsByIndex: Map<number, any[]> = new Map();
   showDiscountField = false;
+  showAdvanceField = false;
+  filteredGuests$!: Observable<Guest[]>;
+  allGuests: Guest[] = [];
+  isLoadingGuests = false;
+  discountType: 'percentage' | 'amount' = 'percentage';
 
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
@@ -86,13 +104,16 @@ export class ReservationFormComponent implements OnInit {
     roomCharges: 0,
     discount: 0,
     taxes: 0,
-    totalAmount: 0
+    totalAmount: 0,
+    advancePayment: 0,
+    balanceAmount: 0
   };
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private reservationService: ReservationService,
+    private guestService: GuestService,
     private roomService: RoomService,
     private snackBar: MatSnackBar,
     private datePipe: DatePipe,
@@ -100,12 +121,13 @@ export class ReservationFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.propertyCode;
     this.subscribeToDateChanges();
     this.subscribeToFormChanges();
     this.subscribeToGroupReservationChanges();
     this.subscribeToReservationTypeChanges();
     this.subscribeToHoldReservationChanges();
+    this.loadGuestData();
+    this.setupGuestAutocomplete();
   }
 
   initForm(): void {
@@ -115,7 +137,9 @@ export class ReservationFormComponent implements OnInit {
       numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
-      discount: [0, [Validators.min(0), Validators.max(100)]],
+      discount: [0, [Validators.min(0)]],
+      discountType: ['percentage'],
+      advance: [0, [Validators.min(0)]],
       isGroupReservation: [false],
       confirmationVoucher: [false],
       isOnhold: [false],
@@ -124,7 +148,9 @@ export class ReservationFormComponent implements OnInit {
       guestTitle: ['MR', Validators.required],
       guestName: ['', Validators.required],
       mobile: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
+      passportNic: ['', Validators.required],
+      remarks: [''],
       address: [''],
       country: [''],
       state: [''],
@@ -158,12 +184,12 @@ export class ReservationFormComponent implements OnInit {
 
   private subscribeToDateChanges(): void {
 
-    this.reservationForm.get('checkIn')?.valueChanges.subscribe((checkInDate) => {
+    this.reservationForm.get('checkIn')?.valueChanges.subscribe(() => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
     });
 
-    this.reservationForm.get('checkOut')?.valueChanges.subscribe((checkOutDate) => {
+    this.reservationForm.get('checkOut')?.valueChanges.subscribe(() => {
       this.clearAllRoomSelections();
       this.loadAvailableRooms();
     });
@@ -198,14 +224,60 @@ export class ReservationFormComponent implements OnInit {
     });
   }
 
+  toggleDiscountType(): void {
+    const currentValue = this.reservationForm.get('discount')?.value || 0;
+
+    if (this.discountType === 'percentage') {
+      this.discountType = 'amount';
+      const discountAmount = (this.billingSummary.roomCharges * currentValue) / 100;
+      this.reservationForm.patchValue({
+        discount: discountAmount,
+        discountType: 'amount'
+      });
+    } else {
+      this.discountType = 'percentage';
+      const discountPercent = this.billingSummary.roomCharges > 0
+        ? (currentValue / this.billingSummary.roomCharges) * 100
+        : 0;
+      this.reservationForm.patchValue({
+        discount: Math.min(discountPercent, 100),
+        discountType: 'percentage'
+      });
+    }
+  }
+
   toggleDiscountField(): void {
     this.showDiscountField = !this.showDiscountField;
+    if (this.showDiscountField) {
+      this.discountType = 'percentage';
+      this.reservationForm.patchValue({
+        discount: 0,
+        discountType: 'percentage'
+      });
+    }
   }
 
   removeDiscount(): void {
-    this.reservationForm.patchValue({ discount: 0 });
+    this.reservationForm.patchValue({
+      discount: 0,
+      discountType: 'percentage'
+    });
     this.showDiscountField = false;
+    this.discountType = 'percentage';
   }
+
+  toggleAdvanceField(): void {
+    this.showAdvanceField = !this.showAdvanceField;
+    if (this.showAdvanceField) {
+      this.reservationForm.get('advance')?.enable();
+    }
+  }
+
+  removeAdvance(): void {
+    this.reservationForm.patchValue({ advance: 0 });
+    this.showAdvanceField = false;
+  }
+
 
   private subscribeToReservationTypeChanges(): void {
     this.reservationForm.get('reservationType')?.valueChanges.subscribe((reservationType) => {
@@ -313,7 +385,6 @@ export class ReservationFormComponent implements OnInit {
   }
 
   addRoom(): void {
-    // Only allow adding rooms if group reservation is checked
     if (!this.canAddRoom) {
       this.showError('Please enable "Group Reservation" to add multiple rooms');
       return;
@@ -401,12 +472,10 @@ export class ReservationFormComponent implements OnInit {
 
     if (!roomType) return;
 
-    // Clear room number and rate when type changes
     room.patchValue({
       roomNumber: '',
       rate: 0
     });
-
     this.fetchAvailableRoomsByType(roomType, index);
   }
 
@@ -420,7 +489,6 @@ export class ReservationFormComponent implements OnInit {
 
     if (!checkInDate || !checkOutDate) {
       this.showError('Please select check-in and check-out dates first');
-      // Reset room type selection
       const room = this.rooms.at(index);
       room.patchValue({ roomType: '' });
       return;
@@ -467,6 +535,109 @@ export class ReservationFormComponent implements OnInit {
     }
   }
 
+  private loadGuestData(): void {
+    if (!this.propertyCode) {
+      return;
+    }
+
+    this.isLoadingGuests = true;
+
+    this.guestService.getAllGuests(this.propertyCode).subscribe({
+      next: (guests: Guest[]) => {
+        this.allGuests = guests;
+        this.isLoadingGuests = false;
+      },
+      error: () => {
+        this.allGuests = [];
+        this.isLoadingGuests = false;
+        this.showError('Failed to load guest data');
+      }
+    });
+  }
+
+  private setupGuestAutocomplete(): void {
+    this.filteredGuests$ = this.reservationForm.get('guestName')!.valueChanges.pipe(
+      startWith(''),
+      debounceTime(300),
+      distinctUntilChanged(),
+      map(value => this._filterGuests(value || ''))
+    );
+  }
+
+  private _filterGuests(value: string): Guest[] {
+    if (typeof value === 'object') {
+      return [];
+    }
+
+    if (!value || value.trim().length < 2) {
+      return this.allGuests.slice(0, 10);
+    }
+
+    const filterValue = value.toLowerCase().trim();
+
+    const filtered = this.allGuests.filter(guest =>
+      guest.name.toLowerCase().includes(filterValue) ||
+      guest.email.toLowerCase().includes(filterValue) ||
+      guest.phone.includes(filterValue)
+    );
+    return filtered.slice(0, 15);
+  }
+
+  displayGuestName(guest: Guest | string): string {
+    if (typeof guest === 'string') {
+      return guest;
+    }
+    return guest ? guest.name : '';
+  }
+
+  onGuestSelected(event: any): void {
+    const guest: Guest = event.option.value;
+
+    if (!guest) {
+      return;
+    }
+
+    let guestTitle = 'MR'; // Default title
+    let guestName = guest.name || '';
+
+    const titlePattern = /^(MR|MRS|MS|MISS|DR|PROF)\s*\.?\s*/i;
+    const titleMatch = guestName.match(titlePattern);
+
+    if (titleMatch) {
+      const extractedTitle = titleMatch[1].toUpperCase();
+
+      if (extractedTitle === 'MISS') {
+        guestTitle = 'MS';
+      } else {
+        guestTitle = extractedTitle;
+      }
+      guestName = guestName.replace(titlePattern, '').trim();
+    }
+
+    this.reservationForm.patchValue({
+      guestTitle: guestTitle,
+      guestName: guestName,
+      email: guest.email || '',
+      mobile: guest.phone || '',
+      address: guest.address || ''
+    }, { emitEvent: false });
+
+    this.showSuccess(`Guest information loaded for ${guestName}`);
+  }
+
+  clearGuestSelection(): void {
+    this.reservationForm.patchValue({
+      guestName: '',
+      email: '',
+      mobile: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      zipCode: ''
+    });
+  }
+
   private transformFormData(formValue: any): any {
     let totalAdults = 0;
     let totalChildren = 0;
@@ -503,6 +674,8 @@ export class ReservationFormComponent implements OnInit {
       name: guestFullName,
       email: formValue.email,
       phone: formValue.mobile,
+      passportNic: formValue.passportNic,
+      remark: formValue.remarks || '',
       address: formValue.address || '',
       city: formValue.city || '',
       state: formValue.state || '',
@@ -522,10 +695,13 @@ export class ReservationFormComponent implements OnInit {
       reservationType: formValue.reservationType,
       bookingSource: formValue.bookingSource,
       sendVoucher: sendVoucher,
-      discountPercentage: formValue.discount || 0,
+      discountPercentage: this.discountType === 'percentage' ? (formValue.discount || 0) : 0,
       discountAmount: this.billingSummary.discount,
+      discountType: this.discountType,
       subtotal: this.billingSummary.roomCharges,
       totalAmount: this.billingSummary.totalAmount,
+      advanceDeposit: formValue.advance || 0,
+      balanceAmount: this.billingSummary.balanceAmount,
       specialRequests: formValue.specialRequests || '',
       roomGuests: roomGuests,
       isOnHold: formValue.isOnHold,
@@ -549,12 +725,8 @@ export class ReservationFormComponent implements OnInit {
     if (this.reservationForm.valid) {
       this.isLoading = true;
 
-      // Transform form data to API format
       const payload = this.transformFormData(this.reservationForm.value);
 
-      console.log('Sending Payload:', JSON.stringify(payload, null, 2));
-
-      // Call the service
       this.reservationService.createGroupReservation(this.propertyCode, payload).subscribe({
         next: (response) => {
           this.isLoading = false;
@@ -573,7 +745,6 @@ export class ReservationFormComponent implements OnInit {
         }
       });
     } else {
-      // Mark all fields as touched to show validation errors
       this.markFormGroupTouched(this.reservationForm);
       this.showError('Please fill all required fields correctly');
     }
@@ -600,7 +771,6 @@ export class ReservationFormComponent implements OnInit {
   onTimePickerIconClick(picker: any): void {
     const releaseTimeControl = this.reservationForm.get('releaseTime');
 
-    // Only open picker if the control is not disabled
     if (releaseTimeControl && !releaseTimeControl.disabled) {
       picker.open();
     }
@@ -662,12 +832,26 @@ export class ReservationFormComponent implements OnInit {
     // room charges
     this.billingSummary.roomCharges = this.calculateRoomCharges(formValue.rooms);
 
-    // Calculate discount
-    const discountPercent = formValue.discount || 0;
-    this.billingSummary.discount = (this.billingSummary.roomCharges * discountPercent) / 100;
+    // Calculate discount based on type
+    const discountValue = formValue.discount || 0;
 
-    // Calculate total with discount
+    if (this.discountType === 'percentage') {
+      // Calculate discount from percentage
+      this.billingSummary.discount = (this.billingSummary.roomCharges * discountValue) / 100;
+    } else {
+      // Use discount amount directly
+      this.billingSummary.discount = discountValue;
+    }
+
+    // Calculate total with discount and taxes
     this.billingSummary.totalAmount = this.billingSummary.roomCharges - this.billingSummary.discount + this.billingSummary.taxes;
+
+    // Calculate advance payment
+    const advancePayment = formValue.advance || 0;
+    this.billingSummary.advancePayment = advancePayment;
+
+    // Calculate balance due
+    this.billingSummary.balanceAmount = this.billingSummary.totalAmount - advancePayment;
   }
 
   private calculateNights(checkIn: Date | string, checkOut: Date | string): number {

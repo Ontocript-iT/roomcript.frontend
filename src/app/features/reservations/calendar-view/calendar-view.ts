@@ -1,16 +1,17 @@
-import { Component, OnInit, OnDestroy, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { ReservationService, StayViewReservation } from '../../../core/services/reservation.service';
-import { RoomService } from '../../../core/services/room.service';
+import {Component, Inject, OnDestroy, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {ReservationService, StayViewReservation} from '../../../core/services/reservation.service';
+import {RoomService} from '../../../core/services/room.service';
 import {forkJoin, Subject, takeUntil} from 'rxjs';
-import { ViewReservation } from '../view-reservation/view-reservation';
-import { MatDialog, MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Reservation } from '../../../core/models/reservation.model';
-import { Router } from '@angular/router';
-import { MaintenanceBlock} from '../maintenance-block/maintenance-block';
+import {ViewReservation} from '../view-reservation/view-reservation';
+import {MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {Reservation} from '../../../core/models/reservation.model';
+import {Router} from '@angular/router';
+import {MaintenanceBlock} from '../maintenance-block/maintenance-block';
+import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
 
 interface RoomType {
   name: string;
@@ -240,7 +241,8 @@ export class CalendarView implements OnInit, OnDestroy {
     private reservationService: ReservationService,
     private roomService: RoomService,
     private dialog: MatDialog,
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -451,11 +453,9 @@ export class CalendarView implements OnInit, OnDestroy {
     }
 
     // Match maintenance roomId directly with room number
-    const filtered = this.maintenanceBlocks.filter(m =>
+    return this.maintenanceBlocks.filter(m =>
       String(m.roomId) === String(roomNumber)
     );
-
-    return filtered;
   }
 
   getMaintenancePosition(maintenance: any): { startIndex: number; span: number } | null {
@@ -575,12 +575,12 @@ export class CalendarView implements OnInit, OnDestroy {
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
-              console.log('✅ Maintenance block deleted successfully');
+              console.log('Maintenance block deleted successfully');
               // Remove from local array immediately
               this.maintenanceBlocks = this.maintenanceBlocks.filter(m => m.id !== maintenance.id);
             },
             error: (error) => {
-              console.error('❌ Failed to delete maintenance block:', error);
+              console.error('Failed to delete maintenance block:', error);
               alert('Failed to delete maintenance block. Please try again.');
             }
           });
@@ -794,5 +794,41 @@ export class CalendarView implements OnInit, OnDestroy {
         this.loadReservationsAndMaintenance();
       }
     });
+  }
+
+  getBookingSourceLogo(source: string | null | undefined): SafeHtml {
+    if (!source) source = 'Direct';
+
+    const logos: Record<string, string> = {
+      'Booking.com': `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#003580" d="M3.5 0A3.5 3.5 0 0 0 0 3.5v17A3.5 3.5 0 0 0 3.5 24h17a3.5 3.5 0 0 0 3.5-3.5v-17A3.5 3.5 0 0 0 20.5 0h-17zm5.75 5.5h1.5c.414 0 .75.336.75.75v11.5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75V6.25c0-.414.336-.75.75-.75zm4 0h1.5c.414 0 .75.336.75.75v11.5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75V6.25c0-.414.336-.75.75-.75z"/>
+        </svg>
+      `,
+      'Airbnb': `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FF5A5F" d="M12 1.2C9.5 1.2 7.5 3.2 7.5 5.7c0 3.5 4.5 8.3 4.5 8.3s4.5-4.8 4.5-8.3c0-2.5-2-4.5-4.5-4.5zm0 6.5c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM5.6 14.5c-.8 1.4-.9 3-.3 4.4.6 1.4 1.8 2.5 3.3 3 1.5.5 3.1.3 4.4-.5l-1.8-3.1c-.6.4-1.4.5-2.1.2-.7-.2-1.3-.8-1.6-1.5-.3-.7-.2-1.5.2-2.1l-2-3.4zm12.8 0l-2 3.4c.4.6.5 1.4.2 2.1-.3.7-.9 1.3-1.6 1.5-.7.2-1.5.2-2.1-.2l-1.8 3.1c1.3.8 2.9 1 4.4.5 1.5-.5 2.7-1.6 3.3-3 .6-1.4.5-3-.3-4.4z"/>
+        </svg>
+      `,
+      'Expedia': `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FFCB05" d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.5L19 8v8l-7 3.5L5 16V8l7-3.5z"/>
+          <path fill="#003087" d="M12 6.5L7 9v6l5 2.5 5-2.5V9l-5-2.5z"/>
+        </svg>
+      `,
+      'Agoda': `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <rect fill="#D71345" width="24" height="24" rx="4"/>
+          <path fill="white" d="M7 8h2l3 8h-2l-.5-1.5H6.5L6 16H4l3-8zm1 2l-1 3h2l-1-3zm6-2h2l2 6 2-6h2l-3 8h-2l-3-8z"/>
+        </svg>
+      `,
+      'Direct': `
+        <svg viewBox="0 0 24 24" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#6B7280" d="M19 9.3V4h-3v2.6L12 3 2 12h3v8h5v-6h4v6h5v-8h3l-3-2.7zM10 10c0-1.1.9-2 2-2s2 .9 2 2h-4z"/>
+        </svg>
+      `
+    };
+
+    return this.sanitizer.bypassSecurityTrustHtml(logos[source] || logos['Direct']);
   }
 }
