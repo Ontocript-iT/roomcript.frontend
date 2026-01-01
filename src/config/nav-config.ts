@@ -131,6 +131,12 @@ export const NAV_ITEMS: NavItem[] = [
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
+        title: 'Inhouse Guests',
+        route: '/guest/inhouse',
+        icon: 'home',
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
+      },
+      {
         title: 'Add Guest',
         route: '/guests/add',
         icon: 'person_add',

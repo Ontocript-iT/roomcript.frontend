@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {MatIconModule} from '@angular/material/icon';
 import {MatButtonModule} from '@angular/material/button';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {ReservationService, StayViewReservation} from '../../../core/services/reservation.service';
+import {ReservationService} from '../../../core/services/reservation.service';
 import {RoomService} from '../../../core/services/room.service';
 import {forkJoin, Subject, takeUntil} from 'rxjs';
 import {ViewReservation} from '../view-reservation/view-reservation';
@@ -35,13 +35,6 @@ interface DateCell {
   isWeekend: boolean;
 }
 
-interface EmptyCellClickData {
-  roomNumber: string;
-  roomType: string;
-  date: Date;
-  roomId?: number;
-}
-
 interface CellSelection {
   roomType: string;
   roomNumber: string;
@@ -63,7 +56,6 @@ export interface ConfirmDialogData {
   cancelText?: string;
 }
 
-// CONFIRMATION DIALOG COMPONENT
 @Component({
   selector: 'app-confirm-dialog',
   standalone: true,
@@ -75,7 +67,6 @@ export interface ConfirmDialogData {
         <mat-icon>close</mat-icon>
       </button>
 
-      <!-- Header with red warning icon and title -->
       <div class="flex items-center gap-3 mb-4 pr-8">
         <mat-icon class="text-red-icon !text-2xl mb-2">warning</mat-icon>
         <h2 class="text-xl font-semibold text-gray-800">{{ data.title }}</h2>
@@ -106,7 +97,6 @@ export class ConfirmDialog {
   }
 }
 
-// RESERVATION ACTION DIALOG
 @Component({
   selector: 'app-reservation-action-dialog',
   standalone: true,
@@ -129,7 +119,6 @@ export class ConfirmDialog {
       </div>
 
       <div class="py-1">
-        <!-- Add Reservation -->
         <div
           class="group flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 cursor-pointer transition-colors"
           (click)="onAddReservation()">
@@ -229,7 +218,6 @@ export class CalendarView implements OnInit, OnDestroy {
   maintenanceBlocks: any[] = [];
   roomIdMap: Map<string, { roomType: string; roomNumber: string }> = new Map();
 
-  // Selection properties
   isSelecting = false;
   selectionStart: { roomType: string; roomNumber: string; dateIndex: number } | null = null;
   currentSelection: CellSelection | null = null;
@@ -270,25 +258,16 @@ export class CalendarView implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ reservations, maintenanceBlocks, allRooms }) => {
-          console.log('✅ Loaded all rooms:', allRooms);
-          console.log('✅ Loaded reservations:', reservations);
-
-          // Process all rooms first, then add reservations to them
           this.processAllRoomsWithReservations(allRooms, reservations);
-
-          // Store maintenance blocks
           this.maintenanceBlocks = maintenanceBlocks;
         },
         error: (error) => {
-          console.error('❌ Error loading data:', error);
+          console.error('Error loading data:', error);
         }
       });
   }
 
   processAllRoomsWithReservations(allRooms: any[], reservations: Reservation[]): void {
-    console.log('🔄 Processing all rooms with reservations...');
-
-    // Create a map of room reservations by roomNumber
     const reservationsByRoomNumber = new Map<string, Reservation[]>();
 
     reservations.forEach(reservation => {
@@ -307,7 +286,6 @@ export class CalendarView implements OnInit, OnDestroy {
       });
     });
 
-    // Group all rooms by type
     const roomTypeMap = new Map<string, Room[]>();
 
     allRooms.forEach(room => {
@@ -319,7 +297,6 @@ export class CalendarView implements OnInit, OnDestroy {
         roomTypeMap.set(roomType, []);
       }
 
-      // Get reservations for this specific room number
       const roomReservations = reservationsByRoomNumber.get(roomNumber) || [];
 
       roomTypeMap.get(roomType)!.push({
@@ -327,16 +304,13 @@ export class CalendarView implements OnInit, OnDestroy {
         reservations: roomReservations
       });
 
-      // Build room ID mapping
       if (roomId) {
         this.roomIdMap.set(String(roomId), { roomType, roomNumber });
       }
     });
 
-    // Create room type entries
     this.roomTypes = [];
     roomTypeMap.forEach((rooms, roomTypeName) => {
-      // Sort rooms by number
       rooms.sort((a, b) => {
         const aNum = parseInt(a.number) || 0;
         const bNum = parseInt(b.number) || 0;
@@ -354,10 +328,7 @@ export class CalendarView implements OnInit, OnDestroy {
       });
     });
 
-    // Sort room types alphabetically
     this.roomTypes.sort((a, b) => a.name.localeCompare(b.name));
-
-    console.log('✅ Processed room types:', this.roomTypes);
   }
 
   generateCalendarDates(): void {
@@ -452,7 +423,6 @@ export class CalendarView implements OnInit, OnDestroy {
       return [];
     }
 
-    // Match maintenance roomId directly with room number
     return this.maintenanceBlocks.filter(m =>
       String(m.roomId) === String(roomNumber)
     );
@@ -514,50 +484,25 @@ export class CalendarView implements OnInit, OnDestroy {
         right: '0'
       },
       hasBackdrop: true,
-      backdropClass: 'dialog-backdrop-dark',
+      backdropClass: 'cdk-overlay-dark-backdrop',
       autoFocus: false,
     });
 
-    // Subscribe to dialog close event
+    // Only refresh calendar if changes were made
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe((result: any) => {
         if (result && result.refreshCalendar) {
-          console.log('🔄 Refreshing calendar view...');
-          // Reload reservations and maintenance to refresh the calendar
+          console.log('🔄 Refreshing calendar view due to changes...');
           this.loadReservationsAndMaintenance();
+        } else {
+          console.log('ℹ️ No changes made, skipping calendar refresh');
         }
       });
   }
 
-  openViewReservationDialog(reservation: StayViewReservation): void {
-    const dialogRef = this.dialog.open(ViewReservation, {
-      width: '60vw',
-      maxWidth: '100vw',
-      height: '100vh',
-      maxHeight: '100vh',
-      data: { reservation },
-      disableClose: false,
-      panelClass: 'right-side-panel-dialog',
-      position: {
-        top: '0',
-        right: '0'
-      },
-      hasBackdrop: true,
-      backdropClass: 'dialog-backdrop-dark',
-      autoFocus: false,
-    });
-
-    dialogRef.afterClosed().subscribe((result: any) => {
-      if (result) {
-        console.log('Dialog closed with result:', result);
-      }
-    });
-  }
-
-  // DELETE MAINTENANCE METHOD
   deleteMaintenance(event: Event, maintenance: any): void {
-    event.stopPropagation(); // Prevent other click handlers
+    event.stopPropagation();
 
     const dialogRef = this.dialog.open(ConfirmDialog, {
       width: '400px',
@@ -571,24 +516,20 @@ export class CalendarView implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        this.reservationService.deleteMaintenanceBlock(maintenance.id, maintenance.roomId)
+        this.reservationService.deleteMaintenanceBlock(maintenance.id, String(maintenance.roomId))
           .pipe(takeUntil(this.destroy$))
           .subscribe({
             next: () => {
-              console.log('Maintenance block deleted successfully');
-              // Remove from local array immediately
               this.maintenanceBlocks = this.maintenanceBlocks.filter(m => m.id !== maintenance.id);
             },
             error: (error) => {
               console.error('Failed to delete maintenance block:', error);
-              alert('Failed to delete maintenance block. Please try again.');
             }
           });
       }
     });
   }
 
-  // CELL SELECTION METHODS
   onCellMouseDown(event: MouseEvent, roomType: string, roomNumber: string, dateIndex: number): void {
     event.preventDefault();
 
@@ -670,14 +611,12 @@ export class CalendarView implements OnInit, OnDestroy {
     const targetDate = this.displayDates[dateIndex].fullDate;
     const targetTime = new Date(targetDate).setHours(0, 0, 0, 0);
 
-    // Check reservations
     const hasReservation = room.reservations.some(res => {
       const checkIn = new Date(res.checkInDate).setHours(0, 0, 0, 0);
       const checkOut = new Date(res.checkOutDate).setHours(0, 0, 0, 0);
       return targetTime >= checkIn && targetTime < checkOut;
     });
 
-    // Check maintenance
     const hasMaintenance = this.maintenanceBlocks.some(m => {
       if (String(m.roomId) !== String(roomNumber)) return false;
       const start = new Date(m.startDate).setHours(0, 0, 0, 0);

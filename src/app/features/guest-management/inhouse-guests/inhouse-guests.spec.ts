@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { StayView } from './stay-view';
+import { InhouseGuests } from './inhouse-guests';
 
-describe('StayView', () => {
-  let component: StayView;
-  let fixture: ComponentFixture<StayView>;
+describe('InhouseGuests', () => {
+  let component: InhouseGuests;
+  let fixture: ComponentFixture<InhouseGuests>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [StayView]
+      imports: [InhouseGuests]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(StayView);
+    fixture = TestBed.createComponent(InhouseGuests);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

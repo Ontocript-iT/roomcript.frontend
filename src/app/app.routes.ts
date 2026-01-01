@@ -14,15 +14,12 @@ import {ReservationFormComponent} from './features/reservations/reservation-form
 import {CheckinCheckoutComponent} from './features/reservations/checkin-checkout/checkin-checkout';
 
 import {GuestListComponent} from './features/guest-management/guest-list/guest-list';
-
-import { StayView } from './features/stay-view/stay-view';
 import { UserAccount } from './features/user-management/user-account/user-account';
 import {RoomListComponent} from './features/rooms/room-list/room-list';
 import {UpdateReservation} from './features/reservations/update-reservation/update-reservation';
 import {CalendarView} from './features/reservations/calendar-view/calendar-view';
 import {FolioOperations} from './features/reservations/folio-operations/folio-operations';
-
-
+import {InhouseGuestsComponent} from './features/guest-management/inhouse-guests/inhouse-guests';
 
 
 export const routes: Routes = [
@@ -93,19 +90,21 @@ export const routes: Routes = [
     path: 'stayView',
     component: CalendarView,
     canActivate: [authGuard]
-  }
-  ,
+  },
   {
     path: 'guest/list',
     component: GuestListComponent,
     canActivate: [authGuard]
-  }
-    ,
+  },
+  {
+    path: 'guest/inhouse',
+    component: InhouseGuestsComponent,
+    canActivate: [authGuard]
+  },
   {
     path: 'user/account',
     component: UserAccount,
     canActivate: [authGuard]
   }
-
 
 ];
