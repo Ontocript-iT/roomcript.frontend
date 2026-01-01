@@ -383,6 +383,14 @@ export class ReservationService {
     );
   }
 
+  deleteRoomFromReservation(reservationId: number, roomConfirmationNumber: string): Observable<any> {
+    const params = { reservationId: reservationId.toString(), roomConfirmationNumber };
+    return this.http.delete<any>(`${this.apiUrl}/deleteRoomByReservation`, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
   createMaintenanceBlock(blockData: {
     roomId: string;
     propertyCode: string;
@@ -446,25 +454,31 @@ export class ReservationService {
     );
   }
 
-  deleteMaintenanceBlock(maintenanceId: number, roomId: string): Observable<any> {
-    const url = `${environment.apiUrl}/maintenance-blocks/${maintenanceId}`;
+  deleteMaintenanceBlock(blockId: number, roomId: string): Observable<any> {
+    const propertyCode = localStorage.getItem('propertyCode') || '';
+    const url = `${environment.apiUrl}/maintenance-blocks/${blockId}`;
     const headers = this.getHeaders();
 
     console.log('🗑️ Deleting maintenance block:', {
       url: url,
-      maintenanceId: maintenanceId,
-      roomId: roomId
+      blockId: blockId,
+      roomId: roomId,
+      propertyCode: propertyCode
     });
 
     return this.http.delete(url, {
       headers: headers,
-      params: { roomId: roomId }
+      params: {
+        roomId: roomId,
+        blockId: blockId.toString(),
+        propertyCode: propertyCode
+      }
     }).pipe(
       tap(() => {
-        console.log('Maintenance block deleted successfully');
+        console.log('✅ Maintenance block deleted successfully');
       }),
       catchError(error => {
-        console.error('Error deleting maintenance block:', error);
+        console.error('❌ Error deleting maintenance block:', error);
         return throwError(() => error);
       })
     );

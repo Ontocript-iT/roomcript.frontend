@@ -61,3 +61,15 @@
   font-weight: 600 !important;
 }
 
+::ng-deep {
+  .dialog-backdrop-dark {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .right-side-panel-dialog {
+    .mat-mdc-dialog-container {
+      border-radius: 0 !important;
+      box-shadow: -4px 0 20px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
+}

@@ -136,11 +136,20 @@ export class ReservationListComponent implements OnInit {
 
   openViewReservationDialog(reservation: Reservation): void {
     const dialogRef = this.dialog.open(ViewReservation, {
-      width: '900px',
-      maxWidth: '95vw',
-      data: { reservation: reservation },
+      width: '60vw',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      data: { reservation },
       disableClose: false,
-      panelClass: 'swal-style-dialog',
+      panelClass: 'right-side-panel-dialog',
+      position: {
+        top: '0',
+        right: '0'
+      },
+      hasBackdrop: true,
+      backdropClass: 'dialog-backdrop-dark',
+      autoFocus: false,
     });
 
     dialogRef.afterClosed().subscribe(result => {

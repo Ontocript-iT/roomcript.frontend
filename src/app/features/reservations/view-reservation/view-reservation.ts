@@ -10,24 +10,18 @@ import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { RoomService } from '../../../core/services/room.service';
 import { ReservationService } from '../../../core/services/reservation.service';
-import {map, ObservableInput, Subject} from 'rxjs';
-import {MatInputModule} from '@angular/material/input';
-import {Router, RouterLink} from '@angular/router';
-import {MatMenuModule, MatMenuTrigger} from '@angular/material/menu';
-import {MatDivider} from '@angular/material/divider';
-import { AssignRoomComponent} from '../assign-room/assign-room';
-import {MatTooltipModule} from '@angular/material/tooltip';
-import {MoveRoomComponent} from '../move-room/move-room';
+import { Subject } from 'rxjs';
+import { MatInputModule } from '@angular/material/input';
+import { Router } from '@angular/router';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatDivider } from '@angular/material/divider';
+import { AssignRoomComponent } from '../assign-room/assign-room';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MoveRoomComponent } from '../move-room/move-room';
 import {takeUntil} from 'rxjs/operators';
 
 export interface ViewReservationDialogData {
   reservation: Reservation;
-}
-
-interface AvailableRoomOption {
-  roomId: number;
-  roomNumber: string;
-  roomType: string;
 }
 
 @Component({
@@ -54,12 +48,7 @@ interface AvailableRoomOption {
   styleUrl: './view-reservation.scss'
 })
 export class ViewReservation implements OnInit, OnDestroy {
-  editingRowIndex: number | null = null;
-  editingCell: { rowIndex: number | null, field: string | null } = { rowIndex: null, field: null };
-  availableRoomsByType: { [roomType: string]: AvailableRoomOption[] } = {};
-  loadingRooms = false;
   originalRoomDetails: any[] = [];
-  rowOriginalData: { [key: number]: any } = {};
   propertyCode = localStorage.getItem("propertyCode")||'';
   roomTempIds: number[] = [];
   originalCheckInDate: Date | null = null;
@@ -72,8 +61,8 @@ export class ViewReservation implements OnInit, OnDestroy {
   showMoveRoomForm = false;
   selectedRoomForMove: any = null;
   selectedRoomIndex: number = -1;
-  availableRooms: AvailableRoomOption[] = [];
   private destroy$ = new Subject<void>();
+  private hasChanges = false;
 
   availableRoomTypes = [
     { value: 'Standard', label: 'Standard', availableCount: 0},
@@ -108,6 +97,13 @@ export class ViewReservation implements OnInit, OnDestroy {
     });
 
     this.loadAvailableRoomCounts();
+
+    this.dialogRef.backdropClick()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('🖱️ Backdrop clicked, closing with changes flag:', this.hasChanges);
+        this.dialogRef.close({ refreshCalendar: this.hasChanges });
+      });
   }
 
   ngOnDestroy(): void {
@@ -132,55 +128,48 @@ export class ViewReservation implements OnInit, OnDestroy {
   }
 
   onRoomMoved(response: any): void {
-    this.loadReservationData();
-  }
+    console.log('✅ Room moved successfully:', response);
 
-  // New method to reload reservation data from server
-  loadReservationData(): void {
-    if (!this.data.reservation.id) return;
+    // Update the room details directly from the response
+    if (this.selectedRoomIndex >= 0 && response && response.roomDetails) {
+      const updatedRoom = response.roomDetails.find((r: any) =>
+        r.confirmationNumber === this.selectedRoomForMove.confirmationNumber
+      );
 
-    this.reservationService.getReservationById(this.data.reservation.id)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updatedReservation: any) => {
+      if (updatedRoom) {
+        // Update the room in the table
+        this.data.reservation.roomDetails[this.selectedRoomIndex] = {
+          ...this.data.reservation.roomDetails[this.selectedRoomIndex],
+          roomId: updatedRoom.roomId,
+          roomNumber: updatedRoom.roomNumber,
+          roomType: updatedRoom.roomType,
+          numberOfAdults: updatedRoom.numberOfAdults,
+          numberOfChildren: updatedRoom.numberOfChildren
+        };
 
-          this.data.reservation.roomDetails = updatedReservation.roomDetails || [];
-          this.originalRoomDetails = JSON.parse(JSON.stringify(this.data.reservation.roomDetails));
+        // Update original room details as well
+        this.originalRoomDetails[this.selectedRoomIndex] = JSON.parse(
+          JSON.stringify(this.data.reservation.roomDetails[this.selectedRoomIndex])
+        );
 
-          // Reset editing state
-          this.editingRowIndex = null;
-          this.editingCell = { rowIndex: null, field: null };
-          this.rowOriginalData = {};
+        // Update room temp IDs
+        this.roomTempIds[this.selectedRoomIndex] = updatedRoom.roomId;
+      }
+    }
 
-          // Re-initialize room temp IDs
-          this.roomTempIds = [];
-          this.data.reservation.roomDetails.forEach((room, index) => {
-            this.roomTempIds[index] = room.roomId || 0;
-          });
+    // Hide the move room form
+    this.showMoveRoomForm = false;
+    this.selectedRoomForMove = null;
+    this.selectedRoomIndex = -1;
 
-          // Hide the move room form
-          this.showMoveRoomForm = false;
-          this.selectedRoomForMove = null;
-          this.selectedRoomIndex = -1;
+    // Reload available room counts
+    this.loadAvailableRoomCounts();
 
-          // Reload available room counts
-          this.loadAvailableRoomCounts();
+    // Show success message
+    this.showErrorMessage('Room moved successfully!', true);
 
-          // Show success message
-          this.showErrorMessage('Room moved successfully!', true);
-
-          // **IMPORTANT: Close dialog with refresh flag to update calendar**
-          // This tells the calendar view to refresh
-          this.dialogRef.close({ refreshCalendar: true });
-        },
-        error: (error: any) => {
-          this.showErrorMessage('Room moved but failed to refresh view. Please close and reopen.', false);
-
-          this.showMoveRoomForm = false;
-          this.selectedRoomForMove = null;
-          this.selectedRoomIndex = -1;
-        }
-      });
+    // Mark that changes were made
+    this.hasChanges = true;
   }
 
   onMoveRoomCancelled(): void {
@@ -227,300 +216,6 @@ export class ViewReservation implements OnInit, OnDestroy {
     });
   }
 
-  isRowEditing(rowIndex: number): boolean {
-    return this.editingRowIndex === rowIndex;
-  }
-
-  isEditingCell(rowIndex: number, field: string): boolean {
-    return this.editingCell.rowIndex === rowIndex && this.editingCell.field === field;
-  }
-
-  enableRowEdit(rowIndex: number): void {
-    this.editingRowIndex = rowIndex;
-    this.rowOriginalData[rowIndex] = JSON.parse(JSON.stringify(this.data.reservation.roomDetails[rowIndex]));
-
-    const room = this.data.reservation.roomDetails[rowIndex];
-    this.fetchAvailableRoomsByType(room.roomType, rowIndex, room);
-  }
-
-  fetchAvailableRoomsByType(roomType: string, index: number, currentRoom?: any): void {
-    if (!this.propertyCode) {
-      return;
-    }
-    if (!this.originalCheckInDate || !this.originalCheckOutDate) {
-      return;
-    }
-
-    const formattedCheckIn = this.formatDate(this.originalCheckInDate);
-    const formattedCheckOut = this.formatDate(this.originalCheckOutDate);
-
-    this.loadingRooms = true;
-
-    this.roomService.getAvailableRoomsByType(
-      this.propertyCode,
-      roomType,
-      formattedCheckIn,
-      formattedCheckOut
-    ).pipe(
-      map((rooms: any[]) => rooms.map((r: any) => ({
-        roomId: r.id || r.roomId,
-        roomNumber: r.roomNumber,
-        roomType: r.roomType
-      })))
-    ).subscribe({
-      next: (rooms) => {
-        let list = rooms || [];
-
-        if (currentRoom && currentRoom.roomId) {
-          const exists = list.some(r => Number(r.roomId) === Number(currentRoom.roomId));
-          if (!exists) {
-            list = [
-              {
-                roomId: currentRoom.roomId,
-                roomNumber: currentRoom.roomNumber,
-                roomType: currentRoom.roomType
-              },
-              ...list
-            ];
-          }
-        }
-
-        this.availableRoomsByType[roomType] = list;
-
-        if (currentRoom && currentRoom.roomId) {
-          this.roomTempIds[index] = currentRoom.roomId;
-        }
-
-        this.loadingRooms = false;
-      },
-      error: () => {
-        this.availableRoomsByType[roomType] = [];
-        this.loadingRooms = false;
-      }
-    });
-  }
-
-  hasRowChanges(rowIndex: number): boolean {
-    if (!this.rowOriginalData[rowIndex]) return false;
-
-    const current = this.data.reservation.roomDetails[rowIndex];
-    const original = this.rowOriginalData[rowIndex];
-
-    return (
-      current.roomType !== original.roomType ||
-      this.roomTempIds[rowIndex] !== original.roomId ||
-      current.roomRate !== original.roomRate ||
-      current.numberOfAdults !== original.numberOfAdults ||
-      current.numberOfChildren !== original.numberOfChildren
-    );
-  }
-
-  saveRowChanges(rowIndex: number): void {
-    this.clearError(); // Clear previous errors
-    this.editingCell = { rowIndex: null, field: null };
-
-    const room = this.data.reservation.roomDetails[rowIndex];
-    const selectedRoomId = this.roomTempIds[rowIndex] || room.roomId;
-
-    if (!selectedRoomId || selectedRoomId === 0) {
-      this.showErrorMessage('Please select a room number before saving.', false);
-      return;
-    }
-
-    const availableRooms = this.getAvailableRoomsForIndex(rowIndex);
-    const selectedRoom = availableRooms.find(r => r.roomId === selectedRoomId);
-
-    if (!selectedRoom) {
-      this.showErrorMessage('Selected room is no longer available.', false);
-      return;
-    }
-
-    const confirmationNumber = room.confirmationNumber;
-
-    if (!confirmationNumber) {
-      this.assignNewRoom(rowIndex, selectedRoom);
-    } else {
-      this.moveExistingRoomAssignment(rowIndex, selectedRoom, confirmationNumber);
-    }
-  }
-
-  moveExistingRoomAssignment(rowIndex: number, selectedRoom: any, confirmationNumber: string): void {
-    const room = this.data.reservation.roomDetails[rowIndex];
-
-    const moveRoomData = {
-      reservationId: this.data.reservation.id,
-      roomConfirmationNumber: confirmationNumber,
-      roomId: selectedRoom.roomId,
-      roomType: selectedRoom.roomType,
-      numberOfAdults: room.numberOfAdults || 0,
-      numberOfChildren: room.numberOfChildren || 0
-    };
-
-    this.reservationService.moveExistingRoom(moveRoomData).subscribe({
-      next: () => {
-        room.roomId = selectedRoom.roomId;
-        room.roomNumber = selectedRoom.roomNumber;
-        room.roomType = selectedRoom.roomType;
-
-        this.originalRoomDetails[rowIndex] = JSON.parse(JSON.stringify(room));
-        this.editingRowIndex = null;
-        delete this.rowOriginalData[rowIndex];
-
-        this.loadAvailableRoomCounts();
-        this.showErrorMessage('Room updated successfully!', true);
-      },
-      error: (error) => {
-        let errorMessage = 'Failed to save room assignment';
-        if (error?.message) errorMessage = error.message;
-        else if (error?.error?.error) errorMessage = error.error.error;
-
-        this.showErrorMessage(errorMessage, false);
-        this.cancelRowEdit(rowIndex);
-      }
-    });
-  }
-
-  assignNewRoom(rowIndex: number, selectedRoom: any): void {
-    const room = this.data.reservation.roomDetails[rowIndex];
-
-    const assignmentData = {
-      reservationId: this.data.reservation.id,
-      roomType: selectedRoom.roomType,
-      roomIds: [selectedRoom.roomId],
-      numberOfAdults: room.numberOfAdults || 0,
-      numberOfChildren: room.numberOfChildren || 0
-    };
-
-    this.reservationService.assignRooms(assignmentData).subscribe({
-      next: (response) => {
-
-        room.roomId = selectedRoom.roomId;
-        room.roomNumber = selectedRoom.roomNumber;
-        room.roomType = selectedRoom.roomType;
-
-        if (response.roomDetails && response.roomDetails.length > 0) {
-          const assignedRoom = response.roomDetails.find((r: any) => r.roomId === selectedRoom.roomId);
-          if (assignedRoom && assignedRoom.confirmationNumber) {
-            room.confirmationNumber = assignedRoom.confirmationNumber; // ✅ Only this line
-          }
-        }
-
-        this.originalRoomDetails[rowIndex] = JSON.parse(JSON.stringify(room));
-        this.editingRowIndex = null;
-        delete this.rowOriginalData[rowIndex];
-
-        this.loadAvailableRoomCounts();
-        this.showErrorMessage('Room assigned successfully!', true);
-      },
-      error: (error) => {
-        let errorMessage = 'Failed to assign room';
-        if (error?.message) errorMessage = error.message;
-        else if (error?.error?.error) errorMessage = error.error.error;
-
-        this.showErrorMessage(errorMessage, false);
-        this.cancelRowEdit(rowIndex);
-      }
-    });
-  }
-
-  cancelRowEdit(rowIndex: number): void {
-    if (this.rowOriginalData[rowIndex]) {
-      this.data.reservation.roomDetails[rowIndex] = JSON.parse(JSON.stringify(this.rowOriginalData[rowIndex]));
-      this.roomTempIds[rowIndex] = this.rowOriginalData[rowIndex].roomId;
-    }
-    this.editingRowIndex = null;
-    this.editingCell = { rowIndex: null, field: null };
-    delete this.rowOriginalData[rowIndex];
-  }
-
-  focusInputField(field: string): void {
-    switch(field) {
-      case 'rate':
-        const rateInput = this.rateInputs?.first;
-        if (rateInput) rateInput.nativeElement.focus();
-        break;
-      case 'adults':
-        const adultsInput = this.adultsInputs?.first;
-        if (adultsInput) adultsInput.nativeElement.focus();
-        break;
-      case 'children':
-        const childrenInput = this.childrenInputs?.first;
-        if (childrenInput) childrenInput.nativeElement.focus();
-        break;
-      case 'roomType':
-        const roomTypeSelect = this.roomTypeSelects?.first;
-        if (roomTypeSelect) roomTypeSelect.open();
-        break;
-    }
-  }
-
-  closeEditCell(): void {
-    setTimeout(() => {
-      this.editingCell = { rowIndex: null, field: null };
-    }, 150);
-  }
-
-  cancelEdit(index: number): void {
-    if (this.rowOriginalData[index]) {
-      const original = this.rowOriginalData[index];
-      const current = this.data.reservation.roomDetails[index];
-
-      if (this.editingCell.field === 'roomType') {
-        current.roomType = original.roomType;
-      } else if (this.editingCell.field === 'rate') {
-        current.roomRate = original.roomRate;
-      } else if (this.editingCell.field === 'adults') {
-        current.numberOfAdults = original.numberOfAdults;
-      } else if (this.editingCell.field === 'children') {
-        current.numberOfChildren = original.numberOfChildren;
-      }
-    }
-
-    this.closeEditCell();
-  }
-
-  onDropdownOpenChange(isOpen: boolean, index: number, field: string): void {
-    if (!isOpen) {
-      setTimeout(() => {
-        this.editingCell = { rowIndex: null, field: null };
-      }, 200);
-    }
-  }
-
-  onRoomSelect(index: number): void {
-    const selectedRoomId = this.roomTempIds[index];
-    const room = this.data.reservation.roomDetails[index];
-    const availableRooms = this.getAvailableRoomsForIndex(index);
-    const selectedRoom = availableRooms.find(r => r.roomId === selectedRoomId);
-
-    if (selectedRoom) {
-      room.roomId = selectedRoom.roomId;
-      room.roomNumber = selectedRoom.roomNumber;
-      room.roomType = selectedRoom.roomType;
-
-      this.editingCell = { rowIndex: null, field: null };
-    }
-  }
-
-  onRoomTypeSelect(index: number): void {
-    const room = this.data.reservation.roomDetails[index];
-    const newRoomType = room.roomType;
-
-    // Clear the current room assignment since type changed
-    this.roomTempIds[index] = 0;
-    room.roomId = 0;
-    room.roomNumber = '';
-
-    this.fetchAvailableRoomsByType(newRoomType, index);
-    this.editingCell = { rowIndex: null, field: null };
-  }
-
-  getAvailableRoomsForIndex(index: number): AvailableRoomOption[] {
-    const room = this.data.reservation.roomDetails[index];
-    if (!room || !room.roomType) return [];
-    return this.availableRoomsByType[room.roomType] || [];
-  }
-
   shouldShowActionButtons(): boolean {
     const res = this.data.reservation;
     if (!res) return false;
@@ -539,6 +234,7 @@ export class ViewReservation implements OnInit, OnDestroy {
   }
 
   onRoomAssigned(response: any): void {
+    console.log('Room assigned:', response);
 
     if (response.roomDetails && response.roomDetails.length > 0) {
       const newRoom = response.roomDetails[response.roomDetails.length - 1];
@@ -548,6 +244,27 @@ export class ViewReservation implements OnInit, OnDestroy {
     this.showAssignRoomForm = false;
     this.loadAvailableRoomCounts();
     this.showErrorMessage('Room assigned successfully!', true);
+
+    // Mark that changes were made
+    this.hasChanges = true;
+  }
+
+  removeRoom(room: any, index: number): void {
+    const reservationId = this.data.reservation.id;
+    const roomConfirmationNumber = room.confirmationNumber;
+
+    this.reservationService.deleteRoomFromReservation(reservationId, roomConfirmationNumber)
+      .subscribe({
+        next: () => {
+          this.data.reservation.roomDetails.splice(index, 1);
+          this.loadAvailableRoomCounts();
+          this.showErrorMessage('Room removed successfully!', true);
+          this.hasChanges = true;
+        },
+        error: (error) => {
+          this.showErrorMessage('Failed to remove room: ' + (error.message || 'Unknown error'), false);
+        }
+      });
   }
 
   onAssignRoomCancelled(): void {
@@ -566,7 +283,7 @@ export class ViewReservation implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.dialogRef.close();
+    this.dialogRef.close({ refreshCalendar: this.hasChanges });
   }
 
   getStatusBgColor(): string {

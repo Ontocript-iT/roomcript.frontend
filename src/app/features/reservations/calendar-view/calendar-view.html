@@ -170,15 +170,22 @@
                   <div class="absolute inset-y-1 flex items-center pointer-events-auto"
                        [style.left.%]="pos.startIndex * (100 / visibleDaysCount)"
                        [style.width.%]="pos.span * (100 / visibleDaysCount)"
-                       [matTooltip]="res.name + ' (' + (res.checkInDate | date:'MMM d') + ' - ' + (res.checkOutDate | date:'MMM d') + ')'">
+                       [matTooltip]="res.name + ' - ' + (res.bookingSource || 'Direct') + ' (' + (res.checkInDate | date:'MMM d') + ' - ' + (res.checkOutDate | date:'MMM d') + ')'">
                     <button
                       type="button"
                       (click)="showReservationDetails(res)"
-                      class="w-full h-full rounded-md text-[10px] text-white flex items-center px-2
-                 transform scale-95 hover:scale-100 transition-transform duration-150
-                 shadow-sm hover:shadow-md cursor-pointer overflow-hidden"
+                      class="w-full h-full rounded-md text-[10px] text-white flex items-center gap-1.5 px-2
+                         transform scale-95 hover:scale-100 transition-transform duration-150
+                         shadow-sm hover:shadow-md cursor-pointer overflow-hidden"
                       [ngClass]="getBookingSourceClasses(res)">
-                      <span class="font-medium truncate">{{ res.name }}</span>
+
+                      <!-- Booking Source Logo -->
+                      <span class="flex-shrink-0 w-4 h-4 flex items-center justify-center bg-white rounded-sm p-0.5"
+                            [innerHTML]="getBookingSourceLogo(res.bookingSource)">
+                      </span>
+
+                      <!-- Guest Name -->
+                      <span class="font-medium truncate flex-1">{{ res.name }}</span>
                     </button>
                   </div>
                 </ng-container>
