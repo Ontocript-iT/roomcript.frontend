@@ -22,9 +22,20 @@ export interface InhouseGuest {
   state?: string;
   country?: string;
   zipCode?: string;
+  status?: string;
 
   roomNumber?: string;
+  roomType?: string;
   checkInDate?: Date;
   checkOutDate?: Date;
   reservationStatus?: string;
+  confirmationNumber?: string;
+  bookingSource?: string;
+  numberOfAdults?: number;
+  numberOfChildren?: number;
+
+  totalAmount?: number;
+  paidAmount?: number;
+  paymentStatus?: string;
+  specialRequests?: string;
 }

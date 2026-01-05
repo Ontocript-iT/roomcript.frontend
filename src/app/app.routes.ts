@@ -18,7 +18,7 @@ import { UserAccount } from './features/user-management/user-account/user-accoun
 import {RoomListComponent} from './features/rooms/room-list/room-list';
 import {UpdateReservation} from './features/reservations/update-reservation/update-reservation';
 import {CalendarView} from './features/reservations/calendar-view/calendar-view';
-import {FolioOperations} from './features/reservations/folio-operations/folio-operations';
+import {ReservationUpdates} from './features/Folios/reservation-updates/reservation-updates';
 import {InhouseGuestsComponent} from './features/guest-management/inhouse-guests/inhouse-guests';
 
 
@@ -42,13 +42,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'reservations/edit',
+    path: 'reservations/edit/:id',
     component: UpdateReservation,
     canActivate: [authGuard]
   },
   {
-    path: 'reservations/folio-operations',
-    component: FolioOperations,
+    path: 'reservations/reservation-updates',
+    component: ReservationUpdates,
     canActivate: [authGuard]
   },
   {
