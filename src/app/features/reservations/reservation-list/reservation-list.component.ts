@@ -213,27 +213,22 @@ export class ReservationListComponent implements OnInit {
   }
 
   editReservation(reservation: Reservation): void {
-    this.openUpdateDialog(reservation);
-  }
+    if (!reservation.id) {
+      this.showError('Invalid reservation ID');
+      console.error('Reservation missing ID:', reservation);
+      return;
+    }
 
-  openUpdateDialog(reservation: Reservation): void {
-    const dialogRef = this.dialog.open(UpdateReservation, {
-      width: '1200px',
-      maxWidth: '95vw',
-      data: { reservation: reservation },
-      disableClose: true,
-      panelClass: 'swal-style-dialog',
+    console.log('Navigating to edit reservation:', reservation.id);
+
+    this.router.navigate(['/reservations/edit', reservation.id], {
+      state: { reservation: reservation }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadReservations();
-        this.showSuccess('Reservation updated successfully!');
-      }
-    });
   }
 
-  cancelReservation(reservation: any): void {
+
+    cancelReservation(reservation: any): void {
     const cancellationReasons = [
       'Guest request',
       'Duplicate reservation',

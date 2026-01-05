@@ -113,34 +113,58 @@ export class ReservationService {
 
   createGroupReservation(propertyCode: string, reservationData: any): Observable<any> {
     const url = `${this.apiUrl}/addGroupReservation?PropertyCode=${propertyCode}`;
-
-    // Add headers including X-Property-Code
     const headers = this.getHeaders().set('X-Property-Code', propertyCode);
 
-    console.log('🔄 Creating group reservation:', {
+    console.log('🔄 Creating group reservation with auto-folio generation:', {
       url: url,
       propertyCode: propertyCode,
       data: reservationData
     });
 
     return this.http.post<any>(url, reservationData, {
-      headers: headers
+      headers: headers,
+      observe: 'response'
     }).pipe(
       map((response: any) => {
-        console.log('Group reservation response:', response);
+        console.log('📥 Full HTTP Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: response.body
+        });
 
-        // Extract body if backend returns ResponseEntity structure
-        if (response && response.body) {
-          return response.body;
+        // Extract body
+        let data = response.body;
+
+        // Handle different response structures from Spring Boot
+        if (data && typeof data === 'object') {
+          // If response is wrapped in ResponseEntity body property
+          if (data.body) {
+            data = data.body;
+          }
+
+          // Log folio information
+          if (data.folioId || data.folioNumber) {
+            console.log('✅ Folio auto-generated:', {
+              folioId: data.folioId,
+              folioNumber: data.folioNumber,
+              reservationId: data.reservationId || data.id
+            });
+          }
         }
-        return response;
+
+        return data;
       }),
       tap(data => {
-        console.log('Processed reservation data:', data);
+        console.log('✨ Final processed data:', data);
       }),
       catchError(error => {
-        console.error('Error creating group reservation:', error);
-        throw error;
+        console.error('❌ Error creating group reservation:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          error: error.error
+        });
+        return throwError(() => error);
       })
     );
   }
@@ -485,15 +509,45 @@ export class ReservationService {
   }
 
   getReservationById(id: number): Observable<Reservation> {
-    const url = `${this.apiUrl}/reservations/${id}`;
-    const headers = this.getHeaders().set('X-Property-Code', localStorage.getItem('propertyCode') || '');
+    const url = `${this.apiUrl}/${id}`;
 
-    return this.http.get<Reservation>(url, { headers }).pipe(
+    const propertyCode = localStorage.getItem('propertyCode') || '';
+    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
+
+    console.log('🔍 Fetching reservation:', {
+      url: url,
+      id: id,
+      propertyCode: propertyCode
+    });
+
+    return this.http.get<any>(url, { headers }).pipe(
+      map((response: any) => {
+        console.log('API Response:', response);
+
+        if (response?.body) {
+          return response.body;
+        }
+        return response;
+      }),
+      tap(reservation => {
+        console.log('Reservation loaded:', {
+          id: reservation.id,
+          confirmationNumber: reservation.confirmationNumber,
+          guestName: reservation.guestName
+        });
+      }),
       catchError(error => {
         console.error('Error fetching reservation:', error);
-        return throwError(() => error);
+
+        console.error('Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url,
+          message: error.error?.message || error.message
+        });
+
+        throw error;
       })
     );
   }
-
 }

@@ -272,12 +272,13 @@ export class ViewReservation implements OnInit, OnDestroy {
   }
 
   editReservation(): void {
+    console.log('Navigating to reservation updates with ID:', this.data.reservation.id);
+
     this.dialogRef.close();
 
-    this.router.navigate(['/reservations/folio-operations'], {
+    this.router.navigate(['/reservations/reservation-updates'], {
       queryParams: {
-        id: this.data.reservation.id,
-        confirmationNumber: this.data.reservation.confirmationNumber,
+        id: this.data.reservation.id
       }
     });
   }
