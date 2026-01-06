@@ -1,17 +1,3 @@
-export interface ReservationRoomDetails {
-  roomNumber: string;
-  checkInCheckOutStatus: 'CHECK_IN' | 'CHECK_OUT' | 'PENDING' | 'CONFIRMED';
-  arrival: string;
-  nights: number;
-  departure: string;
-  adult: number;
-  message: string;
-  roomType: string;
-  guestName: string;
-  child: number;
-  status: number;
-}
-
 export interface FolioCharge {
   day: string;
   refNo: string;
@@ -66,4 +52,79 @@ export interface FolioCharge {
   chargeDate: string;
   postedBy: string;
   createdAt?: string;
+}
+
+export interface ReservationRoomDetails {
+  id: number;
+  confirmationNumber: string;
+  roomConfirmationNumber: string | null;
+  reservationId: number | null;
+  guestId: number;
+  guestEmail: string | null;
+  guestPhone: string | null;
+  isOnHold: boolean | null;
+  roomId: number | null;
+  rooms: any | null;
+  roomIds: number[];
+  roomCount: number;
+  checkInDate: string;
+  checkOutDate: string;
+  totalAmount: number;
+  paidAmount: number;
+  originalRate: number;
+  currentRate: number;
+  reservationType: string;
+  bookingSource: string;
+  advanceDeposit: number | null;
+  remark: string | null;
+  businessSource: string | null;
+  releaseDateTime: string | null;
+  remindDaysBeforeRelease: number | null;
+  holdDays: number | null;
+  autoCancelEnabled: boolean;
+  discountAmount: number | null;
+  status: string;
+  paymentStatus: string;
+  specialRequests: string;
+  numberOfGuests: number;
+  numberOfChildren: number;
+  numberOfAdults: number;
+  isRateOverridden: boolean;
+  rateOverrideReason: string | null;
+  rateOverriddenByUsername: string | null;
+  rateType: string | null;
+  createdByUsername: string;
+  createdAt: string;
+  updatedAt: string | null;
+  cancelledAt: string | null;
+  cancelledByUsername: string | null;
+  cancellationReason: string | null;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  country: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  roomDetails: RoomDetail[];
+  groupReservationId: string;
+  propertyCode: string;
+  roomGuests: any | null;
+  checkInStatus: boolean;
+  checkOutStatus: boolean;
+  sendVoucher: boolean;
+  groupReservation: boolean;
+}
+
+export interface RoomDetail {
+  roomId: number;
+  roomNumber: string;
+  roomType: string;
+  roomRate: number;
+  roomTotal: number;
+  confirmationNumber: string;
+  numberOfAdults: number;
+  numberOfChildren: number;
+  roomConfirmationNumber: string | null;
 }

@@ -3,11 +3,15 @@ import { CommonModule } from '@angular/common';
 import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio.model';
 import { FolioService } from '../../../core/services/folio.service';
 import Swal from 'sweetalert2';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-folio-operations',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    MatSnackBarModule
+  ],
   templateUrl: './folio-operations.html',
   styleUrl: './folio-operations.scss'
 })
@@ -19,7 +23,10 @@ export class FolioOperations implements OnInit, OnChanges {
   loading: boolean = false;
   propertyCode: string = 'PROP0005';
 
-  constructor(private folioService: FolioService) {}
+  constructor(
+    private folioService: FolioService,
+    private snackBar: MatSnackBar,
+  ) {}
 
   ngOnInit(): void {
     if (this.folios.length > 0) {
@@ -80,7 +87,7 @@ export class FolioOperations implements OnInit, OnChanges {
       return;
     }
 
-    const createdBy = localStorage.getItem('role');
+    const createdBy = localStorage.getItem('username');
 
     if (!createdBy) {
       console.error('User role not found. Cannot create folio.');
@@ -89,19 +96,22 @@ export class FolioOperations implements OnInit, OnChanges {
 
     Swal.fire({
       title: 'Create New Folio',
-      html: `Are you sure you want to create a new folio for this reservation?`,
-      icon: 'question',
+      html: `<p class="text-gray-600">Are you sure you want to create a new folio for this reservation?</p>`,
+      icon: 'warning',
+      iconColor: '#8b5cf6',
       showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, Create',
-      cancelButtonText: 'Cancel',
+      cancelButtonText: 'No',
+      width: '450px',
+      padding: '1.5rem',
+      buttonsStyling: false,
       customClass: {
-        popup: 'text-sm',
-        title: 'text-base font-bold',
-        htmlContainer: 'text-xs',
-        confirmButton: 'text-xs px-4 py-2 rounded-lg',
-        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
       }
     }).then((result) => {
       if (result.isConfirmed) {
@@ -128,18 +138,8 @@ export class FolioOperations implements OnInit, OnChanges {
           this.selectedFolio = newFolio;
           this.loadFolioDetails(newFolio.id);
 
-          Swal.fire({
-            title: 'Success!',
-            text: 'New folio created successfully',
-            icon: 'success',
-            confirmButtonColor: '#3b82f6',
-            timer: 2000,
-            showConfirmButton: false,
-            customClass: {
-              popup: 'text-sm',
-              title: 'text-base font-bold'
-            }
-          });
+          // Use snackbar for success message
+          this.showSuccess('New folio created successfully');
         }
       },
       error: (error) => {
@@ -147,20 +147,12 @@ export class FolioOperations implements OnInit, OnChanges {
         console.error('Error creating folio:', error);
 
         const errorMsg = error.error?.message || error.error?.body || 'Failed to create folio';
-
-        Swal.fire({
-          title: 'Error!',
-          text: errorMsg,
-          icon: 'error',
-          confirmButtonColor: '#ef4444',
-          customClass: {
-            popup: 'text-sm',
-            title: 'text-base font-bold'
-          }
-        });
+        this.showError(errorMsg);
       }
     });
   }
+
+
 
   formatCurrency(amount: number): string {
     return amount.toFixed(2);
@@ -172,6 +164,24 @@ export class FolioOperations implements OnInit, OnChanges {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 5000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
     });
   }
 }

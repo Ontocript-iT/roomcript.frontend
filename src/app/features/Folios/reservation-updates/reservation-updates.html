@@ -25,7 +25,7 @@
   </div>
 
   <!-- Main Content -->
-  <div class="pt-2" *ngIf="!loading && !error && folioDetails.length > 0">
+  <div class="pt-2" *ngIf="!loading && !error">
     <div class="w-full bg-white rounded-md shadow-sm border border-gray-200">
       <!-- Tabs -->
       <div class="border-b border-gray-200">
@@ -95,16 +95,6 @@
           [reservationId]=reservationId>
         </app-credit-card>
       </div>
-    </div>
-  </div>
-
-  <!-- Empty State -->
-  <div *ngIf="!loading && !error && folioDetails.length === 0" class="flex items-center justify-center p-8">
-    <div class="text-center">
-      <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
-      </svg>
-      <p class="text-gray-600">No folios found for this reservation</p>
     </div>
   </div>
 </div>
