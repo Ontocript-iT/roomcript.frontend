@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { FolioService } from '../../../core/services/folio.service';
 import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio.model';
 
@@ -58,16 +59,24 @@ export class ReservationUpdates implements OnInit {
     this.loading = true;
     this.error = null;
 
-    this.folioService.getFoliosByReservationId(
-      this.reservationId,
-      this.propertyCode
-    ).subscribe({
-      next: (folios) => {
-        this.folioDetails = folios;
+    // Load both reservation details and folios in parallel
+    forkJoin({
+      reservation: this.folioService.getReservationDetailsById(this.reservationId),
+      folios: this.folioService.getFoliosByReservationId(this.reservationId, this.propertyCode)
+    }).subscribe({
+      next: (result) => {
+        this.reservationDetails = result.reservation;
+        this.folioDetails = result.folios;
         this.loading = false;
+
+        // Handle case where reservation details are not found
+        if (!this.reservationDetails) {
+          this.error = 'Reservation details not found';
+        }
       },
       error: (error) => {
-        this.error = 'Failed to load folio details';
+        console.error('Error loading data:', error);
+        this.error = 'Failed to load reservation details';
         this.loading = false;
       }
     });
@@ -79,6 +88,7 @@ export class ReservationUpdates implements OnInit {
 
   onEditDeparture(): void {
     // Implement edit departure logic
+    console.log('Edit departure clicked for reservation:', this.reservationId);
   }
 
   refreshDetails(): void {

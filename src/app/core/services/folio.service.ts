@@ -25,37 +25,6 @@ export class FolioService {
     });
   }
 
-  getEachRoomConfirmationReservationDetails(
-    reservationId: string,
-    propertyCode: string
-  ): Observable<ReservationRoomDetails | null> {
-    const url = `${environment.apiUrl}/reservations/getEachRoomConfirmationReservationDetails/${reservationId}`;
-    const headers = this.getHeaders().set('X-Property-Code', propertyCode);
-
-    return this.http.get<any>(url, {
-      headers: headers
-    }).pipe(
-      map(response => {
-        let reservationDetails: ReservationRoomDetails | null = null;
-
-        if (response && response.body && typeof response.body === 'object') {
-          reservationDetails = response.body as ReservationRoomDetails;
-        }
-        else if (response && response.data && typeof response.data === 'object') {
-          reservationDetails = response.data as ReservationRoomDetails;
-        }
-        else if (response && typeof response === 'object') {
-          reservationDetails = response as ReservationRoomDetails;
-        }
-
-        return reservationDetails;
-      }),
-      catchError(error => {
-        return of(null);
-      })
-    );
-  }
-
   getFoliosByReservationId(
     reservationId: number,
     propertyCode: string
@@ -166,6 +135,37 @@ export class FolioService {
         return folio;
       }),
       catchError(error => {
+        return of(null);
+      })
+    );
+  }
+
+  getReservationDetailsById(
+    reservationId: number
+  ): Observable<ReservationRoomDetails | null> {
+    const url = `${environment.apiUrl}/reservations/getReservationDetailsById/${reservationId}`;
+    const headers = this.getHeaders();
+
+    return this.http.get<any>(url, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        let reservationDetails: ReservationRoomDetails | null = null;
+
+        if (response && response.body && typeof response.body === 'object') {
+          reservationDetails = response.body as ReservationRoomDetails;
+        }
+        else if (response && response.data && typeof response.data === 'object') {
+          reservationDetails = response.data as ReservationRoomDetails;
+        }
+        else if (response && typeof response === 'object') {
+          reservationDetails = response as ReservationRoomDetails;
+        }
+
+        return reservationDetails;
+      }),
+      catchError(error => {
+        console.error('Error fetching reservation details:', error);
         return of(null);
       })
     );

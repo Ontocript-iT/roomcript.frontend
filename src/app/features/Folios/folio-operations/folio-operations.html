@@ -1,242 +1,265 @@
-<div class="flex items-center gap-2 px-4 py-3 border-b border-gray-200 bg-gray-50">
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-    </svg>
-    Add Payment
-  </button>
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    Add Charges
-  </button>
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    Apply Discount
-  </button>
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    Folio Operations
-  </button>
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    Print Invoice
-  </button>
-  <button
-    type="button"
-    (click)="refreshSelectedFolio()"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    <svg class="w-3 h-3 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-    </svg>
-    Refresh
-  </button>
-  <button
-    type="button"
-    class="px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-sm bg-white hover:bg-gray-100">
-    More ▼
-  </button>
-</div>
-
-<!-- Two-column Layout -->
-<div class="flex">
-  <!-- Left Sidebar - Folio List -->
-  <div class="w-64 border-r border-gray-200 bg-gray-50">
-
-    <!-- Sidebar Header with Add Button -->
-    <div class="px-3 py-2 border-b border-gray-200 flex items-center justify-between bg-white">
-      <h3 class="text-xs font-semibold text-gray-700">Folio</h3>
-      <button
-        type="button"
-        (click)="addNewFolio()"
-        class="w-6 h-6 flex items-center justify-center border border-gray-300 rounded bg-white hover:bg-gray-50 hover:border-blue-400 transition-colors"
-        title="Add New Folio">
-        <svg class="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+<!-- Floating Action Bar -->
+<div class="bg-gray-50 border-b border-gray-200 px-6 py-2">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+        <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <span>Payment</span>
+      </button>
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+        <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <span>Charge</span>
+      </button>
+      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+        <svg class="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+        </svg>
+        <span>Discount</span>
+      </button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+        Print
+      </button>
+      <button type="button" (click)="refreshSelectedFolio()" class="p-1.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
       </button>
     </div>
+  </div>
+</div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading && folios.length === 0" class="p-4 text-center text-xs text-gray-500">
-      <div class="animate-pulse">Loading folios...</div>
-    </div>
+<!-- Main Content Area -->
+<div class="flex h-[calc(100vh-200px)]">
+  <!-- Left Folio Panel (Always Visible) -->
+  <div class="w-80 bg-white border-r border-gray-200">
+    <div class="h-full flex flex-col">
+      <!-- Panel Header -->
+      <div class="px-4 py-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+            <h3 class="text-xs font-bold text-gray-800">Folios</h3>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium bg-white text-gray-600 rounded-full">{{ folios.length }}</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="addNewFolio()"
+          class="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+          <span>Create New Folio</span>
+        </button>
+      </div>
 
-    <!-- Folio List -->
-    <div class="divide-y divide-gray-200" *ngIf="!loading || folios.length > 0">
-      <div
-        *ngFor="let folio of folios"
-        class="px-3 py-2 cursor-pointer hover:bg-gray-100 transition-colors"
-        [class.bg-blue-50]="selectedFolio?.id === folio.id"
-        [class.border-l-2]="selectedFolio?.id === folio.id"
-        [class.border-blue-500]="selectedFolio?.id === folio.id"
-        (click)="selectFolio(folio)">
+      <!-- Folio Cards -->
+      <div class="flex-1 overflow-y-auto p-2">
+        <div *ngIf="loading && folios.length === 0" class="text-center py-8">
+          <svg class="w-8 h-8 mx-auto mb-2 animate-spin text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <p class="text-xs text-gray-500">Loading...</p>
+        </div>
 
-        <div class="flex items-start justify-between">
-          <div class="flex-1 min-w-0">
-            <!-- Folio Name and Guest -->
-            <div class="flex items-center gap-1 mb-0.5">
-              <!-- Master Folio Badge -->
-              <span
-                *ngIf="folio.isMasterFolio"
-                class="px-1 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 rounded">
+        <div class="space-y-1.5" *ngIf="!loading || folios.length > 0">
+          <div
+            *ngFor="let folio of folios"
+            (click)="selectFolio(folio)"
+            class="p-2.5 rounded-lg cursor-pointer transition-all border-2"
+            [class.bg-gradient-to-br]="selectedFolio?.id === folio.id"
+            [class.from-indigo-50]="selectedFolio?.id === folio.id"
+            [class.to-purple-50]="selectedFolio?.id === folio.id"
+            [class.border-purple-500]="selectedFolio?.id === folio.id"
+            [class.shadow-md]="selectedFolio?.id === folio.id"
+            [class.bg-white]="selectedFolio?.id !== folio.id"
+            [class.border-gray-200]="selectedFolio?.id !== folio.id"
+            [class.hover:border-gray-300]="selectedFolio?.id !== folio.id"
+            [class.hover:shadow-sm]="selectedFolio?.id !== folio.id">
+
+            <div class="flex items-start justify-between mb-1.5">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                     [class.bg-gradient-to-br]="selectedFolio?.id === folio.id"
+                     [class.from-indigo-100]="selectedFolio?.id === folio.id"
+                     [class.to-purple-100]="selectedFolio?.id === folio.id"
+                     [class.bg-gray-100]="selectedFolio?.id !== folio.id">
+                  <svg class="w-3.5 h-3.5"
+                       [class.text-purple-600]="selectedFolio?.id === folio.id"
+                       [class.text-gray-500]="selectedFolio?.id !== folio.id"
+                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-gray-800">{{ folio.folioNumber }}</div>
+                  <div class="text-[10px] text-gray-500">{{ folio.guestName }}</div>
+                </div>
+              </div>
+              <span *ngIf="folio.isMasterFolio" class="px-1.5 py-0.5 text-[9px] font-bold bg-purple-100 text-purple-700 rounded-full">
                 MASTER
               </span>
             </div>
 
-            <!-- Folio Number -->
-            <div class="text-[11px] text-gray-500 truncate mb-1">
-              {{ folio.folioNumber }}
+            <div class="flex items-center justify-between text-[10px] text-gray-600">
+              <span>Balance:</span>
+              <span class="font-bold"
+                    [class.text-red-600]="folio.balance > 0"
+                    [class.text-green-600]="folio.balance <= 0">
+                Rs. {{ formatCurrency(folio.balance) }}
+              </span>
             </div>
           </div>
+        </div>
 
-          <!-- Arrow Icon -->
-          <svg class="w-3 h-3 text-gray-400 flex-shrink-0 ml-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        <div *ngIf="!loading && folios.length === 0" class="text-center py-8">
+          <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <p class="text-xs text-gray-500">No folios yet</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="flex-1 bg-gray-50">
+    <!-- Empty State -->
+    <div *ngIf="!selectedFolio && !loading" class="h-full flex items-center justify-center">
+      <div class="text-center">
+        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center">
+          <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
           </svg>
         </div>
-      </div>
-
-      <!-- No Folios Message -->
-      <div *ngIf="!loading && folios.length === 0" class="p-4 text-center">
-        <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
-        <p class="text-xs text-gray-500">No folios found</p>
-        <p class="text-[10px] text-gray-400 mt-1">Click + to create a new folio</p>
+        <h3 class="text-base font-semibold text-gray-800 mb-2">No Folio Selected</h3>
+        <p class="text-sm text-gray-500">Select a folio from the left panel to view charges</p>
       </div>
     </div>
-  </div>
 
-  <!-- Main Content - Charges Table -->
-  <div class="flex-1 overflow-x-auto">
-    <!-- Loading State -->
-    <div *ngIf="loading && selectedFolio" class="p-8 text-center">
-      <div class="animate-pulse text-gray-500">
-        <svg class="w-8 h-8 mx-auto mb-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <!-- Loading -->
+    <div *ngIf="loading && selectedFolio" class="h-full flex items-center justify-center">
+      <div class="text-center">
+        <svg class="w-10 h-10 mx-auto mb-3 animate-spin text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
         </svg>
-        <p class="text-sm">Loading folio details...</p>
+        <p class="text-sm text-gray-600">Loading folio details...</p>
       </div>
     </div>
 
-    <!-- Show message if no folio is selected -->
-    <div *ngIf="!selectedFolio && !loading" class="p-8 text-center">
-      <svg class="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>
-      <p class="text-sm text-gray-600 font-medium">Select a folio to view details</p>
-      <p class="text-xs text-gray-500 mt-1">Choose a folio from the list to view charges and payments</p>
-    </div>
-
-    <!-- Show charges for selected folio -->
-    <div *ngIf="selectedFolio && !loading">
-      <!-- Folio Header Info -->
-      <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <!-- Content -->
+    <div *ngIf="selectedFolio && !loading" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
+      <!-- Info Header -->
+      <div class="px-6 py-2.5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div class="flex items-center justify-between">
           <div>
+            <h2 class="text-sm font-bold text-gray-800">{{ selectedFolio.folioNumber }}</h2>
+            <p class="text-xs text-gray-500 mt-0.5">{{ selectedFolio.guestName }}</p>
           </div>
-          <div class="text-right">
-            <span class="text-xs text-gray-500">Created by</span>
-            <span class="text-xs font-medium text-gray-700 ml-1">{{ selectedFolio.createdBy }}</span>
+          <div class="text-xs text-gray-500">
+            Created by <span class="font-medium text-gray-700">{{ selectedFolio.createdBy }}</span>
           </div>
         </div>
       </div>
 
-      <table class="min-w-full text-xs">
-        <thead>
-        <tr class="bg-gray-50 border-b border-gray-200">
-          <th class="w-8 px-3 py-2 text-left">
-            <input type="checkbox" class="h-3 w-3 rounded border-gray-300">
-          </th>
-          <th class="px-3 py-2 text-left font-medium text-gray-600">Date</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-600">Ref No.</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-600">Type</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-600">Description</th>
-          <th class="px-3 py-2 text-center font-medium text-gray-600">Qty</th>
-          <th class="px-3 py-2 text-left font-medium text-gray-600">Posted By</th>
-          <th class="px-3 py-2 text-right font-medium text-gray-600">Amount</th>
-          <th class="w-8 px-3 py-2"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- Display charges from selected folio -->
-        <tr
-          *ngFor="let charge of selectedFolio.charges"
-          class="border-b border-gray-100 hover:bg-gray-50">
-          <td class="px-3 py-2">
-            <input type="checkbox" class="h-3 w-3 rounded border-gray-300">
-          </td>
-          <td class="px-3 py-2 text-gray-700">{{ formatDate(charge.chargeDate) }}</td>
-          <td class="px-3 py-2 text-gray-700">{{ charge.id || '-' }}</td>
-          <td class="px-3 py-2 text-gray-700">{{ charge.chargeType }}</td>
-          <td class="px-3 py-2 text-gray-700">{{ charge.description }}</td>
-          <td class="px-3 py-2 text-center text-gray-700">{{ charge.quantity }}</td>
-          <td class="px-3 py-2 text-gray-700">{{ charge.postedBy }}</td>
-          <td class="px-3 py-2 text-right text-gray-700 font-medium">{{ formatCurrency(charge.totalAmount) }}</td>
-          <td class="px-3 py-2 text-right">
-            <button class="text-gray-400 hover:text-gray-600">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-              </svg>
-            </button>
-          </td>
-        </tr>
-
-        <!-- No charges message -->
-        <tr *ngIf="selectedFolio.charges.length === 0">
-          <td colspan="9" class="px-3 py-12 text-center">
-            <svg class="w-12 h-12 mx-auto text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            <p class="text-gray-500 text-sm font-medium">No charges posted yet</p>
-            <p class="text-gray-400 text-xs mt-1">Click "Add Charges" to post charges to this folio</p>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-
-      <!-- End of Data indicator -->
-      <div class="px-3 py-4 text-xs text-center text-gray-400" *ngIf="selectedFolio.charges.length > 0">
-        <div class="flex items-center justify-center gap-2">
-          <div class="h-px w-12 bg-gray-300"></div>
-          <span>End of Data</span>
-          <div class="h-px w-12 bg-gray-300"></div>
+      <!-- Summary Bar -->
+      <div class="px-6 py-2 border-b border-gray-200 bg-white">
+        <div class="flex items-center justify-end gap-3">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-lg border border-blue-100">
+            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Charges</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalCharges) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-lg border border-green-100">
+            <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Payments</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalPayments) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
+               [class.bg-red-50]="selectedFolio.balance > 0"
+               [class.border-red-100]="selectedFolio.balance > 0"
+               [class.bg-green-50]="selectedFolio.balance <= 0"
+               [class.border-green-100]="selectedFolio.balance <= 0">
+            <div class="w-1.5 h-1.5 rounded-full"
+                 [class.bg-red-500]="selectedFolio.balance > 0"
+                 [class.bg-green-500]="selectedFolio.balance <= 0"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Balance</span>
+              <span class="font-bold ml-1"
+                    [class.text-red-700]="selectedFolio.balance > 0"
+                    [class.text-green-700]="selectedFolio.balance <= 0">
+                {{ formatCurrency(selectedFolio.balance) }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Table -->
+      <div class="flex-1 overflow-auto">
+        <table class="min-w-full text-xs">
+          <thead class="sticky top-0 bg-gray-50 z-10">
+          <tr class="border-b border-gray-200">
+            <th class="w-8 px-4 py-2.5 text-left">
+              <input type="checkbox" class="h-3.5 w-3.5 rounded border-gray-300">
+            </th>
+            <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Date</th>
+            <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Ref No.</th>
+            <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Type</th>
+            <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Description</th>
+            <th class="px-4 py-2.5 text-center font-semibold text-gray-700">Qty</th>
+            <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Posted By</th>
+            <th class="px-4 py-2.5 text-right font-semibold text-gray-700">Amount</th>
+            <th class="w-8 px-4 py-2.5"></th>
+          </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let charge of selectedFolio.charges" class="hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-2.5">
+              <input type="checkbox" class="h-3.5 w-3.5 rounded border-gray-300">
+            </td>
+            <td class="px-4 py-2.5 text-gray-700">{{ formatDate(charge.chargeDate) }}</td>
+            <td class="px-4 py-2.5 text-gray-700">{{ charge.id || '-' }}</td>
+            <td class="px-4 py-2.5 text-gray-700">{{ charge.chargeType }}</td>
+            <td class="px-4 py-2.5 text-gray-700">{{ charge.description }}</td>
+            <td class="px-4 py-2.5 text-center text-gray-700">{{ charge.quantity }}</td>
+            <td class="px-4 py-2.5 text-gray-700">{{ charge.postedBy }}</td>
+            <td class="px-4 py-2.5 text-right font-semibold text-gray-800">{{ formatCurrency(charge.totalAmount) }}</td>
+            <td class="px-4 py-2.5 text-right">
+              <button class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="selectedFolio.charges.length === 0">
+            <td colspan="9" class="px-4 py-16 text-center">
+              <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+              <p class="text-sm font-medium text-gray-700 mb-1">No Charges Posted</p>
+              <p class="text-xs text-gray-500">Click "Charge" button to add charges</p>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
-
-<!-- Footer Summary -->
-<div class="border-t border-gray-200 bg-gray-50 px-4 py-3" *ngIf="selectedFolio">
-  <div class="flex justify-between items-center">
-    <div class="flex gap-8 text-sm">
-      <div class="text-gray-600">
-        <span class="font-medium">Total Charges:</span>
-        <span class="font-semibold ml-2 text-gray-800">Rs. {{ formatCurrency(selectedFolio.totalCharges) }}</span>
-      </div>
-      <div class="text-gray-600">
-        <span class="font-medium">Total Payments:</span>
-        <span class="font-semibold ml-2 text-green-600">Rs. {{ formatCurrency(selectedFolio.totalPayments) }}</span>
-      </div>
-    </div>
-    <div class="text-sm">
-      <span class="font-medium text-gray-600">Balance:</span>
-      <span
-        class="font-bold ml-2 text-base"
-        [class.text-red-600]="selectedFolio.balance > 0"
-        [class.text-green-600]="selectedFolio.balance === 0"
-        [class.text-gray-600]="selectedFolio.balance < 0">
-        Rs. {{ formatCurrency(selectedFolio.balance) }}
-      </span>
-    </div>
-  </div>
-</div>
-
-
