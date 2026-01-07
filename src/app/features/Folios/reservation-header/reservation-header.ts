@@ -26,10 +26,6 @@ export class ReservationHeader {
     this.backClick.emit();
   }
 
-  onEditDeparture(): void {
-    this.editDeparture.emit();
-  }
-
   getCurrentRoom(): RoomDetail | null {
     if (!this.reservationDetails?.roomDetails || this.reservationDetails.roomDetails.length === 0) {
       return null;

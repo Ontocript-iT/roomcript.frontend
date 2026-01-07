@@ -170,4 +170,62 @@ export class FolioService {
       })
     );
   }
+
+  deleteFolio(folioId: number): Observable<boolean> {
+    const url = `${environment.apiUrl}/folios/${folioId}`;
+    const headers = this.getHeaders();
+
+    return this.http.delete<any>(url, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        return true;
+      }),
+      catchError(error => {
+        console.error('Error deleting folio:', error);
+        throw error;
+      })
+    );
+  }
+
+  addCharge(
+    folioId: number,
+    chargeData: {
+      chargeType: string;
+      description: string;
+      amount: number;
+      quantity: number;
+      taxAmount: number;
+      createdBy: string;
+    }
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/charges`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      chargeType: chargeData.chargeType,
+      description: chargeData.description,
+      amount: chargeData.amount,
+      quantity: chargeData.quantity,
+      taxAmount: chargeData.taxAmount,
+      createdBy: chargeData.createdBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error adding charge:', error);
+        throw error;
+      })
+    );
+  }
 }
