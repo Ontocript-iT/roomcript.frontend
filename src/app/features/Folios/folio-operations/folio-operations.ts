@@ -3,14 +3,24 @@ import { CommonModule } from '@angular/common';
 import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio.model';
 import { FolioService } from '../../../core/services/folio.service';
 import Swal from 'sweetalert2';
-import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { MatIconButton } from '@angular/material/button';
+import { AddFolioCharge} from '../add-folio-charge/add-folio-charge';
 
 @Component({
   selector: 'app-folio-operations',
   standalone: true,
   imports: [
     CommonModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatIconButton,
+    FormsModule,
+    AddFolioCharge,
   ],
   templateUrl: './folio-operations.html',
   styleUrl: './folio-operations.scss'
@@ -22,6 +32,8 @@ export class FolioOperations implements OnInit, OnChanges {
   selectedFolio: FolioDetails | null = null;
   loading: boolean = false;
   propertyCode: string = 'PROP0005';
+
+  showChargeForm: boolean = false;
 
   constructor(
     private folioService: FolioService,
@@ -62,7 +74,6 @@ export class FolioOperations implements OnInit, OnChanges {
           this.loading = false;
           if (folio) {
             this.selectedFolio = folio;
-
             const index = this.folios.findIndex(f => f.id === folio.id);
             if (index !== -1) {
               this.folios[index] = folio;
@@ -88,7 +99,6 @@ export class FolioOperations implements OnInit, OnChanges {
     }
 
     const createdBy = localStorage.getItem('username');
-
     if (!createdBy) {
       console.error('User role not found. Cannot create folio.');
       return;
@@ -137,22 +147,86 @@ export class FolioOperations implements OnInit, OnChanges {
           this.folios.push(newFolio);
           this.selectedFolio = newFolio;
           this.loadFolioDetails(newFolio.id);
-
-          // Use snackbar for success message
           this.showSuccess('New folio created successfully');
         }
       },
       error: (error) => {
         this.loading = false;
         console.error('Error creating folio:', error);
-
         const errorMsg = error.error?.message || error.error?.body || 'Failed to create folio';
         this.showError(errorMsg);
       }
     });
   }
 
+  deleteFolio(folio: FolioDetails): void {
+    Swal.fire({
+      title: 'Delete Folio',
+      html: `<p class="text-gray-600">Are you sure you want to delete folio <strong>${folio.folioNumber}</strong>?</p>`,
+      icon: 'warning',
+      iconColor: '#ef4444',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'No',
+      width: '400px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.confirmDeleteFolio(folio.id);
+      }
+    });
+  }
 
+  private confirmDeleteFolio(folioId: number): void {
+    this.loading = true;
+    this.folioService.deleteFolio(folioId).subscribe({
+      next: () => {
+        this.loading = false;
+        this.folios = this.folios.filter(f => f.id !== folioId);
+        if (this.folios.length > 0) {
+          this.selectDefaultFolio();
+        } else {
+          this.selectedFolio = null;
+        }
+        this.showSuccess('Folio deleted successfully');
+      },
+      error: (error) => {
+        this.loading = false;
+        console.error('Error deleting folio:', error);
+        const errorMsg = error.error?.message || error.error?.body || 'Failed to delete folio';
+        this.showError(errorMsg);
+      }
+    });
+  }
+
+  // ✅ PERFECT - Updated methods for charge form
+  openChargeForm(): void {
+    if (!this.selectedFolio) {
+      this.showError('Please select a folio first');
+      return;
+    }
+    this.showChargeForm = true;
+  }
+
+  closeChargeForm(): void {
+    this.showChargeForm = false;
+  }
+
+  onChargeAdded(addedCharge: any): void {
+    this.loading = false;
+    this.showSuccess('Charge added successfully');
+    this.closeChargeForm();
+    this.refreshSelectedFolio();
+  }
 
   formatCurrency(amount: number): string {
     return amount.toFixed(2);

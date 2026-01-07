@@ -8,7 +8,10 @@
         </svg>
         <span>Payment</span>
       </button>
-      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+      <button
+        type="button"
+        (click)="openChargeForm()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
         <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
         </svg>
@@ -35,19 +38,19 @@
 </div>
 
 <!-- Main Content Area -->
-<div class="flex h-[calc(100vh-200px)]">
+<div class="flex h-[calc(100vh-280px)]">
   <!-- Left Folio Panel (Always Visible) -->
   <div class="w-80 bg-white border-r border-gray-200">
     <div class="h-full flex flex-col">
       <!-- Panel Header -->
-      <div class="px-4 py-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div class="flex items-center justify-between mb-2">
+      <div class="px-4 py-1 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
             </svg>
             <h3 class="text-xs font-bold text-gray-800">Folios</h3>
-            <span class="px-1.5 py-0.5 text-[10px] font-medium bg-white text-gray-600 rounded-full">{{ folios.length }}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium text-gray-600 rounded-full">/ {{ folios.length }}</span>
           </div>
         </div>
         <button
@@ -155,8 +158,8 @@
       </div>
     </div>
 
-    <!-- Content -->
-    <div *ngIf="selectedFolio && !loading" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
+    <!-- Folio Details View -->
+    <div *ngIf="selectedFolio && !loading && !showChargeForm" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
       <!-- Info Header -->
       <div class="px-6 py-2.5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div class="flex items-center justify-between">
@@ -164,9 +167,13 @@
             <h2 class="text-sm font-bold text-gray-800">{{ selectedFolio.folioNumber }}</h2>
             <p class="text-xs text-gray-500 mt-0.5">{{ selectedFolio.guestName }}</p>
           </div>
-          <div class="text-xs text-gray-500">
-            Created by <span class="font-medium text-gray-700">{{ selectedFolio.createdBy }}</span>
-          </div>
+          <button
+            mat-icon-button
+            matTooltip="Delete Folio"
+            (click)="deleteFolio(selectedFolio)"
+            class="!text-red-600 hover:!bg-red-50 !transition-all !duration-200">
+            <mat-icon>delete</mat-icon>
+          </button>
         </div>
       </div>
 
@@ -200,8 +207,8 @@
               <span class="font-bold ml-1"
                     [class.text-red-700]="selectedFolio.balance > 0"
                     [class.text-green-700]="selectedFolio.balance <= 0">
-                {{ formatCurrency(selectedFolio.balance) }}
-              </span>
+              {{ formatCurrency(selectedFolio.balance) }}
+            </span>
             </div>
           </div>
         </div>
@@ -261,5 +268,13 @@
         </table>
       </div>
     </div>
+
+    <app-add-folio-charge
+      *ngIf="selectedFolio && !loading && showChargeForm"
+      [selectedFolio]="selectedFolio"
+      (cancel)="closeChargeForm()"
+      (chargeAdded)="onChargeAdded($event)">
+    </app-add-folio-charge>
+
   </div>
 </div>
