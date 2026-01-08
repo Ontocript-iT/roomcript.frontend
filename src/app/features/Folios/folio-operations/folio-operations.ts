@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio.model';
+import { FolioDetails } from '../../../core/models/folio.model';
 import { FolioService } from '../../../core/services/folio.service';
 import Swal from 'sweetalert2';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { AddFolioCharge} from '../add-folio-charge/add-folio-charge';
+import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem, CdkDrag, CdkDropList, CdkDragMove, CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-folio-operations',
@@ -21,6 +22,7 @@ import { AddFolioCharge} from '../add-folio-charge/add-folio-charge';
     MatIconButton,
     FormsModule,
     AddFolioCharge,
+    DragDropModule
   ],
   templateUrl: './folio-operations.html',
   styleUrl: './folio-operations.scss'
@@ -34,6 +36,11 @@ export class FolioOperations implements OnInit, OnChanges {
   propertyCode: string = 'PROP0005';
 
   showChargeForm: boolean = false;
+
+  isDragging = false;
+  chargeDragging: { [key: number]: boolean } = {};
+  dropPreview: { folioId: number } | null = null;
+  dropZoneHover: { [key: number]: boolean } = {};
 
   constructor(
     private folioService: FolioService,
@@ -208,7 +215,6 @@ export class FolioOperations implements OnInit, OnChanges {
     });
   }
 
-  // ✅ PERFECT - Updated methods for charge form
   openChargeForm(): void {
     if (!this.selectedFolio) {
       this.showError('Please select a folio first');
@@ -239,6 +245,56 @@ export class FolioOperations implements OnInit, OnChanges {
       month: '2-digit',
       year: 'numeric'
     });
+  }
+
+  getConnectedFolioIds(): string[] {
+    return this.folios.map(f => `folio-${f.id}`);
+  }
+
+  onChargeDrop(event: CdkDragDrop<any>, targetFolio: FolioDetails): void {
+    if (event.previousContainer !== event.container) {
+      const droppedCharge = event.previousContainer.data[event.previousIndex];
+
+      if (this.selectedFolio?.id === targetFolio.id) {
+        this.showError('Charge is already in this folio');
+        return;
+      }
+      // Single charge transfer
+      const chargeIds = [droppedCharge.id];
+      const performedBy = localStorage.getItem('username') || 'SYSTEM';
+
+      this.transferChargeBatch(
+        this.selectedFolio!.id,
+        targetFolio.id,
+        chargeIds,
+        performedBy
+      );
+    }
+  }
+
+  private transferChargeBatch(
+    sourceFolioId: number,
+    targetFolioId: number,
+    chargeIds: number[],
+    performedBy: string
+  ): void {
+    this.loading = true;
+
+    this.folioService.transferCharges(sourceFolioId, targetFolioId, chargeIds, performedBy)
+      .subscribe({
+        next: (response) => {
+          this.loading = false;
+          this.showSuccess(`Charge transferred successfully`);
+
+          this.selectFolio(this.folios.find(f => f.id === targetFolioId)!);
+        },
+        error: (error) => {
+          this.loading = false;
+          console.error('Error transferring charge:', error);
+          const errorMsg = error.error?.message || error.error?.body || 'Failed to transfer charge';
+          this.showError(errorMsg);
+        }
+      });
   }
 
   private showSuccess(message: string): void {
