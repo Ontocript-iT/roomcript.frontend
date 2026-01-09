@@ -228,4 +228,39 @@ export class FolioService {
       })
     );
   }
+
+  transferCharges(
+    sourceFolioId: number,
+    targetFolioId: number,
+    chargeIds: number[],
+    performedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/transfer-charges`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      sourceFolioId: sourceFolioId,
+      targetFolioId: targetFolioId,
+      chargeIds: chargeIds,
+      performedBy: performedBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        // Handle different response structures
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error transferring charges:', error);
+        throw error;
+      })
+    );
+  }
 }
