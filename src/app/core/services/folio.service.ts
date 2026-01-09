@@ -263,4 +263,37 @@ export class FolioService {
       })
     );
   }
+
+  voidCharge(
+    folioId: number,
+    chargeId: number,
+    voidReason: string,
+    voidedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/charges/${chargeId}/void`;
+    const headers = this.getHeaders();
+
+    // Build query parameters
+    const params = new HttpParams()
+      .set('voidReason', voidReason)
+      .set('voidedBy', voidedBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error voiding charge:', error);
+        throw error;
+      })
+    );
+  }
 }

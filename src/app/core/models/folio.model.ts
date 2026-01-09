@@ -5,6 +5,7 @@ export interface FolioCharge {
   description: string;
   user: string;
   amount: number;
+  isVoided: boolean;
 }
 
 export interface FolioDetails {

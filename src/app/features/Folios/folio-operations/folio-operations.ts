@@ -37,10 +37,14 @@ export class FolioOperations implements OnInit, OnChanges {
 
   showChargeForm: boolean = false;
 
-  isDragging = false;
-  chargeDragging: { [key: number]: boolean } = {};
-  dropPreview: { folioId: number } | null = null;
-  dropZoneHover: { [key: number]: boolean } = {};
+  voidReasons = [
+    { value: 'Duplicate charge', label: 'Duplicate Charge' },
+    { value: 'Incorrect amount', label: 'Incorrect Amount' },
+    { value: 'Incorrect Entry', label: 'Incorrect Entry' },
+    { value: 'Reversed guest request', label: 'Reversed guest request' },
+    { value: 'Complimentary', label: 'Complimentary/Courtesy' },
+    { value: 'Other', label: 'Other' }
+  ];
 
   constructor(
     private folioService: FolioService,
@@ -295,6 +299,88 @@ export class FolioOperations implements OnInit, OnChanges {
           this.showError(errorMsg);
         }
       });
+  }
+
+  getActiveCharges(): any[] {
+    if (!this.selectedFolio || !this.selectedFolio.charges) {
+      return [];
+    }
+    return this.selectedFolio.charges.filter(charge => !charge.isVoided);
+  }
+
+  voidCharge(charge: any): void {
+    Swal.fire({
+      title: 'Void Charge',
+      html: `
+      <div class="text-left">
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">
+            <span class="font-medium">Description:</span> ${charge.description}
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <span class="font-medium">Amount:</span> Rs. ${this.formatCurrency(charge.totalAmount)}
+          </p>
+        </div>
+
+        <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Void: <span class="text-red-500">*</span></label>
+        <select id="void-reason" class="swal2-select w-full p-2 border border-gray-300 rounded-lg focus:border-purple-500" style="margin: 0 !important; width: 100% !important;">
+          <option value="">Select a reason...</option>
+          ${this.voidReasons.map(r => `<option value="${r.value}">${r.label}</option>`).join('')}
+        </select>
+      </div>
+    `,
+      icon: 'warning',
+      iconColor: '#ef4444',
+      showCancelButton: true,
+      confirmButtonText: 'Void Charge',
+      cancelButtonText: 'Cancel',
+      width: '500px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      },
+      preConfirm: () => {
+        const reasonSelect = document.getElementById('void-reason') as HTMLSelectElement;
+        const reason = reasonSelect.value;
+
+        if (!reason) {
+          Swal.showValidationMessage('Please select a reason for voiding');
+          return false;
+        }
+
+        return { chargeId: charge.id, reason: reason };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && this.selectedFolio) {
+        this.loading = true;
+        const voidedBy = localStorage.getItem('username') || 'SYSTEM';
+
+        this.folioService.voidCharge(
+          this.selectedFolio.id,
+          result.value.chargeId,
+          result.value.reason,
+          voidedBy
+        ).subscribe({
+          next: () => {
+            this.loading = false;
+            this.showSuccess('Charge voided successfully');
+            this.refreshSelectedFolio();
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error voiding charge:', error);
+            const errorMsg = error.error?.message || error.error?.body || 'Failed to void charge';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
   }
 
   private showSuccess(message: string): void {
