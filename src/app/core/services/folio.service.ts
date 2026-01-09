@@ -296,4 +296,41 @@ export class FolioService {
       })
     );
   }
+
+  addFolioPayment(
+    folioId: number,
+    paymentData: {
+      paymentMethod: string;
+      amount: number;
+      remarks: string;
+      createdBy: string;
+    }
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/payments`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      paymentMethod: paymentData.paymentMethod,
+      amount: paymentData.amount,
+      remarks: paymentData.remarks,
+      createdBy: paymentData.createdBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error adding payment:', error);
+        throw error;
+      })
+    );
+  }
 }

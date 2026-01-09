@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { AddFolioCharge} from '../add-folio-charge/add-folio-charge';
+import { AddFolioPayment} from '../add-folio-payment/add-folio-payment';
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem, CdkDrag, CdkDropList, CdkDragMove, CdkDragEnd } from '@angular/cdk/drag-drop';
 
 @Component({
@@ -22,7 +23,9 @@ import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem, CdkDra
     MatIconButton,
     FormsModule,
     AddFolioCharge,
-    DragDropModule
+    AddFolioPayment,
+    DragDropModule,
+    AddFolioPayment
   ],
   templateUrl: './folio-operations.html',
   styleUrl: './folio-operations.scss'
@@ -36,6 +39,7 @@ export class FolioOperations implements OnInit, OnChanges {
   propertyCode: string = 'PROP0005';
 
   showChargeForm: boolean = false;
+  showPaymentForm: boolean = false;
 
   voidReasons = [
     { value: 'Duplicate charge', label: 'Duplicate Charge' },
@@ -224,6 +228,7 @@ export class FolioOperations implements OnInit, OnChanges {
       this.showError('Please select a folio first');
       return;
     }
+    this.closeAllForms();
     this.showChargeForm = true;
   }
 
@@ -265,7 +270,7 @@ export class FolioOperations implements OnInit, OnChanges {
       }
       // Single charge transfer
       const chargeIds = [droppedCharge.id];
-      const performedBy = localStorage.getItem('username') || 'SYSTEM';
+      const performedBy = localStorage.getItem('username') || '';
 
       this.transferChargeBatch(
         this.selectedFolio!.id,
@@ -381,6 +386,31 @@ export class FolioOperations implements OnInit, OnChanges {
         });
       }
     });
+  }
+
+  openPaymentForm(): void {
+    if (!this.selectedFolio) {
+      this.showError('Please select a folio first');
+      return;
+    }
+    this.closeAllForms();
+    this.showPaymentForm = true;
+  }
+
+  closePaymentForm(): void {
+    this.showPaymentForm = false;
+  }
+
+  onPaymentAdded(addedPayment: any): void {
+    this.loading = false;
+    this.showSuccess('Payment added successfully');
+    this.closePaymentForm();
+    this.refreshSelectedFolio();
+  }
+
+  closeAllForms(): void {
+    this.showChargeForm = false;
+    this.showPaymentForm = false;
   }
 
   private showSuccess(message: string): void {
