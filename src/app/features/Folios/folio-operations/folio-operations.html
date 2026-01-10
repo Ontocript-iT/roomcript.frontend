@@ -110,8 +110,8 @@
                   </svg>
                 </div>
                 <div>
-                  <div class="text-xs font-bold text-gray-800">{{ folio.folioNumber }}</div>
-                  <div class="text-[10px] text-gray-500">{{ folio.guestName }}</div>
+                  <div class="text-xs font-bold text-gray-800">{{ folio.guestName }}</div>
+                  <div class="text-[10px] text-gray-500">{{ folio.folioNumber }}</div>
                 </div>
               </div>
               <span *ngIf="folio.isMasterFolio" class="px-1.5 py-0.5 text-[9px] font-bold bg-purple-100 text-purple-700 rounded-full">
@@ -122,9 +122,9 @@
             <div class="flex items-center justify-between text-[10px] text-gray-600">
               <span>Balance:</span>
               <span class="font-bold"
-                    [class.text-red-600]="folio.balance > 0"
-                    [class.text-green-600]="folio.balance <= 0">
-                Rs. {{ formatCurrency(folio.balance) }}
+                    [class.text-red-600]="getFolioRealBalance(folio) > 0"
+                    [class.text-green-600]="getFolioRealBalance(folio) <= 0">
+                Rs. {{ formatCurrency(getFolioRealBalance(folio)) }}
               </span>
             </div>
           </div>
@@ -174,13 +174,24 @@
             <h2 class="text-sm font-bold text-gray-800">{{ selectedFolio.folioNumber }}</h2>
             <p class="text-xs text-gray-500 mt-0.5">{{ selectedFolio.guestName }}</p>
           </div>
-          <button
-            mat-icon-button
-            matTooltip="Delete Folio"
-            (click)="deleteFolio(selectedFolio)"
-            class="!text-red-600 hover:!bg-red-50 !transition-all !duration-200">
-            <mat-icon>delete</mat-icon>
-          </button>
+          <div class="flex items-center">
+            <button
+              mat-icon-button
+              matTooltip="{{ getRealBalance() === 0 ? 'Settle Folio' : 'Settle Folio Disabled' }}"
+              (click)="getRealBalance() === 0 ? settleFolioDialog() : null"
+              [class.disabled]="getRealBalance() !== 0"
+              class="!text-purple-600 {{ getRealBalance() === 0 ? 'hover:!bg-green-50' : 'opacity-50 cursor-not-allowed' }} !transition-all !duration-200">
+              <mat-icon>receipt_long</mat-icon>
+            </button>
+
+            <button
+              mat-icon-button
+              matTooltip="Delete Folio"
+              (click)="deleteFolio(selectedFolio)"
+              class="!text-red-600 hover:!bg-red-50 !transition-all !duration-200">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -191,31 +202,31 @@
             <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
             <div class="text-xs">
               <span class="text-gray-600">Charges</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalCharges) }}</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalCharges()) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-lg border border-green-100">
             <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
             <div class="text-xs">
               <span class="text-gray-600">Payments</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalPayments) }}</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalPayments()) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
-               [class.bg-red-50]="selectedFolio.balance > 0"
-               [class.border-red-100]="selectedFolio.balance > 0"
-               [class.bg-green-50]="selectedFolio.balance <= 0"
-               [class.border-green-100]="selectedFolio.balance <= 0">
+               [class.bg-red-50]="getRealBalance() > 0"
+               [class.border-red-100]="getRealBalance() > 0"
+               [class.bg-emerald-50]="getRealBalance() <= 0"
+               [class.border-emerald-100]="getRealBalance() <= 0">
             <div class="w-1.5 h-1.5 rounded-full"
-                 [class.bg-red-500]="selectedFolio.balance > 0"
-                 [class.bg-green-500]="selectedFolio.balance <= 0"></div>
+                 [class.bg-red-500]="getRealBalance() > 0"
+                 [class.bg-emerald-500]="getRealBalance() <= 0"></div>
             <div class="text-xs">
               <span class="text-gray-600">Balance</span>
               <span class="font-bold ml-1"
-                    [class.text-red-700]="selectedFolio.balance > 0"
-                    [class.text-green-700]="selectedFolio.balance <= 0">
-              {{ formatCurrency(selectedFolio.balance) }}
-            </span>
+                    [class.text-red-700]="getRealBalance() > 0"
+                    [class.text-emerald-700]="getRealBalance() <= 0">
+                {{ formatCurrency(getRealBalance()) }}
+              </span>
             </div>
           </div>
         </div>
