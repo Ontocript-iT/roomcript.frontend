@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconButton } from '@angular/material/button';
 import { AddFolioCharge} from '../add-folio-charge/add-folio-charge';
 import { AddFolioPayment} from '../add-folio-payment/add-folio-payment';
-import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem, CdkDrag, CdkDropList, CdkDragMove, CdkDragEnd } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-folio-operations',
@@ -107,6 +107,11 @@ export class FolioOperations implements OnInit, OnChanges {
     }
   }
 
+  getGuestId(): number | null {
+    const folioWithGuest = this.folios.find(f => f.guestId);
+    return folioWithGuest?.guestId ?? null;
+  }
+
   addNewFolio(): void {
     if (!this.reservationId) {
       console.error('No reservation ID available');
@@ -148,10 +153,11 @@ export class FolioOperations implements OnInit, OnChanges {
   private createFolio(createdBy: string): void {
     this.loading = true;
     const folioType = 'GUEST';
+    const guestId = this.getGuestId();
 
     this.folioService.createFolio(
       this.reservationId!,
-      null,
+      guestId,
       folioType,
       createdBy,
       this.propertyCode
@@ -268,7 +274,7 @@ export class FolioOperations implements OnInit, OnChanges {
         this.showError('Charge is already in this folio');
         return;
       }
-      // Single charge transfer
+
       const chargeIds = [droppedCharge.id];
       const performedBy = localStorage.getItem('username') || '';
 
@@ -291,11 +297,17 @@ export class FolioOperations implements OnInit, OnChanges {
 
     this.folioService.transferCharges(sourceFolioId, targetFolioId, chargeIds, performedBy)
       .subscribe({
-        next: (response) => {
+        next: () => {
           this.loading = false;
           this.showSuccess(`Charge transferred successfully`);
 
-          this.selectFolio(this.folios.find(f => f.id === targetFolioId)!);
+          this.refreshFolioInSidebar(sourceFolioId);
+          this.refreshFolioInSidebar(targetFolioId);
+
+          const targetFolio = this.folios.find(f => f.id === targetFolioId);
+          if (targetFolio) {
+            this.selectFolio(targetFolio);
+          }
         },
         error: (error) => {
           this.loading = false;
@@ -304,6 +316,56 @@ export class FolioOperations implements OnInit, OnChanges {
           this.showError(errorMsg);
         }
       });
+  }
+
+  private refreshFolioInSidebar(folioId: number): void {
+    this.folioService.getFolioById(folioId, this.propertyCode).subscribe({
+      next: (updatedFolio) => {
+        if (updatedFolio) {
+          const index = this.folios.findIndex(f => f.id === folioId);
+          if (index !== -1) {
+            this.folios[index] = updatedFolio;
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error refreshing folio:', error);
+      }
+    });
+  }
+
+  getRealTotalCharges(): number {
+    if (!this.selectedFolio?.charges) return 0;
+
+    return this.selectedFolio.charges
+      .filter(charge => !charge.isVoided)
+      .reduce((sum, charge) => sum + charge.totalAmount, 0);
+  }
+
+  getRealTotalPayments(): number {
+    if (!this.selectedFolio?.payments) return 0;
+
+    return this.selectedFolio.payments
+      .reduce((sum, payment) => sum + payment.amount, 0);
+  }
+
+  getRealBalance(): number {
+    const charges = this.getRealTotalCharges();
+    const payments = this.getRealTotalPayments();
+    return charges - payments;
+  }
+
+  getFolioRealBalance(folio: FolioDetails): number {
+    if (!folio.charges || !folio.payments) return folio.balance;
+
+    const realCharges = folio.charges
+      .filter(charge => !charge.isVoided)
+      .reduce((sum, charge) => sum + charge.totalAmount, 0);
+
+    const realPayments = folio.payments
+      .reduce((sum, payment) => sum + payment.amount, 0);
+
+    return realCharges - realPayments;
   }
 
   getActiveCharges(): any[] {
@@ -411,6 +473,76 @@ export class FolioOperations implements OnInit, OnChanges {
   closeAllForms(): void {
     this.showChargeForm = false;
     this.showPaymentForm = false;
+  }
+
+  settleFolioDialog(): void {
+    if (!this.selectedFolio) {
+      this.showError('No folio selected');
+      return;
+    }
+
+    const folio = this.selectedFolio;
+
+    Swal.fire({
+      title: 'Settle Folio',
+      html: `
+      <div class="text-left">
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">
+            <span class="font-medium">Folio:</span> ${folio.folioNumber}
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <span class="font-medium">Balance:</span> Rs. ${this.formatCurrency(folio.balance)}
+          </p>
+        </div>
+      </div>
+    `,
+      icon: 'success',
+      iconColor: '#10b981',
+      showCancelButton: true,
+      confirmButtonText: 'Settle Folio',
+      cancelButtonText: 'Cancel',
+      width: '500px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      },
+      preConfirm: () => {
+        if (folio.balance !== 0) {
+          Swal.showValidationMessage('Cannot settle folio with outstanding balance');
+          return false;
+        }
+        return { folioId: folio.id };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && this.selectedFolio) {
+        this.loading = true;
+        const settledBy = localStorage.getItem('username') || 'SYSTEM';
+
+        this.folioService.settleFolio(
+          result.value.folioId,
+          settledBy
+        ).subscribe({
+          next: () => {
+            this.loading = false;
+            this.showSuccess('Folio settled successfully');
+            this.refreshSelectedFolio();
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error settling folio:', error);
+            const errorMsg = error.error?.message || error.error?.body || 'Failed to settle folio';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
   }
 
   private showSuccess(message: string): void {

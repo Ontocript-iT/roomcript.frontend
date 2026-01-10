@@ -100,7 +100,7 @@ export class FolioService {
     reservationId: number,
     guestId: number | null,
     folioType: string,
-    createdBy: string,  // Required, not null
+    createdBy: string,
     propertyCode: string
   ): Observable<FolioDetails | null> {
     const url = `${environment.apiUrl}/folios/create`;
@@ -111,7 +111,7 @@ export class FolioService {
       .set('folioType', folioType)
       .set('createdBy', createdBy);
 
-    if (guestId !== null) {
+    if (guestId !== null && guestId !== undefined) {
       params = params.set('guestId', guestId.toString());
     }
 
@@ -178,7 +178,7 @@ export class FolioService {
     return this.http.delete<any>(url, {
       headers: headers
     }).pipe(
-      map(response => {
+      map(() => {
         return true;
       }),
       catchError(error => {
@@ -329,6 +329,35 @@ export class FolioService {
       }),
       catchError(error => {
         console.error('Error adding payment:', error);
+        throw error;
+      })
+    );
+  }
+
+  settleFolio(
+    folioId: number,
+    settledBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/settle`;
+    const headers = this.getHeaders();
+
+    const params = new HttpParams()
+      .set('settledBy', settledBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error settling folio:', error);
         throw error;
       })
     );
