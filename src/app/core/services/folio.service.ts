@@ -362,4 +362,34 @@ export class FolioService {
       })
     );
   }
+
+  refundFolioPayment(
+    folioId: number,
+    paymentId: number,
+    refundedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/payments/${paymentId}/refund`;
+    const headers = this.getHeaders();
+
+    const params = new HttpParams()
+      .set('refundedBy', refundedBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error refunding payment:', error);
+        throw error;
+      })
+    );
+  }
 }

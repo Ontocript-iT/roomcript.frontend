@@ -176,6 +176,14 @@
           </div>
           <div class="flex items-center">
             <button
+              *ngIf="getRealTotalPayments() > 0"
+              mat-icon-button
+              [matTooltip]="'Refund Payment'"
+              (click)="openRefundDialog()"
+              class="!text-orange-600 hover:!bg-orange-50 !transition-all !duration-200">
+              <mat-icon>money_off</mat-icon>
+            </button>
+            <button
               mat-icon-button
               matTooltip="{{ getRealBalance() === 0 ? 'Settle Folio' : 'Settle Folio Disabled' }}"
               (click)="getRealBalance() === 0 ? settleFolioDialog() : null"
