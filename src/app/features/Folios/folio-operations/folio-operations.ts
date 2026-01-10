@@ -346,6 +346,7 @@ export class FolioOperations implements OnInit, OnChanges {
     if (!this.selectedFolio?.payments) return 0;
 
     return this.selectedFolio.payments
+      .filter(payment => !payment.isRefunded)
       .reduce((sum, payment) => sum + payment.amount, 0);
   }
 
@@ -363,6 +364,7 @@ export class FolioOperations implements OnInit, OnChanges {
       .reduce((sum, charge) => sum + charge.totalAmount, 0);
 
     const realPayments = folio.payments
+      .filter(payment => !payment.isRefunded) 
       .reduce((sum, payment) => sum + payment.amount, 0);
 
     return realCharges - realPayments;
@@ -540,6 +542,90 @@ export class FolioOperations implements OnInit, OnChanges {
             const errorMsg = error.error?.message || error.error?.body || 'Failed to settle folio';
             this.showError(errorMsg);
           }
+        });
+      }
+    });
+  }
+
+  openRefundDialog(): void {
+    if (!this.selectedFolio) {
+      this.showError('No folio selected');
+      return;
+    }
+
+    const totalPayments = this.getRealTotalPayments();
+
+    Swal.fire({
+      title: 'Refund Payments',
+      html: `
+      <div class="text-left">
+        <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+          <p class="text-sm text-gray-600">
+            <span class="font-medium">Folio:</span> ${this.selectedFolio.folioNumber}
+          </p>
+          <p class="text-sm text-gray-600 mt-1">
+            <span class="font-medium">Total Payments:</span> Rs. ${this.formatCurrency(totalPayments)}
+          </p>
+        </div>
+      </div>
+    `,
+      icon: 'warning',
+      iconColor: '#f97316',
+      showCancelButton: true,
+      confirmButtonText: 'Refund Payments',
+      cancelButtonText: 'Cancel',
+      width: '500px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      }
+    }).then((result) => {
+      if (result.isConfirmed && this.selectedFolio) {
+        this.loading = true;
+        const refundedBy = localStorage.getItem('username') || 'SYSTEM';
+
+        const paymentsToRefund = this.selectedFolio.payments?.filter(p => !p.isRefunded) || [];
+
+        if (paymentsToRefund.length === 0) {
+          this.loading = false;
+          this.showError('No payments to refund');
+          return;
+        }
+
+        let completed = 0;
+        let failed = 0;
+
+        paymentsToRefund.forEach(payment => {
+          this.folioService.refundFolioPayment(
+            this.selectedFolio!.id,
+            payment.id!,
+            refundedBy
+          ).subscribe({
+            next: () => {
+              completed++;
+              if (completed + failed === paymentsToRefund.length) {
+                this.loading = false;
+                this.showSuccess('Payments refunded successfully');
+                this.refreshSelectedFolio();
+              }
+            },
+            error: (error) => {
+              failed++;
+              console.error('Error refunding payment:', error);
+              if (completed + failed === paymentsToRefund.length) {
+                this.loading = false;
+                const errorMsg = error.error?.message || error.error?.body || 'Failed to refund payments';
+                this.showError(errorMsg);
+                this.refreshSelectedFolio();
+              }
+            }
+          });
         });
       }
     });
