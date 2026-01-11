@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:roomcript.frontend": "node dist/roomcript.frontend/server/server.mjs"
@@ -37,6 +37,8 @@
     "@angular/ssr": "^20.3.4",
     "@mat-datetimepicker/core": "^17.0.0",
     "express": "^5.1.0",
+    "luxon": "^3.7.2",
+    "ngx-material-timepicker": "^13.1.1",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.3",
     "tslib": "^2.3.0",
