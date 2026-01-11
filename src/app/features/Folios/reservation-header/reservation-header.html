@@ -1,0 +1,139 @@
+<div class="w-full bg-white border-b border-gray-200 shadow-sm">
+  <div class="flex items-stretch justify-between gap-4" *ngIf="reservationDetails">
+    <!-- Left Section: Common Reservation Details -->
+    <div class="flex items-center gap-6 px-4 py-3">
+      <!-- Back Button -->
+      <button
+        type="button"
+        class="text-gray-600 hover:text-gray-800"
+        (click)="onGoBack()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Guest Badge and Name -->
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 bg-purple-500 rounded flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium text-gray-800">{{ reservationDetails.name }}</span>
+      </div>
+
+      <!-- Adults and Children -->
+      <div class="flex items-center gap-3">
+        <!-- Adults -->
+        <div class="flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-gray-800 text-xs font-semibold">{{ reservationDetails.numberOfAdults }}</span>
+        </div>
+
+        <!-- Children -->
+        <div class="flex items-center gap-1">
+          <svg class="w-3 h-3 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+          </svg>
+          <span class="text-gray-800 text-xs font-semibold">{{ reservationDetails.numberOfChildren }}</span>
+        </div>
+      </div>
+
+      <!-- Arrival -->
+      <div class="flex flex-col">
+        <span class="text-[10px] text-gray-500">Arrival</span>
+        <span class="text-xs text-gray-800 font-medium">{{ formatDateOnly(reservationDetails.checkInDate) }}</span>
+      </div>
+
+      <!-- Departure -->
+      <div class="flex flex-col">
+        <span class="text-[10px] text-gray-500">Departure</span>
+        <div class="flex items-center gap-1">
+          <span class="text-xs text-gray-800 font-medium">{{ formatDateOnly(reservationDetails.checkOutDate) }}</span>
+          <button
+            class="text-gray-400 hover:text-gray-600">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Nights -->
+      <div class="flex flex-col">
+        <span class="text-[10px] text-gray-500">Nights</span>
+        <span class="text-xs text-gray-800 font-medium">{{ calculateNights() }}</span>
+      </div>
+
+      <!-- Room Count -->
+      <div class="flex flex-col">
+        <span class="text-[10px] text-gray-500">Rooms</span>
+        <span class="text-xs text-gray-800 font-medium">{{ reservationDetails.roomCount }}</span>
+      </div>
+    </div>
+
+    <!-- Right Section: Room Details with Navigation -->
+    <div class="flex items-stretch" *ngIf="reservationDetails.roomDetails && reservationDetails.roomDetails.length > 0">
+      <!-- Previous Room Button - Full Height -->
+      <button
+        type="button"
+        class="px-3 flex items-center justify-center transition-colors disabled:cursor-not-allowed"
+        [ngClass]="currentRoomIndex === 0 ? 'bg-gray-100 text-gray-300' : 'bg-purple-500 text-white hover:bg-purple-600'"
+        [disabled]="currentRoomIndex === 0"
+        (click)="previousRoom()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <!-- Current Room Details -->
+      <div class="flex items-center gap-4 px-4">
+        <!-- Room / Room Type -->
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-500">Room / Room Type</span>
+          <span class="text-xs text-gray-800 font-medium">
+            {{ getCurrentRoom()?.roomNumber }} / {{ getCurrentRoom()?.roomType }}
+          </span>
+        </div>
+
+        <!-- Res. No. -->
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-500">Res. No.</span>
+          <span class="text-xs text-gray-800 font-medium">{{ getCurrentRoom()?.confirmationNumber }}</span>
+        </div>
+
+        <!-- Status Badge -->
+        <div>
+          <span class="px-2 py-1 text-[10px] font-medium rounded border"
+                [ngClass]="{
+                  'bg-green-50 text-green-700 border-green-200': reservationDetails.status === 'CHECKED_IN',
+                  'bg-blue-50 text-blue-700 border-blue-200': reservationDetails.status === 'CONFIRMED',
+                  'bg-yellow-50 text-yellow-700 border-yellow-200': reservationDetails.status === 'PENDING',
+                  'bg-gray-50 text-gray-700 border-gray-200': reservationDetails.status === 'CHECKED_OUT'
+                }">
+            {{ getStatusDisplay() }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Next Room Button - Full Height -->
+      <button
+        type="button"
+        class="px-3 flex items-center justify-center transition-colors disabled:cursor-not-allowed"
+        [ngClass]="currentRoomIndex === reservationDetails.roomDetails.length - 1 ? 'bg-gray-100 text-gray-300' : 'bg-purple-500 text-white hover:bg-purple-600'"
+        [disabled]="currentRoomIndex === reservationDetails.roomDetails.length - 1"
+        (click)="nextRoom()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="flex items-center justify-center py-3" *ngIf="!reservationDetails && loading">
+    <div class="text-xs text-gray-500">Loading reservation details...</div>
+  </div>
+</div>

@@ -25,40 +25,37 @@
           <!-- Check In Date -->
           <mat-form-field appearance="fill">
             <mat-label>Check-In Date</mat-label>
-            <input matInput [matDatepicker]="checkInPicker" formControlName="checkIn">
+            <input
+              matInput
+              [matDatepicker]="checkInPicker"
+              formControlName="checkIn"
+              placeholder="Select date">
             <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
             <mat-datepicker #checkInPicker></mat-datepicker>
             <mat-error *ngIf="updateReservationForm.get('checkIn')?.hasError('required')">
-              Required
+              Check-in date is required
             </mat-error>
           </mat-form-field>
 
           <!-- Check Out Date -->
           <mat-form-field appearance="fill">
             <mat-label>Check-Out Date</mat-label>
-            <input matInput [matDatepicker]="checkOutPicker" formControlName="checkOut">
+            <input
+              matInput
+              [matDatepicker]="checkOutPicker"
+              formControlName="checkOut"
+              placeholder="Select date">
             <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
             <mat-datepicker #checkOutPicker></mat-datepicker>
             <mat-error *ngIf="updateReservationForm.get('checkOut')?.hasError('required')">
-              Required
+              Check-out date is required
             </mat-error>
           </mat-form-field>
+
           <!-- Number of Rooms -->
           <mat-form-field appearance="fill">
             <mat-label>Rooms</mat-label>
             <input matInput type="number" formControlName="numberOfRooms" readonly>
-            <div matSuffix class="flex flex-col gap-0 mb-1">
-              <button mat-button type="button" (click)="incrementRooms()"
-                      class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                      style="line-height: 1; border-radius: 4px 4px 0 0;">
-                <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
-              </button>
-              <button mat-button type="button" (click)="decrementRooms()"
-                      class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                      style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
-                <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
-              </button>
-            </div>
           </mat-form-field>
 
           <!-- Reservation Type -->
@@ -84,14 +81,21 @@
       </div>
 
       <!-- Room Details Section -->
-      <div class="mb-6 pb-4 border-b border-gray-200">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-            <mat-icon class="!text-purple-600 !w-5 !h-5">hotel</mat-icon>
+      <div class="mb-8 pb-4 border-b border-gray-300">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+              <mat-icon class="!text-purple-600 !w-5 !h-5">hotel</mat-icon>
+            </div>
+            <h3 class="text-md font-semibold text-gray-800">Room Details</h3>
           </div>
-          <h3 class="text-md font-semibold text-gray-800">Room Details</h3>
-        </div>
 
+          <mat-checkbox
+            formControlName="isGroupReservation"
+            class="!m-0">
+            <span class="text-sm font-medium text-gray-700">Group Reservation</span>
+          </mat-checkbox>
+        </div>
         <!-- Dynamic Room Entries -->
         <div formArrayName="rooms">
           <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-2">
@@ -101,21 +105,30 @@
               <mat-form-field appearance="fill" class="lg:col-span-2">
                 <mat-label>Room Type</mat-label>
                 <mat-select formControlName="roomType" (selectionChange)="onRoomTypeChange(i)">
-                  <mat-option *ngFor="let roomType of availableRoomTypes"
-                              [value]="roomType.value"
-                              [disabled]="roomType.availableCount === 0">
-                    <span class="room-label">{{ roomType.label }}</span>
+                  <mat-option
+                    *ngFor="let roomType of availableRoomTypes"
+                    [value]="roomType.value"
+                    [disabled]="roomType.availableCount === 0">
+                    <span class="room-label text-xs">{{ roomType.label }}</span>
                     <span class="room-count-badge">{{ roomType.availableCount }}</span>
                   </mat-option>
                 </mat-select>
               </mat-form-field>
 
               <!-- Room Number -->
-              <mat-form-field appearance="fill">
+              <mat-form-field appearance="fill" class="lg:col-span-1">
                 <mat-label>Room</mat-label>
-                <mat-select formControlName="roomNumber">
-                  <mat-option *ngFor="let room of availableRooms" [value]="room.value">
-                    {{ room.label }}
+                <mat-select formControlName="roomNumber" (selectionChange)="onRoomSelect(i)">
+                  <mat-option
+                    *ngIf="getAvailableRoomsForIndex(i).length === 0"
+                    disabled>
+                    No rooms
+                  </mat-option>
+                  <mat-option
+                    *ngFor="let room of getAvailableRoomsForIndex(i)"
+                    [value]="room.id"
+                    class="!text-xs">
+                    {{ room.roomNumber }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -178,12 +191,64 @@
           </div>
         </div>
 
-        <!-- Add Room Button -->
-        <div class="flex justify-start mt-2">
-          <button mat-raised-button type="button" (click)="addRoom()"
-                  class="!bg-purple-600 !text-white">
+        <!-- Add Room Button & Discount Section (Same Line) -->
+        <div class="flex justify-start items-center gap-3 mt-2">
+          <!-- Add Room Button -->
+          <button
+            mat-raised-button
+            type="button"
+            (click)="addRoom()"
+            [disabled]="!canAddRoom"
+            [class]="canAddRoom
+                          ? '!bg-purple-600 !text-white hover:!bg-purple-700'
+                          : '!bg-gray-300 !text-gray-500 !cursor-not-allowed'">
             <mat-icon class="!mr-2">add</mat-icon>
             Add Room
+          </button>
+
+          <!-- Add Discount Button (Show when field is hidden) -->
+          <button
+            *ngIf="!showDiscountField"
+            mat-stroked-button
+            type="button"
+            (click)="toggleDiscountField()"
+            class="!bg-purple-600 !text-white hover:!bg-purple-700">
+            <mat-icon class="!mr-2">add</mat-icon>
+            Add Discount
+          </button>
+
+          <!-- Discount Field -->
+          <mat-form-field
+            *ngIf="showDiscountField"
+            appearance="fill"
+            class="!w-48 !mt-4">
+            <mat-label>Discount %</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="discount"
+              placeholder="0"
+              min="0"
+              max="100"
+              step="0.5">
+            <span matSuffix class="!text-gray-600 !font-semibold">%</span>
+            <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('min')">
+              Min 0%
+            </mat-error>
+            <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('max')">
+              Max 100%
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Remove Discount Button -->
+          <button
+            *ngIf="showDiscountField"
+            mat-icon-button
+            type="button"
+            (click)="removeDiscount()"
+            class="!text-red-500 hover:!bg-red-50"
+            matTooltip="Remove Discount">
+            <mat-icon>remove_circle_outline</mat-icon>
           </button>
         </div>
       </div>
@@ -223,7 +288,13 @@
           <!-- Email -->
           <mat-form-field appearance="fill">
             <mat-label>Email</mat-label>
-            <input matInput type="email" formControlName="email">
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              readonly
+              class="!cursor-not-allowed !bg-gray-100">
+            <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
           </mat-form-field>
 
           <!-- Address -->

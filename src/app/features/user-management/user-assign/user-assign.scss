@@ -20,7 +20,7 @@ tbody tr {
 // Smooth transitions
 button {
   transition: all 0.2s ease;
-  
+
   &:hover {
     transform: scale(1.1);
   }
@@ -29,4 +29,17 @@ button {
 // Avatar styling
 .w-10 {
   flex-shrink: 0;
+}
+
+.role-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
+
+
+.action-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
 }

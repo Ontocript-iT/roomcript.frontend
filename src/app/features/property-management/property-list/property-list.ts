@@ -10,7 +10,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Services
-import { PropertyService, PropertyResponse } from '../../../core/services/property.service';
+import { PropertyService } from '../../../core/services/property.service';
+import { PropertyResponse } from '../../../core/models/property.model'
 
 // SweetAlert2
 import Swal from 'sweetalert2';
@@ -312,6 +313,7 @@ export class PropertyList implements OnInit {
 
   manageUsers(property: PropertyResponse): void {
     console.log('Manage users for property:', property);
+
     // Store property code in localStorage for user management page
     localStorage.setItem('propertyCode', property.propertyCode);
     this.router.navigate(['/users']);

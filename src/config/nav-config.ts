@@ -28,19 +28,19 @@ export const NAV_ITEMS: NavItem[] = [
      subItems: [
       {
         title: 'Add User',
-        route: '/addUser',
+        route: '/users/addUser',
         icon: 'person_add',
         roles: ['SUPER_ADMIN', 'ADMIN']
       },
       {
         title: 'Assign User Roles',
-        route: '/assignUserRoles',
+        route: '/users/all',
         icon: 'person_assign',
         roles: ['SUPER_ADMIN', 'ADMIN']
       },]
   },
   {
-    title: 'Property Management',
+    title: 'Property',
     icon: 'dashboard',
     roles: ['SUPER_ADMIN'],
      subItems: [
@@ -70,7 +70,7 @@ export const NAV_ITEMS: NavItem[] = [
       },
       {
         title: 'Add Room',
-        route: '/roomCreate',
+        route: '/rooms/create',
         icon: 'add',
         roles: ['SUPER_ADMIN']
       },
@@ -101,28 +101,22 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       {
         title: 'All Reservations',
-        route: '/reservations',
+        route: '/reservations/all',
         icon: 'list',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'New Reservation',
-        route: '/addReservation',
+        route: '/reservations/add',
         icon: 'add_circle',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
-        title: 'Check-In',
-        route: '/reservations/check-in',
+        title: 'Check-In/Out',
+        route: '/checkin-checkout',
         icon: 'login',
         roles: ['ADMIN', 'FRONT_DESK']
       },
-      {
-        title: 'Check-Out',
-        route: '/reservations/check-out',
-        icon: 'logout',
-        roles: ['ADMIN', 'FRONT_DESK']
-      }
     ]
   },
   {
@@ -132,8 +126,14 @@ export const NAV_ITEMS: NavItem[] = [
     subItems: [
       {
         title: 'All Guests',
-        route: '/guests/all',
+        route: '/guest/list',
         icon: 'list',
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
+      },
+      {
+        title: 'Inhouse Guests',
+        route: '/guest/inhouse',
+        icon: 'home',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {

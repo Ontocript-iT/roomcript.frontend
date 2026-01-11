@@ -232,55 +232,70 @@ export class UserAssign implements OnInit {
     });
   }
 
-  private revokeUserAccess(user: PropertyUser): void {
+  revokeUser(user: PropertyUser): void {
     Swal.fire({
-      title: 'Revoking Access...',
-      html: 'Please wait while we process your request.',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
+      title: 'Revoke User',
+      text: `Do you really want to revoke access for ${user.firstName} ${user.lastName}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Revoke User',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'rounded-xl',
+        confirmButton: 'rounded-lg px-6 py-2 font-semibold',
+        cancelButton: 'rounded-lg px-6 py-2 font-semibold'
       }
-    });
-
-    this.userService.revokeUserAccess(user.userId, user.propertyCode).subscribe({
-      next: (response) => {
-        console.log('User access revoked successfully:', response);
-
-        // Show success message
+    }).then((result) => {
+      if (result.isConfirmed) {
         Swal.fire({
-          title: 'Access Revoked!',
-          html: `
-            <p>Access has been successfully revoked for:</p>
-            <p class="font-semibold mt-2">${user.firstName} ${user.lastName}</p>
-          `,
-          icon: 'success',
-          confirmButtonColor: '#10b981',
-          confirmButtonText: 'OK',
-          customClass: {
-            popup: 'rounded-xl',
-            confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+          title: 'Revoking Access...',
+          html: 'Please wait while we process your request.',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
           }
-        }).then(() => {
-          // Reload users list
-          this.loadUsers();
         });
-      },
-      error: (error) => {
-        console.error('Error revoking user access:', error);
 
-        // Show error message
-        Swal.fire({
-          title: 'Error!',
-          html: `
-            <p>Failed to revoke access for ${user.firstName} ${user.lastName}</p>
-            <p class="text-sm text-gray-600 mt-2">${error.error?.message || 'Please try again later.'}</p>
-          `,
-          icon: 'error',
-          confirmButtonColor: '#dc2626',
-          confirmButtonText: 'Close',
-          customClass: {
-            popup: 'rounded-xl',
-            confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+        this.userService.revokeUserAccess(user.userId, user.propertyCode).subscribe({
+          next: (response) => {
+            Swal.close();
+
+            Swal.fire({
+              title: 'Access Revoked!',
+              html: `
+              <p>Access has been successfully revoked for:</p>
+              <p class="font-semibold mt-2">${user.firstName} ${user.lastName}</p>
+            `,
+              icon: 'success',
+              confirmButtonColor: '#10b981',
+              confirmButtonText: 'OK',
+              customClass: {
+                popup: 'rounded-xl',
+                confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+              }
+            }).then(() => {
+              this.loadUsers();
+            });
+          },
+          error: (error) => {
+            Swal.close();
+
+            Swal.fire({
+              title: 'Error!',
+              html: `
+              <p>Failed to revoke access for ${user.firstName} ${user.lastName}</p>
+              <p class="text-sm text-gray-600 mt-2">${error.error?.message || 'Please try again later.'}</p>
+            `,
+              icon: 'error',
+              confirmButtonColor: '#dc2626',
+              confirmButtonText: 'Close',
+              customClass: {
+                popup: 'rounded-xl',
+                confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+              }
+            });
           }
         });
       }
@@ -390,7 +405,19 @@ export class UserAssign implements OnInit {
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        this.assignUserRole(user, result.value);
+        if (result.value === 'ROLE_ADMIN') {
+          // Assign admin role first
+          this.assignUserRole(user, 'ROLE_ADMIN');
+          // Revoke all other roles
+          user.roles.forEach(role => {
+            if (role !== 'ROLE_ADMIN') {
+              this.revokeUserRole(user, role);
+            }
+          });
+        } else {
+          // Assign non-admin role normally
+          this.assignUserRole(user, result.value);
+        }
       }
     });
   }

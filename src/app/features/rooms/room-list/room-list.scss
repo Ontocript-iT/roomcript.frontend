@@ -1,14 +1,77 @@
-.room-list-container {
-  padding: 20px;
+.action-icon {
+  font-size: 18px;
+  height: 18px;
+  width: 18px;
+}
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+.status-available {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 9999px !important;
+  font-size: x-small !important;
+  font-weight: 600 !important;
+}
+
+.status-occupied {
+  background-color: #fef3c7 !important;
+  color: #78350f !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 9999px !important;
+  font-size: x-small !important;
+  font-weight: 600 !important;
+}
+
+.status-maintenance {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 9999px !important;
+  font-size: x-small !important;
+  font-weight: 600 !important;
+}
+
+::ng-deep .mat-mdc-form-field {
+  .mat-mdc-text-field-wrapper {
+    height: 48px !important;
+
+    .mat-mdc-form-field-flex {
+      height: 48px !important;
+      align-items: center;
+
+      .mat-mdc-form-field-infix {
+        padding-top: 8px !important;
+        padding-bottom: 8px !important;
+        min-height: auto !important;
+      }
+    }
   }
+}
 
-  table {
-    width: 100%;
+::ng-deep {
+  .room-details-dialog {
+    .mat-mdc-dialog-container {
+      border-radius: 12px !important;  // Reduced from default ~28px
+      box-shadow: 0 20px 25px -5px rgba(0, 0,0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+
+      .mat-mdc-dialog-surface {
+        border-radius: 12px !important;
+        max-height: 90vh !important;
+      }
+    }
+  }
+}
+
+::ng-deep .swal-style-dialog {
+  .mat-mdc-dialog-container,
+  .mdc-dialog__surface {
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
   }
 }

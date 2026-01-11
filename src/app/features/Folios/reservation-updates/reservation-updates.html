@@ -1,0 +1,100 @@
+<div class="bg-gray-100">
+  <!-- Header Bar Component - Only show if you have reservation details -->
+  <app-reservation-header
+    *ngIf="reservationDetails"
+    [reservationDetails]="reservationDetails"
+    [reservationId]="reservationId"
+    [loading]="loading"
+    (backClick)="goBack()"
+    (editDeparture)="onEditDeparture()">
+  </app-reservation-header>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="m-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+    {{ error }}
+    <button
+      class="ml-2 underline"
+      (click)="refreshDetails()">
+      Retry
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center p-8">
+    <div class="text-gray-600">Loading folios...</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="pt-2" *ngIf="!loading && !error">
+    <div class="w-full bg-white rounded-md shadow-sm border border-gray-200">
+      <!-- Tabs -->
+      <div class="border-b border-gray-200">
+        <nav class="flex text-sm">
+          <button
+            class="px-4 py-3 border-b-2 font-medium"
+            [ngClass]="activeTab === 'folio-operations' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('folio-operations')">
+            Folio Operations
+          </button>
+          <button
+            class="px-4 py-3 border-b-2 font-medium"
+            [ngClass]="activeTab === 'booking-details' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('booking-details')">
+            Booking Details
+          </button>
+          <button
+            class="px-4 py-3 border-b-2 font-medium"
+            [ngClass]="activeTab === 'guest-details' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('guest-details')">
+            Guest Details
+          </button>
+          <button
+            class="px-4 py-3 border-b-2 font-medium"
+            [ngClass]="activeTab === 'room-charges' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('room-charges')">
+            Room Charges
+          </button>
+          <button
+            class="px-4 py-3 border-b-2 font-medium"
+            [ngClass]="activeTab === 'credit-card' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('credit-card')">
+            Credit Card
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content -->
+      <div>
+        <app-folio-operations
+          *ngIf="activeTab === 'folio-operations'"
+          [reservationId]=reservationId
+          [folios]="folioDetails">
+        </app-folio-operations>
+
+        <app-booking-details
+          *ngIf="activeTab === 'booking-details'"
+          [reservationDetails]="reservationDetails"
+          [reservationId]=reservationId>
+        </app-booking-details>
+
+        <app-guest-details
+          *ngIf="activeTab === 'guest-details'"
+          [reservationDetails]="reservationDetails"
+          [reservationId]=reservationId>
+        </app-guest-details>
+
+        <app-room-charges
+          *ngIf="activeTab === 'room-charges'"
+          [reservationDetails]="reservationDetails"
+          [reservationId]=reservationId>
+        </app-room-charges>
+
+        <app-credit-card
+          *ngIf="activeTab === 'credit-card'"
+          [reservationDetails]="reservationDetails"
+          [reservationId]=reservationId>
+        </app-credit-card>
+      </div>
+    </div>
+  </div>
+</div>

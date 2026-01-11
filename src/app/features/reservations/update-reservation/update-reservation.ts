@@ -7,14 +7,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule, DateAdapter } from '@angular/material/core';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ReservationService } from '../../../core/services/reservation.service';
 import { Reservation } from '../../../core/models/reservation.model';
+import { RoomService } from '../../../core/services/room.service';
+import { Room } from '../../../core/models/room.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import {MatCheckbox} from '@angular/material/checkbox';
 
 @Component({
   selector: 'app-update-reservation',
@@ -33,6 +36,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatCheckbox,
   ],
   templateUrl: './update-reservation.html',
   styleUrls: ['./update-reservation.scss']
@@ -40,7 +44,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 export class UpdateReservation implements OnInit {
   updateReservationForm!: FormGroup;
   isLoading = false;
+  showDiscountField = false;
   propertyCode = localStorage.getItem("propertyCode") || '';
+  availableRoomsByIndex: Map<number, any[]> = new Map();
+  private originalCheckInDate!: Date;
+  private originalCheckOutDate!: Date;
 
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
@@ -56,12 +64,7 @@ export class UpdateReservation implements OnInit {
     { value: 'Airbnb', label: 'Airbnb'},
   ];
 
-  availableRoomTypes: Array<{
-    value: string;
-    label: string;
-    availableCount: number;
-    basePrice?: number;
-  }> = [
+  availableRoomTypes = [
     { value: 'Standard', label: 'Standard Room', availableCount: 0},
     { value: 'Deluxe', label: 'Deluxe Room', availableCount: 0},
     { value: 'Superior-Deluxe', label: 'Superior Deluxe Room', availableCount: 0},
@@ -71,17 +74,10 @@ export class UpdateReservation implements OnInit {
     { value: 'Quadruple', label: 'Quadruple Room', availableCount: 0},
   ];
 
-  availableRooms = [
-    { value: '3', label: '101' },
-    { value: '4', label: '1021' },
-    { value: '5', label: '1022' },
-    { value: '7', label: '1023' },
-    { value: '8', label: '1024' }
-  ];
-
   constructor(
     private fb: FormBuilder,
     private reservationService: ReservationService,
+    private roomService: RoomService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<UpdateReservation>,
     @Inject(MAT_DIALOG_DATA) public data: { reservation: Reservation }
@@ -91,16 +87,18 @@ export class UpdateReservation implements OnInit {
     this.initForm();
     this.loadAvailableRooms();
     this.populateForm();
+    this.subscribeToGroupReservationChange();
   }
 
   initForm(): void {
     this.updateReservationForm = this.fb.group({
       checkIn: ['', Validators.required],
       checkOut: ['', Validators.required],
-      numberOfRooms: [1, [Validators.required, Validators.min(1)]],
+      numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
       rooms: this.fb.array([this.createRoomGroup()]),
+      isGroupReservation: [false],
       guestTitle: ['MR', Validators.required],
       guestName: ['', Validators.required],
       mobile: ['', Validators.required],
@@ -111,6 +109,10 @@ export class UpdateReservation implements OnInit {
       city: [''],
       zipCode: ['']
     });
+  }
+
+  get canAddRoom(): boolean {
+    return this.updateReservationForm.get('isGroupReservation')?.value === true;
   }
 
   createRoomGroup(): FormGroup {
@@ -129,69 +131,206 @@ export class UpdateReservation implements OnInit {
     if (this.data.reservation) {
       const res = this.data.reservation;
 
+      this.originalCheckInDate = new Date(res.checkInDate);
+      this.originalCheckOutDate = new Date(res.checkOutDate);
+
       // Parse guest name to extract title
       const guestTitle = res.name?.startsWith('MR.') ? 'MR' :
         res.name?.startsWith('MRS.') ? 'MRS' :
           res.name?.startsWith('MS.') ? 'MS' : 'MR';
       const guestName = res.name?.replace(/^(MR\.|MRS\.|MS\.)\s*/i, '') || '';
 
+      const isGroupReservation = res.roomCount && res.roomCount > 1;
+
       this.updateReservationForm.patchValue({
-        checkIn: new Date(res.checkInDate),
-        checkOut: new Date(res.checkOutDate),
+        checkIn: this.originalCheckInDate,
+        checkOut: this.originalCheckOutDate,
         numberOfRooms: res.roomCount || 1,
-        reservationType: res.status || 'CONFIRMED',
-        bookingSource: 'Direct',
+        reservationType: res.reservationType ,
+        bookingSource: res.bookingSource ,
+        isGroupReservation: isGroupReservation,
         guestTitle: guestTitle,
         guestName: guestName,
         mobile: res.phone || '',
         email: res.email || '',
         address: res.address || '',
-        country: '',
-        state: '',
-        city: '',
-        zipCode: ''
+        country: res.country || '',
+        state: res.state || '',
+        city: res.city || '',
+        zipCode: res.zipCode || '',
       });
 
+      console.log('Address fields loaded:', {
+        country: res.country,
+        state: res.state,
+        city: res.city,
+        zipCode: res.zipCode
+      });
       // Populate rooms
       if (res.roomDetails && res.roomDetails.length > 0) {
         this.rooms.clear();
-        res.roomDetails.forEach(room => {
+
+        res.roomDetails.forEach((room, index) => {
           const roomGroup = this.createRoomGroup();
-          // Convert room's internal id to string to match select values
+
           roomGroup.patchValue({
             roomType: room.roomType || '',
-            roomNumber: room.roomId?.toString() || '',
-            adults: room.numberOfAdults || 1,
-            children: room.numberOfChildren || 0,
+            adults: room.numberOfAdults ?? 1,
+            children: room.numberOfChildren ?? 0,
             rate: room.roomRate || 0,
             manualRate: false
           });
+
           this.rooms.push(roomGroup);
+
+          // Pass current room info to include it in available list
+          if (room.roomType && room.roomId && room.roomNumber) {
+            this.fetchAvailableRoomsByType(room.roomType, index, {
+              id: room.roomId,
+              roomNumber: room.roomNumber,
+              basePrice: room.roomRate || 0,
+              roomType: room.roomType,
+              price: room.roomRate || 0,
+              status: 'AVAILABLE',
+              propertyId: 0,
+              propertyCode: this.propertyCode || null
+            });
+          }
         });
       }
     }
   }
 
-  loadAvailableRooms(): void {
+  fetchAvailableRoomsByType(roomType: string, index: number, currentRoom?: Room): void {
     if (!this.propertyCode) {
-      console.error('Property code not found');
+      return;
+    }
+    if (!this.originalCheckInDate || !this.originalCheckOutDate) {
       return;
     }
 
-    this.reservationService.getAvailableRoomsCount(this.propertyCode).subscribe({
+    const formattedCheckIn = this.formatDate(this.originalCheckInDate);
+    const formattedCheckOut = this.formatDate(this.originalCheckOutDate);
+
+    this.roomService.getAvailableRoomsByType(
+      this.propertyCode,
+      roomType,
+      formattedCheckIn,
+      formattedCheckOut
+    ).subscribe({
+      next: (rooms) => {
+        let list = rooms || [];
+
+        // Add current assigned room if missing
+        if (currentRoom) {
+          const exists = list.some(r => Number(r.id) === Number(currentRoom.id));
+          if (!exists) {
+            list = [
+              ...list,
+              currentRoom
+            ];
+          }
+        }
+
+        this.availableRoomsByIndex.set(index, list);
+
+        // Set the room number in the form control to display selection
+        const roomGroup = this.rooms.at(index);
+        if (roomGroup && currentRoom) {
+          roomGroup.patchValue({
+            roomNumber: Number(currentRoom.id)
+          });
+        }
+      },
+      error: (error) => {
+        this.availableRoomsByIndex.set(index, []);
+        this.showError(`Failed to load available rooms for ${roomType}`);
+      }
+    });
+  }
+
+  private formatDateToDisplay(date: string | Date): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2); // Get last 2 digits of year
+    return `${month}/${day}/${year}`;
+  }
+
+  loadAvailableRooms(): void {
+    if (!this.propertyCode) {
+      return;
+    }
+    const res = this.data.reservation;
+
+    this.originalCheckInDate = new Date(res.checkInDate);
+    this.originalCheckOutDate = new Date(res.checkOutDate);
+
+    if (!this.originalCheckInDate || !this.originalCheckOutDate) {
+      return;
+    }
+
+    // Format dates to YYYY-MM-DD
+    const formattedCheckIn = this.formatDate(this.originalCheckInDate);
+    const formattedCheckOut = this.formatDate(this.originalCheckOutDate);
+
+    this.roomService.getAvailableRoomsCount(
+      this.propertyCode,
+      formattedCheckIn,
+      formattedCheckOut
+    ).subscribe({
       next: (rooms) => {
         this.availableRoomTypes = this.availableRoomTypes.map(roomType => {
           const apiRoom = rooms.find(r => r.roomType === roomType.value);
+
           return {
             value: roomType.value,
             label: roomType.label,
-            availableCount: apiRoom?.availableCount || 0,
-            basePrice: apiRoom?.basePrice || 0
+            availableCount: apiRoom?.availableCount || 0
           };
         });
       },
       error: (error) => {
-        console.error('Error loading room availability:', error);
+        this.availableRoomTypes = this.availableRoomTypes.map(roomType => ({
+          value: roomType.value,
+          label: roomType.label,
+          availableCount: 0
+        }));
+      }
+    });
+  }
+
+  onRoomTypeChange(index: number): void {
+    const room = this.rooms.at(index);
+    const roomType = room.get('roomType')?.value;
+
+    if (!roomType) return;
+
+    // Clear room number and rate when type changes
+    room.patchValue({
+      roomNumber: '',
+      rate: 0
+    });
+
+    this.fetchAvailableRoomsByType(roomType, index);
+  }
+
+  private subscribeToGroupReservationChange(): void {
+    this.updateReservationForm.get('isGroupReservation')?.valueChanges.subscribe((isGroupReservation) => {
+      if (!isGroupReservation) {
+        // When unchecked, remove all rooms except the first one
+        while (this.rooms.length > 1) {
+          this.rooms.removeAt(this.rooms.length - 1);
+        }
+
+        this.availableRoomsByIndex.clear();
+
+        this.updateNumberOfRooms();
+
+        if (this.rooms.length > 1) {
+          this.showSuccess('Additional rooms removed. Only the first room remains.');
+        }
       }
     });
   }
@@ -201,11 +340,32 @@ export class UpdateReservation implements OnInit {
   }
 
   addRoom(): void {
+    // Only allow adding rooms if group reservation is checked
+    if (!this.canAddRoom) {
+      this.showError('Please enable "Group Reservation" to add multiple rooms');
+      return;
+    }
+
     this.rooms.push(this.createRoomGroup());
+    this.updateNumberOfRooms();
   }
 
   removeRoom(index: number): void {
-    this.rooms.removeAt(index);
+    if (this.rooms.length > 1) {
+      this.availableRoomsByIndex.delete(index);
+      this.rooms.removeAt(index);
+      this.updateNumberOfRooms();
+    } else {
+      this.showError('At least one room is required');
+    }
+  }
+
+  private updateNumberOfRooms(): void {
+    const roomCount = this.rooms.length;
+    this.updateReservationForm.patchValue(
+      { numberOfRooms: roomCount },
+      { emitEvent: false }
+    );
   }
 
   incrementRooms(): void {
@@ -254,18 +414,23 @@ export class UpdateReservation implements OnInit {
     room.patchValue({ manualRate: !currentManual });
   }
 
-  onRoomTypeChange(index: number): void {
-    const room = this.rooms.at(index);
-    const roomType = room.get('roomType')?.value;
-    const roomTypeData = this.availableRoomTypes.find(r => r.value === roomType);
-
-    if (!room.get('manualRate')?.value && roomTypeData?.basePrice) {
-      room.patchValue({ rate: roomTypeData.basePrice });
-    }
+  getAvailableRoomsForIndex(index: number): any[] {
+    const rooms = this.availableRoomsByIndex.get(index);
+    return Array.isArray(rooms) ? rooms : [];
   }
 
   onRoomSelect(index: number): void {
-    console.log('Room selected at index:', index);
+    const roomsArray = this.updateReservationForm.get('rooms') as FormArray;
+    const roomGroup = roomsArray.at(index);
+    const selectedRoomId = roomGroup.get('roomNumber')?.value;
+
+    // Get available rooms for this index
+    const availableRooms = this.getAvailableRoomsForIndex(index);
+    const selectedRoom = availableRooms.find(room => room.id === selectedRoomId);
+
+    if (selectedRoom && !roomGroup.get('manualRate')?.value) {
+      roomGroup.patchValue({ rate: selectedRoom.basePrice });
+    }
   }
 
   onSubmit(): void {
@@ -296,39 +461,48 @@ export class UpdateReservation implements OnInit {
     let totalChildren = 0;
     const roomIds: number[] = [];
     const roomGuests: any[] = [];
+    let totalAmount = 0;
 
+    // Calculate total from room rates and guest counts
     formValue.rooms.forEach((room: any) => {
       const roomId = parseInt(room.roomNumber, 10);
-      totalAdults += room.adults || 0;
-      totalChildren += room.children || 0;
+      const roomRate = parseFloat(room.rate) || 0;
+      const adults = room.adults || 0;
+      const children = room.children || 0;
+
+      totalAdults += adults;
+      totalChildren += children;
       roomIds.push(roomId);
 
       roomGuests.push({
         roomId: roomId,
-        numberOfAdults: room.adults || 0,
-        numberOfChildren: room.children || 0
+        numberOfAdults: adults,
+        numberOfChildren: children
       });
+
+      // Add room rate to total (assuming rate is per room per night)
+      totalAmount += roomRate;
     });
+
+    // Apply discount if present
+    const discountPercent = parseFloat(formValue.discount) || 0;
+    const discountAmount = totalAmount * (discountPercent / 100);
+    const finalTotalAmount = totalAmount - discountAmount;
 
     const guestFullName = `${formValue.guestTitle}. ${formValue.guestName}`;
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
 
-    const addressParts = [
-      formValue.address,
-      formValue.city,
-      formValue.state,
-      formValue.country,
-      formValue.zipCode
-    ].filter(part => part && part.trim() !== '');
-
-    const fullAddress = addressParts.join(', ');
-
     return {
       name: guestFullName,
       email: formValue.email,
       phone: formValue.mobile,
-      address: fullAddress,
+      address: formValue.address || '',
+      city: formValue.city || '',
+      state: formValue.state || '',
+      country: formValue.country || '',
+      zipCode: formValue.zipCode || '',
+
       roomIds: roomIds,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
@@ -336,6 +510,11 @@ export class UpdateReservation implements OnInit {
       numberOfAdults: totalAdults,
       numberOfChildren: totalChildren,
       roomCount: formValue.rooms.length,
+      reservationType: formValue.reservationType,
+      bookingSource: formValue.bookingSource,
+      totalAmount: Math.round(finalTotalAmount * 100) / 100, // Round to 2 decimal places
+      discount: discountPercent,
+      discountAmount: Math.round(discountAmount * 100) / 100,
       specialRequests: formValue.specialRequests || '',
       roomGuests: roomGuests
     };
@@ -365,6 +544,15 @@ export class UpdateReservation implements OnInit {
         control?.markAsTouched();
       }
     });
+  }
+
+  toggleDiscountField(): void {
+    this.showDiscountField = !this.showDiscountField;
+  }
+
+  removeDiscount(): void {
+    this.updateReservationForm.patchValue({ discount: 0 });
+    this.showDiscountField = false;
   }
 
   private showSuccess(message: string): void {

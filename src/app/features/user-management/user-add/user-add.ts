@@ -14,6 +14,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CreateUserRequest, UserService } from '../../../core/services/user.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AllRoles } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-user-add',
@@ -38,16 +39,9 @@ export class UserAddComponent implements OnInit {
   isLoading = false;
   hidePassword = true;
   isSuperAdmin = false;
+  availableRoles: { role_id: number; value: string; label: string; description: string | null }[] = [];
 
   propertyCode = localStorage.getItem("propertyCode") || '';
-
-  availableRoles = [
-    { value: 'ROLE_ADMIN', label: 'Administrator', description: 'Full system access and management' },
-    { value: 'ROLE_MANAGER', label: 'Manager', description: 'Property and staff management' },
-    { value: 'ROLE_FRONT_DESK', label: 'Front Desk', description: 'Reservations and check-in/out' },
-    { value: 'ROLE_HOUSEKEEPING', label: 'Housekeeping', description: 'Room status and maintenance' },
-    { value: 'ROLE_ACCOUNTANT', label: 'Accountant', description: 'Financial reports and billing' }
-  ];
 
   constructor(
     private fb: FormBuilder,
@@ -63,6 +57,7 @@ export class UserAddComponent implements OnInit {
     console.log('Is Super Admin:', this.isSuperAdmin);
 
     this.initializeForm();
+    this.loadAllRoles();
   }
 
   private initializeForm(): void {
@@ -75,8 +70,35 @@ export class UserAddComponent implements OnInit {
         { value: this.propertyCode, disabled: !this.isSuperAdmin },
         [Validators.required]
       ],
-      role: ['ROLE_ADMIN', [Validators.required]]
+      role: [null, [Validators.required]]
     });
+  }
+
+  loadAllRoles(): void {
+    this.userService.getAllRoles().subscribe({
+      next: (roles: AllRoles[]) => {
+        this.availableRoles = roles.map(role => ({
+          role_id: role.id,
+          label: this.formatRoleLabel(role.name),
+          value: role.name,
+          description: role.description || 'No description available'
+        }));
+      },
+      error: (error) => {
+        console.error('Failed to load roles:', error);
+        this.availableRoles = [];
+      }
+    });
+  }
+
+  private formatRoleLabel(name: string): string {
+    return name
+      .replace('ROLE_', '')
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   //ghedugweidwu
@@ -94,51 +116,54 @@ export class UserAddComponent implements OnInit {
       : { weakPassword: true };
   }
 
-
-
   onSubmit(): void {
     if (this.userForm.valid) {
       this.isLoading = true;
 
-      // Get raw value to include disabled fields
       const formValue = this.userForm.getRawValue();
-      const userData: CreateUserRequest = formValue;
+      const selectedRoleId = formValue.role;
 
-      console.log('Submitting user data:', userData);
+      // Find selected role object
+      const selectedRole = this.availableRoles.find(r => r.role_id === selectedRoleId);
+
+      if (!selectedRole) {
+        this.showError('Please select a valid role');
+        this.isLoading = false;
+        return;
+      }
+
+      const userData: CreateUserRequest & { roleId: number } = {
+        username: formValue.username,
+        password: formValue.password,
+        firstName: formValue.firstName,
+        lastName: formValue.lastName,
+        propertyCode: formValue.propertyCode,
+        role: selectedRole.value,
+        roleId: selectedRoleId
+      };
 
       this.userService.createUser(userData).subscribe({
         next: (response) => {
           this.isLoading = false;
-          console.log('User created successfully:', response);
           this.showSuccess('User created successfully!');
-
-          // Reset form and navigate
-          this.userForm.reset({
-            propertyCode: this.propertyCode,
-            role: 'ROLE_ADMIN'
-          });
-          setTimeout(() => {
-            this.router.navigate(['/users']);
-          }, 1500);
+          this.userForm.reset({ propertyCode: this.propertyCode });
+          setTimeout(() => this.router.navigate(['/users/all']), 1500);
         },
         error: (error) => {
           this.isLoading = false;
           this.handleError(error);
         }
       });
-    } else {
-      this.markFormGroupTouched(this.userForm);
-      this.showError('Please fill all required fields correctly');
     }
   }
 
   onCancel(): void {
     if (this.userForm.dirty) {
       if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-        this.router.navigate(['/users']);
+        this.router.navigate(['/users/all']);
       }
     } else {
-      this.router.navigate(['/users']);
+      this.router.navigate(['/users/all']);
     }
   }
 

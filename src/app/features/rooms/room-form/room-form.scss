@@ -1,0 +1,91 @@
+::ng-deep {
+  .mat-mdc-form-field {
+    &.mat-mdc-form-field-type-mat-input,
+    &.mat-mdc-form-field-type-mat-select {
+      .mat-mdc-text-field-wrapper {
+        height: 42px !important;
+        padding-bottom: 0 !important;
+      }
+
+      .mat-mdc-form-field-infix {
+        padding-top: 12px !important;
+        padding-bottom: 8px !important;
+        min-height: 40px !important;
+      }
+
+      .mat-mdc-floating-label {
+        font-size: 13px !important;
+        top: 20px !important;
+      }
+
+      .mat-mdc-floating-label.mdc-floating-label--float-above {
+        font-size: 11px !important;
+        top: 20px !important;
+      }
+
+      .mat-mdc-input-element {
+        font-size: 13px !important;
+        padding: 0 !important;
+        margin-top: 4px !important;
+      }
+
+      .mat-mdc-select {
+        font-size: 13px !important;
+      }
+    }
+
+    .mat-mdc-text-field-wrapper {
+      background-color: #ffffff !important;
+      border-radius: 8px;
+    }
+
+    &.mat-focused {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #4f46e5 !important;
+        border-width: 2px !important;
+      }
+    }
+
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #e5e7eb !important;
+      transition: border-color 0.3s ease;
+    }
+
+    &:hover:not(.mat-focused) {
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #d1d5db !important;
+      }
+    }
+  }
+
+  .mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  // Reduce prefix/suffix spacing
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-icon-suffix {
+    padding: 0 8px !important;
+  }
+
+  .mat-mdc-checkbox {
+    .mdc-checkbox__background {
+      border-color: #d1d5db !important;
+    }
+
+    &.mat-mdc-checkbox-checked {
+      .mdc-checkbox__background {
+        background-color: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+      }
+    }
+  }
+}

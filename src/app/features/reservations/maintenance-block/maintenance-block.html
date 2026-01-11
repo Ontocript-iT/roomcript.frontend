@@ -1,0 +1,110 @@
+<div class="max-w-2xl m-5">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">build</mat-icon>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">Block for Maintenance</h2>
+        <p class="text-sm text-gray-500">Block room for maintenance period</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="!text-gray-500 hover:!text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="max-h-[70vh] overflow-y-auto pr-2">
+    <form [formGroup]="maintenanceForm">
+
+      <!-- Room and Date Details Section -->
+      <div class="mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+          <!-- Room Number (Disabled) -->
+          <mat-form-field appearance="fill">
+            <mat-label>Room Number</mat-label>
+            <input matInput formControlName="roomId" readonly class="!cursor-not-allowed !bg-gray-100">
+            <mat-icon matPrefix class="!text-gray-400">meeting_room</mat-icon>
+            <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
+          </mat-form-field>
+
+          <!-- Start Date -->
+          <mat-form-field appearance="fill">
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="startPicker"
+              formControlName="startDate"
+              placeholder="Select date">
+            <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+            <mat-error *ngIf="maintenanceForm.get('startDate')?.hasError('required')">
+              Start date is required
+            </mat-error>
+          </mat-form-field>
+
+          <!-- End Date -->
+          <mat-form-field appearance="fill">
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              [matDatepicker]="endPicker"
+              formControlName="endDate"
+              placeholder="Select date">
+            <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+            <mat-error *ngIf="maintenanceForm.get('endDate')?.hasError('required')">
+              End date is required
+            </mat-error>
+            <mat-error *ngIf="maintenanceForm.get('endDate')?.hasError('endDateBeforeStart')">
+              End date must be after start date
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+      </div>
+
+      <!-- Reason Section -->
+      <div class="mb-6">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+            <mat-icon class="!text-purple-600 !w-5 !h-5">description</mat-icon>
+          </div>
+          <h3 class="text-md font-semibold text-gray-800">Maintenance Details</h3>
+        </div>
+
+        <!-- Reason Textarea -->
+        <mat-form-field appearance="fill" class="w-full">
+          <mat-label>Reason</mat-label>
+          <textarea
+            matInput
+            formControlName="reason"
+            rows="4"
+            placeholder="Enter maintenance reason (e.g., Plumbing repair required)"></textarea>
+          <mat-error *ngIf="maintenanceForm.get('reason')?.hasError('required')">
+            Reason is required
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isLoading"
+            class="!px-6 !py-2">
+      <mat-icon class="!mr-2">close</mat-icon>
+      Cancel
+    </button>
+    <button mat-raised-button (click)="onSubmit()" [disabled]="maintenanceForm.invalid || isLoading"
+            class="!px-6 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
+      <mat-spinner *ngIf="isLoading" diameter="20" class="!inline-block !mr-2"></mat-spinner>
+      <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+      {{ isLoading ? 'Creating...' : 'Block Room' }}
+    </button>
+  </div>
+</div>

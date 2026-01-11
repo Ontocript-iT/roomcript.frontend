@@ -94,6 +94,8 @@
 
 ::ng-deep .mat-mdc-option {
   position: relative;
+  min-height: 30px !important;
+  height: 30px !important;
 
   .room-label {
     display: inline-block;
@@ -116,6 +118,24 @@
   }
   .mat-pseudo-checkbox {
     display: none !important;
+  }
+}
+
+::ng-deep {
+  mat-datetimepicker-toggle {
+    .mat-mdc-icon-button {
+      width: 40px !important;
+      height: 40px !important;
+      padding: 8px !important;
+      overflow: visible !important;
+
+      .mat-icon {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 24px !important;
+        line-height: 24px !important;
+      }
+    }
   }
 }
 

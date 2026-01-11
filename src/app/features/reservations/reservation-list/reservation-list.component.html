@@ -1,5 +1,6 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-  <div class="max-w-7xl mx-auto">
+  <div class="mx-auto">
+
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -11,187 +12,221 @@
             <p class="text-gray-500 mt-1">Manage reservations</p>
           </div>
         </div>
-        <button
-          mat-raised-button
-          routerLink="/addReservation"
-          class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-          <mat-icon class="!mr-2">add</mat-icon>
-          Add New Reservation
-        </button>
+        <div class="flex items-center gap-1">
+          <button
+            mat-raised-button
+            routerLink="/reservations/add"
+            class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+            <mat-icon class="!mr-2">add</mat-icon>
+            New Reservation
+          </button>
+          <button
+            mat-raised-button
+            (click)="toggleFilter()"
+            matTooltip="Show/Hide Filter"
+            class="!h-12 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+            <mat-icon class="!mr-2">search</mat-icon>
+            Filter Reservation
+          </button>
+        </div>
       </div>
     </div>
 
-    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
-      <mat-card-content class="!p-0">
-        <!-- Loading Spinner -->
-        <div *ngIf="isLoading" class="flex items-center justify-center py-16">
-          <mat-spinner diameter="50"></mat-spinner>
-        </div>
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div [ngClass]="showFilter ? 'lg:col-span-3' : 'lg:col-span-4'">
+        <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+          <mat-card-content class="!p-0">
+            <!-- Loading Spinner -->
+            <div *ngIf="isLoading" class="flex items-center justify-center py-16">
+              <mat-spinner diameter="50"></mat-spinner>
+            </div>
 
-        <!-- Empty State -->
-        <div *ngIf="!isLoading && reservations.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">people_outline</mat-icon>
-          <h3 class="text-xl font-semibold text-gray-700 mb-2">No Reservations Found</h3>
-          <p class="text-gray-500 mb-6">Start by adding first reservation</p>
-          <button
-            mat-raised-button
-            color="primary"
-            routerLink="/addReservation"
-            class="!rounded-lg">
-            <mat-icon class="!mr-2">add</mat-icon>
-            Add Reservation
-          </button>
-        </div>
+            <!-- Empty State -->
+            <div *ngIf="!isLoading && reservations.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+              <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">people_outline</mat-icon>
+              <h3 class="text-xl font-semibold text-gray-700 mb-2">No Reservations Found</h3>
+              <p class="text-gray-500 mb-6">Start by adding first reservation</p>
+              <button
+                mat-raised-button
+                color="primary"
+                routerLink="/reservations/add"
+                class="!rounded-lg">
+                <mat-icon class="!mr-2">add</mat-icon>
+                Add Reservation
+              </button>
+            </div>
 
-        <div *ngIf="!isLoading && reservations.length > 0" class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Guest Name
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Email
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Room No.
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Room Type
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Check-In
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Check-Out
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Total
-              </th>
-              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Status
-              </th>
-              <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200 text-xs">
-            <tr *ngFor="let res of reservations; let i = index"
-                [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
-                class="transition-colors duration-150 border-b border-gray-200">
-              <!-- Guest Name -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md">
-                    <ng-container *ngIf="res.name">
-                      {{ res.name.charAt(0) }}
-                    </ng-container>
-                  </div>
-                  <div class="ml-4">
-                    <div class="font-semibold text-gray-900">
-                      {{ res.name }}
+            <div *ngIf="!isLoading && reservations.length > 0" class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Guest Name
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Room No.
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Room Type
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Check-In
+                  </th>
+                  <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Check-Out
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Check In/Out
+                  </th>
+                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200 text-xs">
+                <tr *ngFor="let res of reservations; let i = index"
+                    [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-100' : 'bg-gray-100 hover:bg-gray-200'"
+                    class="transition-colors duration-150 border-b border-gray-200">
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="font-semibold text-gray-900">
+                      {{ i+1 }}
+                    </span>
+                  </td>
+                  <!-- Guest Name -->
+                  <td class="px-2 py-2 whitespace-nowrap">
+                    <div class="flex items-center">
+                      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md">
+                        <ng-container *ngIf="res.name">
+                          {{ res.name.charAt(0) }}
+                        </ng-container>
+                      </div>
+                      <div class="ml-4">
+                        <div class="font-semibold text-gray-900">
+                          {{ res.name }}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </td>
+                  </td>
 
-              <!-- Email -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">email</mat-icon>
-                  {{ res.email }}
-                </div>
-              </td>
+                  <!-- Room number -->
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="font-semibold text-gray-900">
+                      {{ getRoomNumbers(res) }}
+                    </span>
+                  </td>
 
-              <!-- Room number -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="font-semibold text-gray-900">
-                  {{ getRoomNumbers(res) }}
-                </span>
-              </td>
+                  <!-- Room Types (Unique, Comma-separated) -->
+                  <td class="px-4 py-2 whitespace-nowrap">
+                    <span class="text-gray-900">
+                      {{ getUniqueRoomTypes(res) }}
+                    </span>
+                  </td>
 
-              <!-- Room Types (Unique, Comma-separated) -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-gray-900">
-                  {{ getUniqueRoomTypes(res) }}
-                </span>
-              </td>
+                  <!-- Check-In -->
+                  <td class="px-4 py-2 whitespace-nowrap text-gray-900">
+                    <div class="flex items-center">
+                      <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
+                      {{ res.checkInDate | date }}
+                    </div>
+                  </td>
 
-              <!-- Check-In -->
-              <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
-                  {{ res.checkInDate | date }}
-                </div>
-              </td>
+                  <!-- Check-Out -->
+                  <td class="px-4 py-2 whitespace-nowrap text-gray-900">
+                    <div class="flex items-center">
+                      <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
+                      {{ res.checkOutDate | date }}
+                    </div>
+                  </td>
 
-              <!-- Check-Out -->
-              <td class="px-6 py-4 whitespace-nowrap text-gray-900">
-                <div class="flex items-center">
-                  <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-2">schedule</mat-icon>
-                  {{ res.checkOutDate | date }}
-                </div>
-              </td>
+                  <!-- Status -->
+                  <td class="px-4 py-2 whitespace-nowrap text-center">
+                    <span
+                      [ngClass]="{
+                        'status-confirmed': res.status.toUpperCase() === 'CONFIRMED',
+                        'status-pending': res.status.toUpperCase() === 'PENDING',
+                        'status-cancelled': res.status.toUpperCase() === 'CANCELLED'
+                      }">
+                      {{ res.status }}
+                    </span>
+                  </td>
 
-              <!-- Total -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="text-gray-900">
-                  ${{ res.totalAmount }}
-                </span>
-              </td>
+                  <!-- Check In/Check out -->
+                  <td class="px-2 py-2 whitespace-nowrap text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <!-- Check-In Button: -->
+                      <button
+                        *ngIf="!res.checkInStatus"
+                        mat-raised-button
+                        (click)="onCheckIn(res)"
+                        class="!h-8 !px-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !text-xs hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">login</mat-icon>
+                        Check In
+                      </button>
 
-              <!-- Status -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  [ngClass]="{
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800': res.status === 'CONFIRMED',
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800': res.status === 'PENDING',
-                    'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800': res.status === 'CANCELLED'
-                  }">
-                  <span
-                    [ngClass]="{
-                      'w-2 h-2 bg-green-500 rounded-full mr-2': res.status === 'CONFIRMED',
-                      'w-2 h-2 bg-yellow-500 rounded-full mr-2': res.status === 'PENDING',
-                      'w-2 h-2 bg-red-500 rounded-full mr-2': res.status === 'CANCELLED'
-                    }"></span>
-                  {{ res.status }}
-                </span>
-              </td>
+                      <!-- Check-Out Button: -->
+                      <button
+                        *ngIf="res.checkInStatus && !res.checkOutStatus"
+                        mat-raised-button
+                        (click)="onCheckOut(res)"
+                        class="!h-8 !px-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !text-xs hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">logout</mat-icon>
+                        Check Out
+                      </button>
 
-                                <!-- Actions -->
-              <td class="px-6 py-4 whitespace-nowrap text-center">
-                <div class="flex items-center justify-center gap-1">
-                  <button
-                    mat-icon-button
-                    matTooltip="View Details"
-                    color="accent"
-                    (click)="viewReservation(res)"
-                    class="!transition-all !duration-200">
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    matTooltip="Edit Resevation"
-                    color="accent"
-                    (click)="editReservation(res)"
-                    class="!transition-all !duration-200">
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    matTooltip="Delete Reservation"
-                    (click)="deleteReservation(res.id)"
-                    class="!transition-all !duration-200">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-      </mat-card-content>
-    </mat-card>
+                      <!-- Completed: -->
+                      <span
+                        *ngIf="res.checkInStatus && res.checkOutStatus"
+                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                        <mat-icon class="!w-4 !h-4 !text-[16px] !mr-1">check_circle</mat-icon>
+                        Completed
+                      </span>
+
+                    </div>
+                  </td>
+                                    <!-- Actions -->
+                  <td class="px-2 py-2 whitespace-nowrap text-center">
+                    <div class="flex items-center justify-center">
+                      <button
+                        mat-icon-button
+                        matTooltip="View Details"
+                        color="accent"
+                        (click)="viewReservation(res)"
+                        class="!transition-all !duration-200">
+                        <mat-icon class="action-icon">visibility</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        matTooltip="Edit Resevation"
+                        color="accent"
+                        (click)="editReservation(res)"
+                        class="!transition-all !duration-200">
+                        <mat-icon class="action-icon">edit</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        matTooltip="Delete Reservation"
+                        (click)="cancelReservation(res)"
+                        class="!transition-all !duration-200">
+                        <mat-icon class="action-icon">delete</mat-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="lg:col-span-1" *ngIf="showFilter">
+        <app-filter-reservation (filterChanged)="fetchFilteredReservations($event)" *ngIf="showFilter"></app-filter-reservation>
+      </div>
   </div>
+</div>
 </div>

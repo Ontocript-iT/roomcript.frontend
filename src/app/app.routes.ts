@@ -11,7 +11,15 @@ import { UserAssign } from './features/user-management/user-assign/user-assign';
 import { PropertyList } from './features/property-management/property-list/property-list';
 import { RoomCreate } from './features/rooms/room-create/room-create';
 import {ReservationFormComponent} from './features/reservations/reservation-form/reservation-form.component';
+import {CheckinCheckoutComponent} from './features/reservations/checkin-checkout/checkin-checkout';
 
+import {GuestListComponent} from './features/guest-management/guest-list/guest-list';
+import { UserAccount } from './features/user-management/user-account/user-account';
+import {RoomListComponent} from './features/rooms/room-list/room-list';
+import {UpdateReservation} from './features/reservations/update-reservation/update-reservation';
+import {CalendarView} from './features/reservations/calendar-view/calendar-view';
+import {ReservationUpdates} from './features/Folios/reservation-updates/reservation-updates';
+import {InhouseGuestsComponent} from './features/guest-management/inhouse-guests/inhouse-guests';
 
 
 export const routes: Routes = [
@@ -23,23 +31,33 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard]
   },
-  // {
-  //   path: 'rooms',
-  //   component: RoomListComponent,
-  //   canActivate: [authGuard]
-  // },
   {
-    path: 'reservations',
+    path: 'reservations/all',
     component: ReservationListComponent,
     canActivate: [authGuard]
   },
   {
-    path: 'addReservation',
+    path: 'reservations/add',
     component: ReservationFormComponent,
     canActivate: [authGuard]
   },
   {
-    path: 'addUser',
+    path: 'reservations/edit/:id',
+    component: UpdateReservation,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'reservations/reservation-updates',
+    component: ReservationUpdates,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'checkin-checkout',
+    component: CheckinCheckoutComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'users/addUser',
     component: UserAddComponent,
     canActivate: [authGuard]
   },
@@ -49,7 +67,7 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'assignUserRoles',
+    path: 'users/all',
     component: UserAssign,
     canActivate: [authGuard]
   },
@@ -57,11 +75,35 @@ export const routes: Routes = [
     path: 'propertyList',
     component: PropertyList,
     canActivate: [authGuard]
-  }
-  ,
+  },
   {
-    path: 'roomCreate',
+    path: 'rooms/all',
+    component: RoomListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'rooms/create',
     component: RoomCreate,
+    canActivate: [authGuard]
+  },
+    {
+    path: 'stayView',
+    component: CalendarView,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'guest/list',
+    component: GuestListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'guest/inhouse',
+    component: InhouseGuestsComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'user/account',
+    component: UserAccount,
     canActivate: [authGuard]
   }
 

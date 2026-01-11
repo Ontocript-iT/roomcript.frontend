@@ -1,0 +1,212 @@
+<div class="max-w-7xl m-5">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">person</mat-icon>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">{{ data.reservation.name }}</h2>
+        <div class="flex items-center gap-3 text-sm text-gray-600 mt-1">
+          <span class="flex items-center gap-1">
+            <mat-icon class="!text-[16px] !w-4 !h-4">phone</mat-icon>
+            {{ data.reservation.phone || 'N/A' }}
+          </span>
+          <span class="flex items-center gap-1">
+            <mat-icon class="!text-[16px] !w-4 !h-4">email</mat-icon>
+            {{ data.reservation.email }}
+          </span>
+        </div>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="!text-gray-500 hover:!text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2">
+
+    <!-- LEFT COLUMN - Reservation Details -->
+    <div class="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-6">
+      <!-- Top Actions (Edit + Print) -->
+      <div class="flex flex-wrap !items-end gap-3 mb-4">
+        <button mat-raised-button
+                (click)="editReservation()"
+                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
+          <mat-icon class="!mr-2 !text-[20px]">edit</mat-icon>
+          Edit Reservation
+        </button>
+
+        <button mat-raised-button
+                (click)="printReservation()"
+                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
+          <mat-icon class="!mr-2 !text-[20px]">print</mat-icon>
+          Print
+        </button>
+      </div>
+
+      <!-- Booking Information -->
+        <div class="grid grid-cols-2 mb-6" style="gap: 0.5rem 2rem;">
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Check-In:</span>
+            <span>{{ data.reservation.checkInDate | date:'MMMM d, y' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Check-Out:</span>
+            <span>{{ data.reservation.checkOutDate | date:'MMMM d, y' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Total Guests:</span>
+            <span>{{ data.reservation.numberOfGuests || 'N/A' }}</span>
+          </div>
+          <div class="flex" style="gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 100px;">Room Count:</span>
+            <span>{{ data.reservation.roomCount || data.reservation.roomDetails.length || 'N/A' }}</span>
+          </div>
+        </div>
+
+        <!-- Room Details Table -->
+      <table style="width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed;">
+        <thead>
+        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 4%;"></th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 18%;">Room Type</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 15%;">Room Number</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 13%;">Rate</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Adults</th>
+          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 13%;">Children</th>
+          <th style="padding: 10px; text-align: center; font-weight: 600; color: #374151; border: 1px solid #e5e7eb; width: 12%;">Action</th>
+        </tr>
+        </thead>
+
+        <tbody *ngIf="data?.reservation?.roomDetails && data.reservation.roomDetails.length > 0; else noRoomsBody">
+          <tr *ngFor="let room of data.reservation.roomDetails; let i = index"
+              [style.backgroundColor]="i % 2 === 0 ? '#ffffff' : '#f9fafb'"
+              style="border-bottom: 1px solid #e5e7eb; height: 45px;">
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #6b7280;">{{ i + 1 }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #374151;">{{ room.roomType || 'N/A' }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; font-weight: 600; color: #111827;">{{ room.roomNumber || 'N/A' }}</td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; color: #374151;">
+              {{ room.roomRate != null ? (room.roomRate | number:'1.2-2') : 'N/A' }}
+            </td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">
+              {{ room.numberOfAdults != null ? room.numberOfAdults : 'N/A' }}
+            </td>
+            <td style="padding: 8px 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">
+              {{ room.numberOfChildren != null ? room.numberOfChildren : 'N/A' }}
+            </td>
+            <td style="padding: 4px; border: 1px solid #e5e7eb; text-align: center; white-space: nowrap;">
+              <div class="flex items-center justify-center gap-0">
+                <button mat-icon-button
+                        (click)="moveRoom(room, i)"
+                        matTooltip="Move to another room"
+                        class="!text-indigo-600 hover:!text-indigo-800 !w-7 !h-7 !flex !items-center !justify-center">
+                  <mat-icon class="!text-[18px] !m-0">swap_horiz</mat-icon>
+                </button>
+
+                <button mat-icon-button
+                        (click)="removeRoom(room, i)"
+                        matTooltip="Remove room"
+                        class="!text-red-600 hover:!text-red-800 !w-7 !h-7 !flex !items-center !justify-center">
+                  <mat-icon class="!text-[18px] !m-0">cancel</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+
+        <ng-template #noRoomsBody>
+          <tbody>
+          <tr>
+            <td colspan="7"
+                style="padding: 20px; border: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 13px; background: #f9fafb; border-left: 4px solid #d1d5db;">
+              No room details available
+            </td>
+          </tr>
+          </tbody>
+        </ng-template>
+      </table>
+
+        <!-- Total & Status -->
+        <div class="grid grid-cols-1 mb-6 mt-6" style="gap: 0.5rem 2rem;">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <span class="font-semibold" style="min-width: 120px;">Total Amount:</span>
+            <span>${{ data.reservation.totalAmount.toFixed(2) }}</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <span class="font-semibold" style="min-width: 120px;">Status:</span>
+            <span [ngStyle]="{
+                  'background-color': getStatusBgColor(),
+                  'color': getStatusTextColor(),
+                  'display': 'inline-block',
+                  'padding': '0.25rem 0.75rem',
+                  'border-radius': '9999px',
+                  'font-size': '12px',
+                  'font-weight': '600'
+                }">
+              {{ data.reservation.status }}
+            </span>
+          </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN - Actions Dropdown -->
+    <div class="lg:col-span-1 lg:pl-6">
+      <button mat-stroked-button matSuffix
+              [matMenuTriggerFor]="actionsMenu"
+              class="w-3/4 !px-6 !py-2 !text-black !rounded-lg !shadow-md hover:!shadow-lg !transition-all">
+        More Options
+        <mat-icon>more_vert</mat-icon>
+      </button>
+
+      <mat-menu #actionsMenu="matMenu" class="!w-full">
+          <button mat-menu-item (click)="assignRoom()" *ngIf="shouldShowActionButtons()">
+            <mat-icon>assign</mat-icon>
+            <span>Assign Room</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>login</mat-icon>
+            <span>Check In</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>logout</mat-icon>
+            <span>Check Out</span>
+          </button>
+          <button mat-menu-item >
+            <mat-icon>cancel</mat-icon>
+            <span>Cancel Reservation</span>
+          </button>
+          <mat-divider></mat-divider>
+          <button mat-menu-item >
+            <mat-icon>email</mat-icon>
+            <span>Send Confirmation</span>
+          </button>
+          <button mat-menu-item>
+            <mat-icon>note_add</mat-icon>
+            <span>Add Note</span>
+          </button>
+        </mat-menu>
+
+      <app-assign-room
+        *ngIf="showAssignRoomForm"
+        [reservationId]="data.reservation.id"
+        [checkInDate]="originalCheckInDate!"
+        [checkOutDate]="originalCheckOutDate!"
+        [propertyCode]="propertyCode"
+        (roomAssigned)="onRoomAssigned($event)"
+        (cancelled)="onAssignRoomCancelled()">
+      </app-assign-room>
+      <app-move-room
+        *ngIf="showMoveRoomForm && selectedRoomForMove"
+        [currentRoom]="selectedRoomForMove"
+        [reservationId]="data.reservation.id"
+        [checkInDate]="originalCheckInDate!"
+        [checkOutDate]="originalCheckOutDate!"
+        [propertyCode]="propertyCode"
+        (roomMoved)="onRoomMoved($event)"
+        (cancelled)="onMoveRoomCancelled()">
+      </app-move-room>
+    </div>
+
+  </div>
+</div>

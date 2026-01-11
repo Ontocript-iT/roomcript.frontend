@@ -1,8 +1,41 @@
-// Material form field customization
 ::ng-deep {
   .mat-mdc-form-field {
+    &.mat-mdc-form-field-type-mat-input,
+    &.mat-mdc-form-field-type-mat-select {
+      .mat-mdc-text-field-wrapper {
+        height: 42px !important;
+        padding-bottom: 0 !important;
+      }
+
+      .mat-mdc-form-field-infix {
+        padding-top: 12px !important;
+        padding-bottom: 8px !important;
+        min-height: 40px !important;
+      }
+
+      .mat-mdc-floating-label {
+        font-size: 13px !important;
+        top: 20px !important;
+      }
+
+      .mat-mdc-floating-label.mdc-floating-label--float-above {
+        font-size: 11px !important;
+        top: 20px !important;
+      }
+
+      .mat-mdc-input-element {
+        font-size: 13px !important;
+        padding: 0 !important;
+        margin-top: 4px !important;
+      }
+
+      .mat-mdc-select {
+        font-size: 13px !important;
+      }
+    }
+
     .mat-mdc-text-field-wrapper {
-      background-color: #f9fafb;
+      background-color: #ffffff !important;
       border-radius: 8px;
     }
 
@@ -31,38 +64,30 @@
     }
   }
 
-  // Select panel styling
-  .mat-mdc-select-panel {
-    border-radius: 12px !important;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  .mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 
-  // Spinner color
-  .mat-progress-spinner circle {
-    stroke: white !important;
+  // Reduce prefix/suffix spacing
+  .mat-mdc-form-field-icon-prefix,
+  .mat-mdc-form-field-icon-suffix {
+    padding: 0 8px !important;
   }
-}
 
-// Section dividers with animation
-.mb-8 {
-  animation: fadeInUp 0.5s ease-out;
-}
+  .mat-mdc-checkbox {
+    .mdc-checkbox__background {
+      border-color: #d1d5db !important;
+    }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+    &.mat-mdc-checkbox-checked {
+      .mdc-checkbox__background {
+        background-color: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+      }
+    }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-// Smooth scrolling
-:host {
-  display: block;
-  scroll-behavior: smooth;
 }
 
 // White background for fill appearance

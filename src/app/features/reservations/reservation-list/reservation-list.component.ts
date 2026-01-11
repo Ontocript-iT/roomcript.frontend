@@ -10,12 +10,13 @@ import { Reservation } from '../../../core/models/reservation.model';
 import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTooltipModule} from '@angular/material/tooltip';
-import {PropertyUser} from '../../../core/services/user.service';
 import Swal from 'sweetalert2';
 import {MatDialog, MatDialogModule} from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UpdateReservation } from '../update-reservation/update-reservation';
 import {MatNativeDateModule} from '@angular/material/core';
+import {FilterReservation} from '../filter-reservation/filter-reservation';
+import {ViewReservation} from '../view-reservation/view-reservation';
 
 @Component({
   selector: 'app-reservation-list',
@@ -33,7 +34,8 @@ import {MatNativeDateModule} from '@angular/material/core';
     MatTooltipModule,
     MatSnackBarModule,
     MatDialogModule,
-    MatNativeDateModule
+    MatNativeDateModule,
+    FilterReservation,
   ],
   templateUrl: './reservation-list.component.html',
   styleUrls: ['./reservation-list.component.scss']
@@ -42,6 +44,8 @@ export class ReservationListComponent implements OnInit {
   reservations: Reservation[] = [];
   isLoading = false;
   propertyCode = localStorage.getItem("propertyCode") || '';
+  showFilter = false;
+  private style: any;
 
   constructor(
     private reservationService: ReservationService,
@@ -59,7 +63,7 @@ export class ReservationListComponent implements OnInit {
 
     this.reservationService.getReservations(this.propertyCode).subscribe({
       next: (data) => {
-        this.reservations = data;
+        this.reservations = this.sortReservations(data);
         this.isLoading = false;
       },
       error: (err) => {
@@ -69,126 +73,126 @@ export class ReservationListComponent implements OnInit {
     });
   }
 
-  viewReservation(reservation: Reservation): void {
-    const roomsHtml = reservation.roomDetails && reservation.roomDetails.length > 0
-      ? `
-    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px;">
-      <thead>
-        <tr style="background-color: #f3f4f6; border-bottom: 2px solid #e5e7eb;">
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">#</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Room Number</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Room Type</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Rate</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Adults</th>
-          <th style="padding: 10px; text-align: left; font-weight: 600; color: #374151; border: 1px solid #e5e7eb;">Children</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${reservation.roomDetails.map((room, index) => `
-          <tr style="background-color: ${index % 2 === 0 ? '#ffffff' : '#f9fafb'}; border-bottom: 1px solid #e5e7eb;">
-            <td style="padding: 10px; border: 1px solid #e5e7eb; color: #6b7280;">${index + 1}</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: 600; color: #111827;">${room.roomNumber}</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; color: #374151;">${room.roomType}</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; color: #374151;">$${room.roomRate?.toFixed(2)}</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">${room.numberOfAdults ?? 'N/A'}</td>
-            <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center; color: #374151;">${room.numberOfChildren ?? 'N/A'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `
-      : '<p class="text-gray-500 text-sm">No room details available</p>';
+  fetchFilteredReservations(filterParams: any): void {
+    this.isLoading = true;
 
-    Swal.fire({
-      title: 'Reservation Details',
-      html: `
-      <div class="text-left space-y-2" style="font-size: 14px;">
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-          <div class="flex">
-            <span class="font-semibold">Name: </span>
-            <span>${reservation.name}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold">Email: </span>
-            <span>${reservation.email}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold">Phone: </span>
-            <span>${reservation.phone || 'N/A'}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold">Address: </span>
-            <span>${reservation.address || 'N/A'}</span>
-          </div>
-        </div>
-
-        <hr class="my-3 border-gray-300" />
-
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-          <div class="flex">
-            <span class="font-semibold">Check-In: </span>
-            <span>${new Date(reservation.checkInDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold">Check-Out: </span>
-            <span>${new Date(reservation.checkOutDate).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
-          </div>
-
-          <div class="flex mb-2">
-            <span class="font-semibold">Total Guests: </span>
-            <span>${reservation.numberOfGuests || 'N/A'}</span>
-          </div>
-
-          <div class="flex mb-2">
-            <span class="font-semibold">Room Count: </span>
-            <span>${reservation.roomCount || reservation.roomDetails?.length || 'N/A'}</span>
-          </div>
-        </div>
-        <div class="mb-3">
-          ${roomsHtml}
-        </div>
-
-        <hr class="my-3 border-gray-300" />
-
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Total Amount:</span>
-          <span>$${reservation.totalAmount?.toFixed(2)}</span>
-        </div>
-
-        <div class="flex mb-2">
-          <span class="font-semibold w-40">Status:</span>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-              reservation.status === 'CONFIRMED' ? 'bg-green-200 text-green-800' :
-                reservation.status === 'PENDING' ? 'bg-yellow-200 text-yellow-800' :
-                  'bg-red-200 text-red-800'}">
-            ${reservation.status}
-          </span>
-        </div>
-      </div>
-    `,
-      icon: 'info',
-      showCancelButton: false,
-      showConfirmButton: true,
-      confirmButtonText: 'Close',
-      confirmButtonColor: '#6b7280',
-      width: '800px',
-      customClass: {
-        popup: 'rounded-xl',
-        title: 'text-2xl font-bold text-gray-800',
-        htmlContainer: 'text-sm',
-        confirmButton: 'rounded-lg px-6 py-2 font-semibold'
+    this.reservationService.getFilteredReservations(filterParams, this.propertyCode).subscribe({
+      next: (data) => {
+        this.reservations = this.sortReservations(data);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error fetching filtered reservations', err);
+        this.reservations = [];
       }
     });
+  }
+
+  private sortReservations(reservations: Reservation[]): Reservation[] {
+
+    return reservations.sort((a, b) => {
+      const statusA = (a.status || '').toUpperCase().trim();
+      const statusB = (b.status || '').toUpperCase().trim();
+
+      if (statusA === 'CANCELLED' && statusB !== 'CANCELLED') {
+        return 1;
+      }
+      if (statusB === 'CANCELLED' && statusA !== 'CANCELLED') {
+        return -1;
+      }
+
+      const statusPriority: { [key: string]: number } = {
+        'CONFIRMED': 1,
+        'PENDING': 2,
+        'CANCELLED': 3
+      };
+
+      const priorityA = statusPriority[statusA] || 2;
+      const priorityB = statusPriority[statusB] || 2;
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      const dateA = new Date(a.checkInDate).getTime();
+      const dateB = new Date(b.checkInDate).getTime();
+      return dateA - dateB;
+    });
+  }
+
+  toggleFilter(): void {
+    this.showFilter = !this.showFilter;
+
+    // Reload all reservations when filter is closed
+    if (!this.showFilter) {
+      this.loadReservations();
+    }
+  }
+
+  viewReservation(reservation: Reservation): void {
+    this.openViewReservationDialog(reservation);
+  }
+
+  openViewReservationDialog(reservation: Reservation): void {
+    const dialogRef = this.dialog.open(ViewReservation, {
+      width: '60vw',
+      maxWidth: '100vw',
+      height: '100vh',
+      maxHeight: '100vh',
+      data: { reservation },
+      disableClose: false,
+      panelClass: 'right-side-panel-dialog',
+      position: {
+        top: '0',
+        right: '0'
+      },
+      hasBackdrop: true,
+      backdropClass: 'dialog-backdrop-dark',
+      autoFocus: false,
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      // Optionally handle any actions after the dialog closes
+    });
+  }
+
+  private printReservationDetails(content: string): void {
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+    if (printWindow) {
+      printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="">
+        <head>
+          <title>Reservation Details</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 20px;
+            }
+            @media print {
+              body {
+                margin: 0;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          ${content}
+        </body>
+      </html>
+    `);
+
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
+    }
   }
 
   getRoomNumbers(reservation: Reservation): string {
@@ -209,37 +213,153 @@ export class ReservationListComponent implements OnInit {
   }
 
   editReservation(reservation: Reservation): void {
-    this.openUpdateDialog(reservation);
-  }
+    if (!reservation.id) {
+      this.showError('Invalid reservation ID');
+      console.error('Reservation missing ID:', reservation);
+      return;
+    }
 
-  openUpdateDialog(reservation: Reservation): void {
-    const dialogRef = this.dialog.open(UpdateReservation, {
-      width: '1200px',
-      maxWidth: '95vw',
-      data: { reservation: reservation },
-      disableClose: true,
-      panelClass: 'swal-style-dialog',
+    console.log('Navigating to edit reservation:', reservation.id);
+
+    this.router.navigate(['/reservations/edit', reservation.id], {
+      state: { reservation: reservation }
     });
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.loadReservations();
-        this.showSuccess('Reservation updated successfully!');
+  }
+
+
+    cancelReservation(reservation: any): void {
+    const cancellationReasons = [
+      'Guest request',
+      'Duplicate reservation',
+      'Unconfirmed reservation',
+      'Other'
+    ];
+
+    // Build the select HTML options
+    const optionsHtml = cancellationReasons.map(reason =>
+      `<option value="${reason}">${reason}</option>`
+    ).join('');
+
+    Swal.fire({
+      title: 'Cancel Reservation',
+      html: `
+    <div class="text-left space-y-2" style="font-size: 14px;">
+      <div class="w-full mb-2">
+        <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700">Cancellation Reason</label>
+        <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="" disabled selected>Select a reason</option>
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="mt-4 text-center">
+        Are you sure you want to cancel reservation for <strong>${reservation.name}</strong>?
+      </div>
+    </div>
+  `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Cancel',
+      cancelButtonText: 'No',
+      customClass: {
+        popup: 'text-xs',
+        title: 'text-sm font-bold',
+        htmlContainer: 'text-xs',
+        confirmButton: 'text-xs px-4 py-2 rounded-lg',
+        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+      },
+      preConfirm: () => {
+        const select = (Swal.getPopup() as HTMLElement).querySelector<HTMLSelectElement>('#cancelReasonSelect');
+        if (!select || !select.value) {
+          Swal.showValidationMessage('Please select a cancellation reason');
+          return null;
+        }
+        return select.value;
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        this.reservationService.cancelReservation(reservation.id, result.value).subscribe({
+          next: () => {
+            this.showSuccess(`Reservation for ${reservation.name} cancelled successfully.`);
+            this.loadReservations();
+          },
+          error: (error) => {
+            console.error('Cancel reservation error:', error);
+            this.showError('Failed to cancel reservation');
+          }
+        });
       }
     });
   }
 
-  deleteReservation(id: number): void {
-    if (confirm('Are you sure you want to cancel this reservation?')) {
-      this.reservationService.deleteReservation(id).subscribe({
-        next: () => {
-          this.loadReservations();
-        },
-        error: (err) => {
-          console.error('Error canceling reservation', err);
-        }
-      });
-    }
+  onCheckIn(reservation: any): void {
+    Swal.fire({
+      title: 'Check-In Confirmation',
+      html: `Check in ${reservation.name}?`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Check In',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'text-sm',
+        title: 'text-base font-bold',
+        htmlContainer: 'text-xs',
+        confirmButton: 'text-xs px-4 py-2 rounded-lg',
+        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.reservationService.updateCheckInAndCheckOutStatus(
+          reservation.id,
+          true,
+          false
+        ).subscribe({
+          next: () => {
+            this.showSuccess(`${reservation.name} checked in successfully`);
+            this.loadReservations();
+          },
+          error: (error) => {
+            console.error('Error message:', error.error);
+
+            const errorMsg = error.error?.message || error.error?.body || 'Failed to check in guest';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
+  }
+
+  onCheckOut(reservation: any): void {
+    Swal.fire({
+      title: 'Check-Out Confirmation',
+      html: `Check out ${reservation.name}?`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Check Out',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.reservationService.updateCheckInAndCheckOutStatus(
+          reservation.id,
+          true,  // isCheckedIn (keep as true)
+          true   // isCheckedOut
+        ).subscribe({
+          next: () => {
+            this.showSuccess(`${reservation.name} checked out successfully`);
+            this.loadReservations();
+          },
+          error: (error) => {
+            this.showError('Failed to check out guest');
+          }
+        });
+      }
+    });
   }
 
   getStatusColor(status: string): string {

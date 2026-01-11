@@ -24,7 +24,7 @@
             <form [formGroup]="reservationForm" (ngSubmit)="onSubmit()">
 
               <!-- Reservation Details Section -->
-              <div class="mb-8 border-b border-gray-300">
+              <div class="mb-2 border-b border-gray-300">
 
                 <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
                   <!-- Check In Date -->
@@ -32,6 +32,7 @@
                     <mat-label>Check-In Date</mat-label>
                     <input matInput [matDatepicker]="checkInPicker" formControlName="checkIn" placeholder="Select date">
                     <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #checkInPicker></mat-datepicker><mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
                     <mat-datepicker #checkInPicker></mat-datepicker>
                     <mat-error *ngIf="reservationForm.get('checkIn')?.hasError('required')">
                       Check-in date is required
@@ -59,37 +60,16 @@
                       placeholder="0"
                       readonly
                       class="pr-10 text-left">
-
-                    <!-- Stacked increment/decrement buttons -->
-                    <div matSuffix class="flex flex-col gap-0 mb-1">
-                      <button
-                        mat-button
-                        type="button"
-                        (click)="incrementRooms()"
-                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white"
-                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
-                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
-                      </button>
-                      <button
-                        mat-button
-                        type="button"
-                        (click)="decrementRooms()"
-                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white"
-                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
-                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
-                      </button>
-                    </div>
-
-                    <mat-error *ngIf="reservationForm.get('numberOfRooms')?.hasError('required')">
-                      Number of rooms is required
-                    </mat-error>
                   </mat-form-field>
 
                   <!-- Reservation Type -->
                   <mat-form-field appearance="fill">
                     <mat-label>Reservation Type</mat-label>
                     <mat-select formControlName="reservationType">
-                      <mat-option *ngFor="let resType of availableReservationTypes" [value]="resType.value">
+                      <mat-option
+                        *ngFor="let resType of availableReservationTypes"
+                        [value]="resType.value"
+                        class="!text-xs">
                           {{ resType.label }}
                       </mat-option>
                     </mat-select>
@@ -105,7 +85,10 @@
                   <mat-form-field appearance="fill">
                     <mat-label>Booking Source</mat-label>
                     <mat-select formControlName="bookingSource">
-                      <mat-option *ngFor="let bSource of availableBookingSources" [value]="bSource.value">
+                      <mat-option
+                        *ngFor="let bSource of availableBookingSources"
+                        [value]="bSource.value"
+                        class="!text-xs">
                         {{ bSource.label }}
                       </mat-option>
                     </mat-select>
@@ -117,14 +100,23 @@
               </div>
 
               <!-- Room Details Section -->
-              <div class="mb-8 pb-4 border-b border-gray-300">
-                <div class="flex items-center gap-2 mb-4">
-                  <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+              <div class="mb-2 pb-4 border-b border-gray-300">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                      <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">hotel</mat-icon>
+                    </div>
+                    <h2 class="text-md font-semibold text-gray-800">Room Details</h2>
                   </div>
-                  <h2 class="text-md font-semibold text-gray-800">Room Details</h2>
-                </div>
 
+                  <!-- Group Reservation Checkbox (Right Side) -->
+                  <mat-checkbox
+                    formControlName="isGroupReservation"
+                    class="!m-0">
+                    <span class="text-sm font-medium text-gray-700 mr-16">Group Reservation</span>
+                  </mat-checkbox>
+
+                </div>
                 <!-- Dynamic Room Entries -->
                 <div formArrayName="rooms">
                   <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-1">
@@ -139,7 +131,7 @@
                             *ngFor="let roomType of availableRoomTypes"
                             [value]="roomType.value"
                             [disabled]="roomType.availableCount === 0">
-                            <span class="room-label">{{ roomType.label }}</span>
+                            <span class="room-label text-xs">{{ roomType.label }}</span>
                             <span class="room-count-badge">{{ roomType.availableCount }}</span>
                           </mat-option>
                         </mat-select>
@@ -156,7 +148,8 @@
                           </mat-option>
                           <mat-option
                             *ngFor="let room of getAvailableRoomsForIndex(i)"
-                            [value]="room.id">
+                            [value]="room.id"
+                            class="!text-xs">
                             {{ room.roomNumber }}
                           </mat-option>
                         </mat-select>
@@ -233,7 +226,7 @@
                         </button>
                       </mat-form-field>
 
-                      <!-- Remove Button (Right Side) - Only show for rows after first -->
+                      <!-- Remove Button  -->
                       <div class="lg:col-span-1 flex items-center justify-start ml-2" style="height: 56px;">
                         <button
                           mat-icon-button
@@ -250,16 +243,139 @@
                 </div>
 
                 <!-- Add Room Button -->
-                <div class="flex justify-start mt-2">
-                  <button mat-raised-button type="button" (click)="addRoom()" class="!bg-purple-600 !text-white hover:!bg-purple-700">
-                    <mat-icon class="!mr-2">add</mat-icon>
-                    Add Room
-                  </button>
+                <div class="mt-2">
+                  <div class="flex justify-start items-center gap-3">
+                    <div class="mt-0 mb-4">
+                      <!-- Add Room Button -->
+                      <button
+                        mat-raised-button
+                        type="button"
+                        (click)="addRoom()"
+                        [disabled]="!canAddRoom"
+                        [class]="canAddRoom
+          ? '!bg-purple-600 !text-white hover:!bg-purple-700'
+          : '!bg-gray-300 !text-gray-500 !cursor-not-allowed'">
+                        <mat-icon class="!mr-2">add</mat-icon>
+                        Add Room
+                      </button>
+                    </div>
+
+                    <!-- Add Discount Button (Show when field is hidden) -->
+                    <div class="mb-4">
+                      <button
+                        *ngIf="!showDiscountField"
+                        mat-stroked-button
+                        type="button"
+                        (click)="toggleDiscountField()"
+                        class="!bg-purple-600 !text-white hover:!bg-purple-700">
+                        <mat-icon class="!mr-2">add</mat-icon>
+                        Add Discount
+                      </button>
+                    </div>
+
+                    <!-- Discount Field -->
+                    <mat-form-field
+                      *ngIf="showDiscountField"
+                      appearance="fill"
+                      class="!w-56">
+                      <mat-label>
+                        {{ discountType === 'percentage' ? 'Discount %' : 'Discount Amount' }}
+                      </mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        formControlName="discount"
+                        [placeholder]="discountType === 'percentage' ? '0' : '0.00'"
+                        min="0"
+                        [max]="discountType === 'percentage' ? 100 : 999999"
+                        [step]="discountType === 'percentage' ? 0.5 : 0.01">
+
+                      <!-- Toggle Button as Suffix -->
+                      <button
+                        mat-icon-button
+                        matSuffix
+                        type="button"
+                        (click)="toggleDiscountType()"
+                        [matTooltip]="discountType === 'percentage' ? 'Switch to Amount' : 'Switch to Percentage'"
+                        class="!text-purple-600 hover:!bg-purple-50">
+                        <mat-icon *ngIf="discountType === 'percentage'">percent</mat-icon>
+                        <mat-icon *ngIf="discountType === 'amount'">attach_money</mat-icon>
+                      </button>
+
+                      <mat-error *ngIf="reservationForm.get('discount')?.hasError('min')">
+                        Min 0
+                      </mat-error>
+                      <mat-error *ngIf="reservationForm.get('discount')?.hasError('max') && discountType === 'percentage'">
+                        Max 100%
+                      </mat-error>
+                    </mat-form-field>
+
+                    <!-- Remove Discount Button-->
+                    <button
+                      *ngIf="showDiscountField"
+                      mat-icon-button
+                      type="button"
+                      (click)="removeDiscount()"
+                      class="!text-red-500 hover:!bg-red-50"
+                      matTooltip="Remove Discount">
+                      <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+
+                    <!-- Add Advance Button (Show when field is hidden) -->
+                    <div class="mb-4">
+                      <button
+                        *ngIf="!showAdvanceField"
+                        mat-stroked-button
+                        type="button"
+                        (click)="toggleAdvanceField()"
+                        class="!bg-purple-600 !text-white hover:!bg-green-700">
+                        <mat-icon class="!mr-2">add</mat-icon>
+                        Add Advance
+                      </button>
+                    </div>
+
+                    <!-- Advance Field -->
+                    <mat-form-field
+                      *ngIf="showAdvanceField"
+                      appearance="fill"
+                      class="!w-48">
+                      <mat-label>Advance Payment</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        formControlName="advance"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01">
+                      <mat-error *ngIf="reservationForm.get('advance')?.hasError('min')">
+                        Min 0
+                      </mat-error>
+                    </mat-form-field>
+
+                    <!-- Remove Advance Button-->
+                    <button
+                      *ngIf="showAdvanceField"
+                      mat-icon-button
+                      type="button"
+                      (click)="removeAdvance()"
+                      class="!text-red-500 hover:!bg-red-50"
+                      matTooltip="Remove Advance">
+                      <mat-icon>remove_circle_outline</mat-icon>
+                    </button>
+                  </div>
                 </div>
+
+                  <!-- Helper text on next line -->
+                  <div *ngIf="!canAddRoom" class="mt-2 ml-1">
+                    <span class="text-sm text-gray-500 flex items-center">
+                      <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">info</mat-icon>
+                      Enable "Group Reservation" to add multiple rooms
+                    </span>
+                  </div>
               </div>
 
               <!-- Guest Information Section -->
-              <div class="mb-8">
+              <div class="mb-2 border-b border-gray-300">
                 <div class="flex items-center gap-2 mb-6">
                   <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
                     <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">person</mat-icon>
@@ -269,7 +385,7 @@
 
                 <!-- Row 1 -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                  <!-- Guest Name (Title + Name) -->
+                  <!-- Guest Name (Title + Name) with Autocomplete -->
                   <div class="lg:col-span-1 flex gap-0">
                     <!-- Title Select -->
                     <mat-form-field appearance="fill" class="!w-30" style="border-radius: 4px 0 0 4px;">
@@ -277,17 +393,96 @@
                         <mat-option value="MR">Mr.</mat-option>
                         <mat-option value="MRS">Mrs.</mat-option>
                         <mat-option value="MS">Ms.</mat-option>
+                        <mat-option value="DR">Dr.</mat-option>
+                        <mat-option value="PROF">Prof.</mat-option>
                       </mat-select>
                     </mat-form-field>
 
-                    <!-- Name Input -->
+                    <!-- Name Input with Autocomplete -->
                     <mat-form-field appearance="fill" class="flex-1" style="border-radius: 0 4px 4px 0;">
                       <mat-label>Guest Name</mat-label>
-                      <input matInput formControlName="guestName" placeholder="Full Name">
+                      <input
+                        matInput
+                        formControlName="guestName"
+                        placeholder="Start typing guest name..."
+                        [matAutocomplete]="guestAuto"
+                        autocomplete="off">
+
+                      <!-- Loading spinner -->
+                      <mat-spinner
+                        *ngIf="isLoadingGuests"
+                        matSuffix
+                        diameter="20"
+                        class="!inline-block">
+                      </mat-spinner>
+
+                      <!-- Search icon when not loading -->
+                      <mat-icon
+                        *ngIf="!isLoadingGuests"
+                        matSuffix
+                        class="!text-gray-400">
+                        search
+                      </mat-icon>
+
                       <mat-error *ngIf="reservationForm.get('guestName')?.hasError('required')">
                         Guest name is required
                       </mat-error>
                     </mat-form-field>
+
+                    <!-- Autocomplete Panel -->
+                    <mat-autocomplete
+                      #guestAuto="matAutocomplete"
+                      [displayWith]="displayGuestName.bind(this)"
+                      (optionSelected)="onGuestSelected($event)"
+                      class="guest-autocomplete-panel">
+
+                      <!-- Guest Options -->
+                      <mat-option
+                        *ngFor="let guest of filteredGuests$ | async"
+                        [value]="guest"
+                        class="!py-3 !min-h-[70px]">
+                        <div class="flex items-start gap-3">
+                          <!-- Guest Icon -->
+                          <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                            <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">person</mat-icon>
+                          </div>
+
+                          <!-- Guest Info -->
+                          <div class="flex flex-col flex-1 min-w-0">
+              <span class="font-semibold text-gray-900 text-sm truncate">
+                {{ guest.name }}
+              </span>
+                            <span class="text-xs text-gray-600 truncate" *ngIf="guest.email">
+                <mat-icon class="!w-3 !h-3 !text-[12px] !inline-block !align-middle mr-1">email</mat-icon>
+                              {{ guest.email }}
+              </span>
+                            <span class="text-xs text-gray-600 truncate" *ngIf="guest.phone">
+                <mat-icon class="!w-3 !h-3 !text-[12px] !inline-block !align-middle mr-1">phone</mat-icon>
+                              {{ guest.phone }}
+              </span>
+                          </div>
+                        </div>
+                      </mat-option>
+
+                      <!-- No results message -->
+                      <mat-option
+                        *ngIf="(filteredGuests$ | async)?.length === 0 && !isLoadingGuests"
+                        disabled
+                        class="!py-4">
+                        <div class="flex items-center justify-center gap-2 text-gray-500">
+                          <mat-icon class="!text-gray-400">search_off</mat-icon>
+                          <span class="italic">No guests found</span>
+                        </div>
+                      </mat-option>
+
+                      <!-- Loading message -->
+                      <mat-option *ngIf="isLoadingGuests" disabled class="!py-4">
+                        <div class="flex items-center justify-center gap-2 text-gray-500">
+                          <mat-spinner diameter="20"></mat-spinner>
+                          <span>Loading guests...</span>
+                        </div>
+                      </mat-option>
+                    </mat-autocomplete>
                   </div>
 
                   <!-- Mobile -->
@@ -300,29 +495,38 @@
                   </mat-form-field>
                 </div>
 
-                <!-- Row 2 -->
+                <!-- Row 2 - Email and Passport/NIC -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                  <!-- Email -->
+                  <!-- Email (Now Optional) -->
                   <mat-form-field appearance="fill">
                     <mat-label>Email</mat-label>
                     <input matInput type="email" formControlName="email" placeholder="guest@example.com">
-                    <mat-error *ngIf="reservationForm.get('email')?.hasError('required')">
-                      Email is required
-                    </mat-error>
                     <mat-error *ngIf="reservationForm.get('email')?.hasError('email')">
                       Invalid email format
                     </mat-error>
                   </mat-form-field>
 
-                  <!-- Address -->
+                  <!-- Passport/NIC (Required) -->
+                  <mat-form-field appearance="fill">
+                    <mat-label>Passport/NIC</mat-label>
+                    <input matInput formControlName="passportNic" placeholder="Enter passport or NIC number">
+                    <mat-icon matSuffix class="!text-gray-400">badge</mat-icon>
+                    <mat-error *ngIf="reservationForm.get('passportNic')?.hasError('required')">
+                      Passport/NIC is required
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+
+                <!-- Row 3 - Address -->
+                <div class="grid grid-cols-1 gap-4 mb-4">
                   <mat-form-field appearance="fill">
                     <mat-label>Address</mat-label>
                     <input matInput formControlName="address" placeholder="Street Address">
                   </mat-form-field>
                 </div>
 
-                <!-- Row 3 -->
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <!-- Row 4 - Country, State, City, Zip -->
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-4">
                   <!-- Country -->
                   <mat-form-field appearance="fill">
                     <mat-label>Country</mat-label>
@@ -347,34 +551,148 @@
                     <input matInput formControlName="zipCode" placeholder="12345">
                   </mat-form-field>
                 </div>
+
+                <!-- Row 5 - Remarks (Optional, Full Width) -->
+                <div class="grid grid-cols-1 gap-4">
+                  <mat-form-field appearance="fill">
+                    <mat-label>Remarks</mat-label>
+                    <textarea
+                      matInput
+                      formControlName="remarks"
+                      placeholder="Enter any additional remarks or special requests"
+                      rows="3"></textarea>
+                    <mat-icon matSuffix class="!text-gray-400">notes</mat-icon>
+                  </mat-form-field>
+                </div>
               </div>
 
-              <!-- Action Buttons -->
-              <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  (click)="onCancel()"
-                  [disabled]="isLoading"
-                  class="!h-12 !px-8 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium"
-                >
-                  <mat-icon class="!mr-2">close</mat-icon>
-                  Cancel
-                </button>
-                <button
-                  mat-raised-button
-                  type="submit"
-                  [disabled]="reservationForm.invalid || isLoading"
-                  class="!h-12 !px-8 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed"
-                >
-                  <mat-spinner
-                    *ngIf="isLoading"
-                    diameter="20"
-                    class="!inline-block !mr-2"
-                  ></mat-spinner>
-                  <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
-                  {{ isLoading ? 'Creating Reservation...' : 'Create Reservation' }}
-                </button>
+              <!-- Hold Reservation Section -->
+              <div class="mb-2">
+                <div class="flex items-center justify-between mb-6">
+
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <mat-icon class="!text-orange-600 !w-5 !h-5 !text-[20px]">schedule</mat-icon>
+                    </div>
+                    <h2 class="text-md font-semibold text-gray-800">Hold Reservation</h2>
+                  </div>
+
+                  <mat-checkbox
+                    formControlName="isOnHold"
+                    class="!m-0">
+                    <span class="text-sm font-medium text-gray-700 mr-16">Hold Reservation</span>
+                  </mat-checkbox>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div class="grid grid-cols-4 gap-2">
+
+                    <mat-form-field appearance="fill" class="col-span-3">
+                      <mat-label>Release Date</mat-label>
+                      <input
+                        matInput
+                        [matDatepicker]="releaseDatePicker"
+                        formControlName="releaseDate"
+                        placeholder="Select date">
+                      <mat-datepicker-toggle matSuffix [for]="releaseDatePicker"></mat-datepicker-toggle>
+                      <mat-datepicker #releaseDatePicker></mat-datepicker>
+                    </mat-form-field>
+
+                    <!-- Time Picker (1/4 width) -->
+                    <mat-form-field>
+                      <input
+                        matInput
+                        [ngxTimepicker]="picker"
+                        formControlName="releaseTime"
+                        readonly>
+                      <ngx-material-timepicker
+                        #picker>
+                      </ngx-material-timepicker>
+                      <mat-icon
+                        matSuffix
+                        (click)="onTimePickerIconClick(picker)">
+                        schedule
+                      </mat-icon>
+                    </mat-form-field>
+                  </div>
+
+                  <!-- Remind Before Days -->
+                  <mat-form-field appearance="fill" class="lg:col-span-1">
+                    <mat-label>Remind Before Days</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="remindDaysBeforeRelease"
+                      placeholder="0"
+                      readonly
+                      class="pr-10 text-left"
+                      min="0"
+                      max="365">
+
+                    <div matSuffix class="flex flex-col gap-0 mb-1">
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="incrementRemindBeforeDays()"
+                        [disabled]="reservationForm.get('remindDaysBeforeRelease')?.disabled"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-t !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; border-radius: 4px 4px 0 0 !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_up</mat-icon>
+                      </button>
+                      <button
+                        mat-button
+                        type="button"
+                        (click)="decrementRemindBeforeDays()"
+                        [disabled]="reservationForm.get('remindDaysBeforeRelease')?.disabled"
+                        class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-350 !rounded-b !text-white !flex !items-center !justify-center"
+                        style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px !important;">
+                        <mat-icon class="!text-black !text-base !leading-none !m-0">keyboard_arrow_down</mat-icon>
+                      </button>
+                    </div>
+
+                    <mat-error *ngIf="reservationForm.get('remindDaysBeforeRelease')?.hasError('min')">
+                      Must be 0 or greater
+                    </mat-error>
+                  </mat-form-field>
+
+                </div>
+
+                <div class="flex justify-end mb-4">
+                  <mat-checkbox
+                    formControlName="confirmationVoucher"
+                    class="!m-0"
+                    [class.opacity-50]="reservationForm.get('confirmationVoucher')?.disabled">
+                    <span class="text-sm font-medium text-gray-700">Send Confirmation Voucher</span>
+                  </mat-checkbox>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-4 pt-6 border-t border-gray-200">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="onCancel()"
+                    [disabled]="isLoading"
+                    class="!h-12 !px-8 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium"
+                  >
+                    <mat-icon class="!mr-2">close</mat-icon>
+                    Cancel
+                  </button>
+                  <button
+                    mat-raised-button
+                    type="submit"
+                    [disabled]="reservationForm.invalid || isLoading"
+                    class="!h-12 !px-8 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed"
+                  >
+                    <mat-spinner
+                      *ngIf="isLoading"
+                      diameter="20"
+                      class="!inline-block !mr-2"
+                    ></mat-spinner>
+                    <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+                    {{ isLoading ? 'Creating Reservation...' : 'Create Reservation' }}
+                  </button>
+                </div>
               </div>
             </form>
           </mat-card-content>
@@ -431,23 +749,57 @@
               </div>
             </div>
 
-            <!-- Taxes -->
+            <!-- Discount and Taxes -->
             <div class="mb-6 pb-4 border-b border-gray-200">
+              <div class="flex justify-between items-center mb-3">
+    <span class="text-sm text-gray-600">
+      Discount
+      <span *ngIf="discountType === 'percentage'">
+        ({{ reservationForm.get('discount')?.value }}%)
+      </span>
+      <span *ngIf="discountType === 'amount'">
+      </span>
+    </span>
+                <span class="text-sm font-semibold text-gray-900">
+      {{ billingSummary.discount.toFixed(2) }}
+    </span>
+              </div>
               <div class="flex justify-between items-center">
                 <span class="text-sm text-gray-600">Taxes</span>
                 <span class="text-sm font-semibold text-gray-900">
-                  {{ billingSummary.taxes.toFixed(2) }}
-                </span>
+      {{ billingSummary.taxes.toFixed(2) }}
+    </span>
               </div>
             </div>
 
             <!-- Total -->
-            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-lg">
+            <div class="space-y-3">
+              <!-- Total Amount -->
               <div class="flex justify-between items-center">
-                <span class="text-lg font-bold text-gray-800">Due Amount</span>
-                <span class="text-xl font-bold text-purple-600">
-                  {{ billingSummary.totalAmount.toFixed(2) }}
-                </span>
+                <span class="text-sm text-gray-600">Total Amount</span>
+                <span class="text-sm font-semibold text-gray-900">
+            {{ billingSummary.totalAmount.toFixed(2) }}
+          </span>
+              </div>
+
+              <!-- Advance Payment (only show if advance field is visible and has value) -->
+              <div
+                *ngIf="showAdvanceField && billingSummary.advancePayment > 0"
+                class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Advance Payment</span>
+                <span class="text-sm font-semibold text-green-600">
+            - {{ billingSummary.advancePayment.toFixed(2) }}
+          </span>
+              </div>
+
+              <!-- Divider before Due Amount -->
+              <div class="border-t border-gray-300 pt-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-lg font-bold text-gray-800">Due Amount</span>
+                  <span class="text-xl font-bold text-purple-600">
+              {{ billingSummary.balanceAmount.toFixed(2) }}
+            </span>
+                </div>
               </div>
             </div>
           </mat-card-content>

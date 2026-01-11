@@ -70,3 +70,32 @@
     height: 18px !important;
   }
 }
+
+::ng-deep .mat-mdc-option {
+  position: relative;
+  min-height: 30px !important;
+  height: 30px !important;
+
+  .room-label {
+    display: inline-block;
+    padding-right: 50px; // Make space for badge
+  }
+
+  .room-count-badge {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #E1BEE7;
+    color: #6A1B9A;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 25px;
+    text-align: center;
+  }
+  .mat-pseudo-checkbox {
+    display: none !important;
+  }
+}

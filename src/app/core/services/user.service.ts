@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import {Observable, of} from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { AllRoles} from '../models/user.model';
 
 export interface CreateUserRequest {
   username: string;
@@ -12,6 +13,7 @@ export interface CreateUserRequest {
   lastName: string;
   propertyCode: string;
   role: string;
+  roleId: number;
 }
 
 export interface PropertyUser {
@@ -40,6 +42,52 @@ export interface PropertyUser {
   firstName: string;
   lastName: string;
 }
+
+// Add these new interfaces after your existing interfaces
+export interface PropertyDetails {
+  id: number;
+  propertyCode: string;
+  propertyName: string;
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+  phone: string;
+  email: string;
+  floorCount: number | null;
+  status: string;
+  totalRooms: number;
+  createdAt: string;
+  updatedAt: string | null;
+  timeZone: string;
+  currency: string;
+}
+
+export interface UserDetails {
+  id: number;
+  userId: string;
+  email: string | null;
+  username: string;
+  propertyCode: string;
+  isPrivate: boolean;
+  dateTimeCreated: string;
+  status: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AccountResponse {
+  headers: any;
+  body: {
+    propertyDetails: PropertyDetails;
+    userDetails: UserDetails;
+    status: number;
+  };
+  statusCode: string;
+  statusCodeValue: number;
+}
+
 
 
 export interface UserResponse {
@@ -72,8 +120,6 @@ export class UserService {
   }
 
   createUser(userData: CreateUserRequest): Observable<UserResponse> {
-    console.log('Creating user with data:', userData);
-
     return this.http.post<UserResponse>(
       this.apiUrl,
       userData,
@@ -85,6 +131,29 @@ export class UserService {
     );
   }
 
+  // Add this method inside the UserService class
+getUserAccountDetails(userId: string): Observable<{ propertyDetails: PropertyDetails; userDetails: UserDetails }> {
+  const params = new HttpParams().set('userId', userId);
+  
+  return this.http.get<AccountResponse>(
+    `${environment.apiUrl}/users/getUserDetails`,
+    {
+      headers: this.getHeaders(),
+      params: params
+    }
+  ).pipe(
+    map(response => ({
+      propertyDetails: response.body.propertyDetails,
+      userDetails: response.body.userDetails
+    })),
+    catchError(error => {
+      console.error('Error fetching user account details:', error);
+      throw error;
+    })
+  );
+}
+
+
 getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
   const params = { propertyCode };
   return this.http.get<any>(
@@ -94,15 +163,9 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
       params
     }
   ).pipe(
-    tap(rawResponse => {
-      if (rawResponse && typeof rawResponse === 'object' && !Array.isArray(rawResponse)) {
-        console.log('Response keys:', Object.keys(rawResponse));
-      }
-    }),
     map(response => {
 
       if (Array.isArray(response)) {
-        console.log('✅ Response is direct array, length:', response.length);
         return response as PropertyUser[];
       }
 
@@ -121,14 +184,34 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
       }
       return [];
     }),
-    tap(users => {
-      console.log('Users count:', users.length);
-      if (users.length > 0) {
-        console.log('First user sample:', users[0]);
-      }
-    })
+    // tap(users => {
+    //   console.log('Users count:', users.length);
+    //   if (users.length > 0) {
+    //     console.log('First user sample:', users[0]);
+    //   }
+    // })
   );
 }
+
+  getAllRoles(): Observable<AllRoles[]> {
+    const url = `${environment.apiUrl}/users/getAllRoles`;
+
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map(response => {
+        if (response && response.body && Array.isArray(response.body)) {
+          return response.body as AllRoles[];
+        }
+        if (Array.isArray(response)) {
+          return response as AllRoles[];
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('Error fetching roles:', error);
+        return of([]);
+      })
+    );
+  }
 
   revokeRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
     const params = {
@@ -147,25 +230,23 @@ getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
     )
   }
 
-revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
-  const params = {
-    userId: userId.toString(),
-    propertyCode: propertyCode
-  };
+  revokeUserAccess(userId: number, propertyCode: string): Observable<any> {
+    const params = new HttpParams()
+      .set('userId', userId.toString())
+      .set('propertyCode', propertyCode);
 
-  return this.http.post(
-    `${environment.apiUrl}/properties/revoke`,
-    null,
-    {
-      headers: this.getHeaders(),
-      params: params
-    }
-  ).pipe(
-    tap(response => {
-      console.log('User access revoked:', response);
-    })
-  );
-}
+    return this.http.delete(
+      `${environment.apiUrl}/properties/revoke`,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      tap(response => {
+        console.log('User access revoked:', response);
+      })
+    );
+  }
 
   assignUserRole(userId: number, propertyCode: string, roleName: string): Observable<any> {
     return this.http.post(`${environment.apiUrl}/properties/assign?userId=${userId}&propertyCode=${propertyCode}&roleName=${roleName}`, {

@@ -1,0 +1,157 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="mx-auto">
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+            <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">hotel</mat-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">In-House Guests</h1>
+            <p class="text-gray-500 mt-1">Manage currently checked-in guests</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <button
+            mat-raised-button
+            (click)="refreshGuests()"
+            class="!h-12 !px-6 !bg-white !text-gray-700 hover:!bg-gray-50 !rounded-lg !font-semibold !shadow-md hover:!shadow-lg !transition-all !duration-300">
+            <mat-icon class="!mr-2">refresh</mat-icon>
+            Refresh
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+      <mat-card-content class="!p-0">
+
+        <div *ngIf="isLoading" class="flex items-center justify-center py-16">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoading && guests.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">hotel_class</mat-icon>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No In-House Guests</h3>
+          <p class="text-gray-500 mb-6">There are currently no checked-in guests</p>
+        </div>
+
+        <div *ngIf="!isLoading && guests.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Guest Name</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Room No.</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Phone</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Check-In</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Check-Out</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+            </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 text-xs">
+            <tr *ngFor="let guest of guests; let i = index"
+                [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'"
+                class="transition-colors duration-150">
+
+              <td class="px-4 py-3 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold shadow-md">
+                    <ng-container *ngIf="guest.name">
+                      {{ guest.name.charAt(0).toUpperCase() }}
+                    </ng-container>
+                  </div>
+                  <div class="ml-3">
+                    <div class="font-semibold text-gray-900">
+                      {{ guest.name }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800">
+                  <mat-icon class="!w-4 !h-4 !text-base mr-1 mb-1">meeting_room</mat-icon>
+                  {{ guest.roomNumber || 'N/A' }}
+                </span>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap text-gray-900">
+                <div class="flex items-center">
+                  <mat-icon class="!w-3 !h-3 !text-xs text-red-500 mr-1 mb-1">phone</mat-icon>
+                  {{ guest.phone || 'N/A' }}
+                </div>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap text-gray-900">
+                <div class="flex items-center">
+                  <mat-icon class="!w-3 !h-3 !text-xs text-red-500 mr-1 mb-1">email</mat-icon>
+                  {{ guest.email || 'N/A' }}
+                </div>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap text-gray-900">
+                <div class="flex items-center">
+                  <mat-icon class="!w-3 !h-3 !text-xs text-red-500 mr-1 mb-1">login</mat-icon>
+                  {{ guest.checkInDate ? (guest.checkInDate | date:'MMM dd, yyyy') : 'N/A' }}
+                </div>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap text-gray-900">
+                <div class="flex items-center">
+                  <mat-icon class="!w-3 !h-3 !text-xs text-red-500 mr-1 mb-1">logout</mat-icon>
+                  {{ guest.checkOutDate ? (guest.checkOutDate | date:'MMM dd, yyyy') : 'N/A' }}
+                </div>
+              </td>
+
+              <td class="px-4 py-3 whitespace-nowrap text-center">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
+                      [ngClass]="{
+                        'bg-green-100 text-green-800': guest.reservationStatus === 'CHECKED_IN' || guest.reservationStatus === 'IN_HOUSE',
+                        'bg-blue-100 text-blue-800': guest.reservationStatus === 'CONFIRMED',
+                        'bg-yellow-100 text-yellow-800': guest.reservationStatus === 'PENDING'
+                      }">
+                  {{ guest.reservationStatus || 'In-House' }}
+                </span>
+              </td>
+
+              <td class="px-2 py-2 whitespace-nowrap text-center">
+                <div class="flex items-center justify-center">
+                  <button
+                    mat-icon-button
+                    matTooltip="View Details"
+                    (click)="viewGuest(guest)"
+                    class="!transition-all !duration-200 hover:!bg-indigo-50">
+                    <mat-icon class="action-icon">visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="Check Out" (click)="checkOutGuest(guest)" class="!transition-all !duration-200 hover:!bg-red-50">
+                    <mat-icon class="action-icon">logout</mat-icon>
+                  </button>
+                  <button mat-icon-button matTooltip="More Options" [matMenuTriggerFor]="menu" class="!transition-all !duration-200 hover:!bg-gray-50">
+                    <mat-icon class="action-icon">more_vert</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="editReservation(guest)">
+                      <mat-icon>edit</mat-icon>
+                      <span>Edit Reservation</span>
+                    </button>
+                    <button mat-menu-item (click)="viewBilling(guest)">
+                      <mat-icon>receipt</mat-icon>
+                      <span>View Billing</span>
+                    </button>
+                    <button mat-menu-item (click)="changeRoom(guest)">
+                      <mat-icon>swap_horiz</mat-icon>
+                      <span>Change Room</span>
+                    </button>
+                  </mat-menu>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
