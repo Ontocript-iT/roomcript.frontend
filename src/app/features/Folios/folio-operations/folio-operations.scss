@@ -92,3 +92,13 @@
     }
   }
 }
+
+.drop-zone {
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+::ng-deep(.drop-zone.cdk-drop-list-receiving) {
+  background-image: linear-gradient(to bottom right, #eef2ff 0%, #f5f3ff 100%) !important;
+  border-color: #a855f7 !important;
+  box-shadow: 0 4px 10px rgba(88, 28, 135, 0.25) !important;
+}

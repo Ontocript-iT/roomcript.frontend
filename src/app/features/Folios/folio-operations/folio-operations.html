@@ -2,13 +2,18 @@
 <div class="bg-gray-50 border-b border-gray-200 px-6 py-2">
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+      <button type="button"
+        (click)="openPaymentForm()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
         <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
         </svg>
         <span>Payment</span>
       </button>
-      <button type="button" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+      <button
+        type="button"
+        (click)="openChargeForm()"
+        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
         <svg class="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
         </svg>
@@ -35,19 +40,19 @@
 </div>
 
 <!-- Main Content Area -->
-<div class="flex h-[calc(100vh-200px)]">
+<div class="flex h-[calc(100vh-280px)]">
   <!-- Left Folio Panel (Always Visible) -->
   <div class="w-80 bg-white border-r border-gray-200">
     <div class="h-full flex flex-col">
       <!-- Panel Header -->
-      <div class="px-4 py-2 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-        <div class="flex items-center justify-between mb-2">
+      <div class="px-4 py-1 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
             </svg>
             <h3 class="text-xs font-bold text-gray-800">Folios</h3>
-            <span class="px-1.5 py-0.5 text-[10px] font-medium bg-white text-gray-600 rounded-full">{{ folios.length }}</span>
+            <span class="px-1.5 py-0.5 text-[10px] font-medium text-gray-600 rounded-full">/ {{ folios.length }}</span>
           </div>
         </div>
         <button
@@ -73,8 +78,13 @@
         <div class="space-y-1.5" *ngIf="!loading || folios.length > 0">
           <div
             *ngFor="let folio of folios"
+            cdkDropList
+            [id]="'folio-' + folio.id"
+            [cdkDropListData]="folio.charges"
+            [cdkDropListConnectedTo]="['chargesTable']"
+            (cdkDropListDropped)="onChargeDrop($event, folio)"
             (click)="selectFolio(folio)"
-            class="p-2.5 rounded-lg cursor-pointer transition-all border-2"
+            class="p-2.5 rounded-lg cursor-pointer transition-all border-2 drop-zone"
             [class.bg-gradient-to-br]="selectedFolio?.id === folio.id"
             [class.from-indigo-50]="selectedFolio?.id === folio.id"
             [class.to-purple-50]="selectedFolio?.id === folio.id"
@@ -100,8 +110,8 @@
                   </svg>
                 </div>
                 <div>
-                  <div class="text-xs font-bold text-gray-800">{{ folio.folioNumber }}</div>
-                  <div class="text-[10px] text-gray-500">{{ folio.guestName }}</div>
+                  <div class="text-xs font-bold text-gray-800">{{ folio.guestName }}</div>
+                  <div class="text-[10px] text-gray-500">{{ folio.folioNumber }}</div>
                 </div>
               </div>
               <span *ngIf="folio.isMasterFolio" class="px-1.5 py-0.5 text-[9px] font-bold bg-purple-100 text-purple-700 rounded-full">
@@ -112,9 +122,9 @@
             <div class="flex items-center justify-between text-[10px] text-gray-600">
               <span>Balance:</span>
               <span class="font-bold"
-                    [class.text-red-600]="folio.balance > 0"
-                    [class.text-green-600]="folio.balance <= 0">
-                Rs. {{ formatCurrency(folio.balance) }}
+                    [class.text-red-600]="getFolioRealBalance(folio) > 0"
+                    [class.text-green-600]="getFolioRealBalance(folio) <= 0">
+                Rs. {{ formatCurrency(getFolioRealBalance(folio)) }}
               </span>
             </div>
           </div>
@@ -155,8 +165,8 @@
       </div>
     </div>
 
-    <!-- Content -->
-    <div *ngIf="selectedFolio && !loading" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
+    <!-- Folio Details View -->
+    <div *ngIf="selectedFolio && !loading && !showChargeForm && !showPaymentForm" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
       <!-- Info Header -->
       <div class="px-6 py-2.5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div class="flex items-center justify-between">
@@ -164,8 +174,31 @@
             <h2 class="text-sm font-bold text-gray-800">{{ selectedFolio.folioNumber }}</h2>
             <p class="text-xs text-gray-500 mt-0.5">{{ selectedFolio.guestName }}</p>
           </div>
-          <div class="text-xs text-gray-500">
-            Created by <span class="font-medium text-gray-700">{{ selectedFolio.createdBy }}</span>
+          <div class="flex items-center">
+            <button
+              *ngIf="getRealTotalPayments() > 0"
+              mat-icon-button
+              [matTooltip]="'Refund Payment'"
+              (click)="openRefundDialog()"
+              class="!text-orange-600 hover:!bg-orange-50 !transition-all !duration-200">
+              <mat-icon>money_off</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              matTooltip="{{ getRealBalance() === 0 ? 'Settle Folio' : 'Settle Folio Disabled' }}"
+              (click)="getRealBalance() === 0 ? settleFolioDialog() : null"
+              [class.disabled]="getRealBalance() !== 0"
+              class="!text-purple-600 {{ getRealBalance() === 0 ? 'hover:!bg-green-50' : 'opacity-50 cursor-not-allowed' }} !transition-all !duration-200">
+              <mat-icon>receipt_long</mat-icon>
+            </button>
+
+            <button
+              mat-icon-button
+              matTooltip="Delete Folio"
+              (click)="deleteFolio(selectedFolio)"
+              class="!text-red-600 hover:!bg-red-50 !transition-all !duration-200">
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
         </div>
       </div>
@@ -177,30 +210,30 @@
             <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
             <div class="text-xs">
               <span class="text-gray-600">Charges</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalCharges) }}</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalCharges()) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-lg border border-green-100">
             <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
             <div class="text-xs">
               <span class="text-gray-600">Payments</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(selectedFolio.totalPayments) }}</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalPayments()) }}</span>
             </div>
           </div>
           <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
-               [class.bg-red-50]="selectedFolio.balance > 0"
-               [class.border-red-100]="selectedFolio.balance > 0"
-               [class.bg-green-50]="selectedFolio.balance <= 0"
-               [class.border-green-100]="selectedFolio.balance <= 0">
+               [class.bg-red-50]="getRealBalance() > 0"
+               [class.border-red-100]="getRealBalance() > 0"
+               [class.bg-emerald-50]="getRealBalance() <= 0"
+               [class.border-emerald-100]="getRealBalance() <= 0">
             <div class="w-1.5 h-1.5 rounded-full"
-                 [class.bg-red-500]="selectedFolio.balance > 0"
-                 [class.bg-green-500]="selectedFolio.balance <= 0"></div>
+                 [class.bg-red-500]="getRealBalance() > 0"
+                 [class.bg-emerald-500]="getRealBalance() <= 0"></div>
             <div class="text-xs">
               <span class="text-gray-600">Balance</span>
               <span class="font-bold ml-1"
-                    [class.text-red-700]="selectedFolio.balance > 0"
-                    [class.text-green-700]="selectedFolio.balance <= 0">
-                {{ formatCurrency(selectedFolio.balance) }}
+                    [class.text-red-700]="getRealBalance() > 0"
+                    [class.text-emerald-700]="getRealBalance() <= 0">
+                {{ formatCurrency(getRealBalance()) }}
               </span>
             </div>
           </div>
@@ -225,28 +258,66 @@
             <th class="w-8 px-4 py-2.5"></th>
           </tr>
           </thead>
-          <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let charge of selectedFolio.charges" class="hover:bg-gray-50 transition-colors">
+          <tbody
+            cdkDropList
+            id="chargesTable"
+            [cdkDropListData]="getActiveCharges()"
+            [cdkDropListConnectedTo]="getConnectedFolioIds()"
+            class="divide-y divide-gray-100">
+
+          <tr
+            *ngFor="let charge of getActiveCharges()"
+            cdkDrag
+            [cdkDragData]="charge"
+            class="hover:bg-gray-50 transition-colors draggable-row">
+
+            <!-- ✅ Drag Preview -->
+            <ng-container *cdkDragPreview>
+              <div class="bg-white shadow-lg rounded-lg p-4 border-2 border-indigo-500 opacity-95 min-w-[400px]">
+                <div class="text-sm font-semibold text-gray-800 mb-1">{{ charge.description }}</div>
+                <div class="text-xs text-gray-500 flex items-center gap-2">
+                  <span>Rs. {{ formatCurrency(charge.totalAmount) }}</span>
+                  <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-xs">{{ charge.chargeType }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+            <!-- ✅ Drag Placeholder -->
+            <ng-container *cdkDragPlaceholder>
+              <tr class="drag-placeholder">
+                <td colspan="9" class="px-4 py-4 text-center text-gray-400">
+                  <div class="w-8 h-8 mx-auto mb-2 text-indigo-400">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  </div>
+                  <span>Moving charge...</span>
+                </td>
+              </tr>
+            </ng-container>
+
             <td class="px-4 py-2.5">
               <input type="checkbox" class="h-3.5 w-3.5 rounded border-gray-300">
             </td>
-            <td class="px-4 py-2.5 text-gray-700">{{ formatDate(charge.chargeDate) }}</td>
-            <td class="px-4 py-2.5 text-gray-700">{{ charge.id || '-' }}</td>
-            <td class="px-4 py-2.5 text-gray-700">{{ charge.chargeType }}</td>
-            <td class="px-4 py-2.5 text-gray-700">{{ charge.description }}</td>
-            <td class="px-4 py-2.5 text-center text-gray-700">{{ charge.quantity }}</td>
-            <td class="px-4 py-2.5 text-gray-700">{{ charge.postedBy }}</td>
-            <td class="px-4 py-2.5 text-right font-semibold text-gray-800">{{ formatCurrency(charge.totalAmount) }}</td>
-            <td class="px-4 py-2.5 text-right">
-              <button class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
-                </svg>
+            <td class="px-4 text-gray-700">{{ formatDate(charge.chargeDate) }}</td>
+            <td class="px-4 text-gray-700">{{ charge.id || '-' }}</td>
+            <td class="px-4 text-gray-700">{{ charge.chargeType }}</td>
+            <td class="px-4 text-gray-700">{{ charge.description }}</td>
+            <td class="px-4 text-center text-gray-700">{{ charge.quantity }}</td>
+            <td class="px-4 text-gray-700">{{ charge.postedBy }}</td>
+            <td class="px-4 text-right font-semibold text-gray-800">{{ formatCurrency(charge.totalAmount) }}</td>
+            <td class="px-4 text-right cdk-drag-disabled">
+              <button
+                mat-icon-button
+                (click)="voidCharge(charge)"
+                matTooltip="Void Charge"
+                class="!text-red-500 hover:!bg-red-50 !transition-all !duration-200">
+                <mat-icon class="!text-[18px] !w-[18px] !h-[18px] mb-1">cancel</mat-icon>
               </button>
             </td>
           </tr>
 
-          <tr *ngIf="selectedFolio.charges.length === 0">
+          <tr *ngIf="getActiveCharges().length === 0">
             <td colspan="9" class="px-4 py-16 text-center">
               <div class="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -261,5 +332,19 @@
         </table>
       </div>
     </div>
+
+    <app-add-folio-charge
+      *ngIf="selectedFolio && !loading && showChargeForm && !showPaymentForm"
+      [selectedFolio]="selectedFolio"
+      (cancel)="closeAllForms()"
+      (chargeAdded)="onChargeAdded($event)">
+    </app-add-folio-charge>
+
+    <app-add-folio-payment
+      *ngIf="selectedFolio && !loading && showPaymentForm && !showChargeForm"
+      [selectedFolio]="selectedFolio"
+      (cancel)="closeAllForms()"
+      (paymentAdded)="onPaymentAdded($event)">
+    </app-add-folio-payment>
   </div>
 </div>

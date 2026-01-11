@@ -100,7 +100,7 @@ export class FolioService {
     reservationId: number,
     guestId: number | null,
     folioType: string,
-    createdBy: string,  // Required, not null
+    createdBy: string,
     propertyCode: string
   ): Observable<FolioDetails | null> {
     const url = `${environment.apiUrl}/folios/create`;
@@ -111,7 +111,7 @@ export class FolioService {
       .set('folioType', folioType)
       .set('createdBy', createdBy);
 
-    if (guestId !== null) {
+    if (guestId !== null && guestId !== undefined) {
       params = params.set('guestId', guestId.toString());
     }
 
@@ -167,6 +167,228 @@ export class FolioService {
       catchError(error => {
         console.error('Error fetching reservation details:', error);
         return of(null);
+      })
+    );
+  }
+
+  deleteFolio(folioId: number): Observable<boolean> {
+    const url = `${environment.apiUrl}/folios/${folioId}`;
+    const headers = this.getHeaders();
+
+    return this.http.delete<any>(url, {
+      headers: headers
+    }).pipe(
+      map(() => {
+        return true;
+      }),
+      catchError(error => {
+        console.error('Error deleting folio:', error);
+        throw error;
+      })
+    );
+  }
+
+  addCharge(
+    folioId: number,
+    chargeData: {
+      chargeType: string;
+      description: string;
+      amount: number;
+      quantity: number;
+      taxAmount: number;
+      createdBy: string;
+    }
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/charges`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      chargeType: chargeData.chargeType,
+      description: chargeData.description,
+      amount: chargeData.amount,
+      quantity: chargeData.quantity,
+      taxAmount: chargeData.taxAmount,
+      createdBy: chargeData.createdBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error adding charge:', error);
+        throw error;
+      })
+    );
+  }
+
+  transferCharges(
+    sourceFolioId: number,
+    targetFolioId: number,
+    chargeIds: number[],
+    performedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/transfer-charges`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      sourceFolioId: sourceFolioId,
+      targetFolioId: targetFolioId,
+      chargeIds: chargeIds,
+      performedBy: performedBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        // Handle different response structures
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error transferring charges:', error);
+        throw error;
+      })
+    );
+  }
+
+  voidCharge(
+    folioId: number,
+    chargeId: number,
+    voidReason: string,
+    voidedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/charges/${chargeId}/void`;
+    const headers = this.getHeaders();
+
+    // Build query parameters
+    const params = new HttpParams()
+      .set('voidReason', voidReason)
+      .set('voidedBy', voidedBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error voiding charge:', error);
+        throw error;
+      })
+    );
+  }
+
+  addFolioPayment(
+    folioId: number,
+    paymentData: {
+      paymentMethod: string;
+      amount: number;
+      remarks: string;
+      createdBy: string;
+    }
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/payments`;
+    const headers = this.getHeaders();
+
+    const requestBody = {
+      paymentMethod: paymentData.paymentMethod,
+      amount: paymentData.amount,
+      remarks: paymentData.remarks,
+      createdBy: paymentData.createdBy
+    };
+
+    return this.http.post<any>(url, requestBody, {
+      headers: headers
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error adding payment:', error);
+        throw error;
+      })
+    );
+  }
+
+  settleFolio(
+    folioId: number,
+    settledBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/settle`;
+    const headers = this.getHeaders();
+
+    const params = new HttpParams()
+      .set('settledBy', settledBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error settling folio:', error);
+        throw error;
+      })
+    );
+  }
+
+  refundFolioPayment(
+    folioId: number,
+    paymentId: number,
+    refundedBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${folioId}/payments/${paymentId}/refund`;
+    const headers = this.getHeaders();
+
+    const params = new HttpParams()
+      .set('refundedBy', refundedBy);
+
+    return this.http.put<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error refunding payment:', error);
+        throw error;
       })
     );
   }

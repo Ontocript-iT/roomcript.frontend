@@ -1,0 +1,156 @@
+<div class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
+  <!-- Form Header -->
+  <div class="px-2 py-1 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="p-1.5 text-gray-600 hover:bg-white rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+        </button>
+        <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-gray-800">Add Charge</h3>
+          <p class="text-xs text-gray-600">{{ selectedFolio?.folioNumber }} - {{ selectedFolio?.guestName }}</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="onCancel()"
+        class="text-gray-400 hover:text-gray-600 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Form Content -->
+  <div class="flex-1 overflow-y-auto p-8">
+    <div class="max-w-2xl mx-auto">
+      <form #chargeForm="ngForm">
+        <div class="grid grid-cols-2 gap-6">
+          <!-- Charge Type -->
+          <div class="relative">
+            <select
+              [(ngModel)]="chargeData.chargeType"
+              name="chargeType"
+              required
+              class="peer block w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors">
+              <option value="" disabled>Select Type</option>
+              <option value="ROOM_CHARGE">Room Charge</option>
+              <option value="FOOD_BEVERAGE">Food & Beverage</option>
+              <option value="LAUNDRY">Laundry</option>
+              <option value="MINIBAR">Minibar</option>
+              <option value="TELEPHONE">Telephone</option>
+              <option value="INTERNET">Internet</option>
+              <option value="SPA">Spa</option>
+              <option value="PARKING">Parking</option>
+              <option value="EXTRA_BED">Extra Bed</option>
+              <option value="EARLY_CHECKIN">Early Check-in</option>
+              <option value="LATE_CHECKOUT">Late Check-out</option>
+              <option value="DAMAGE">Damage</option>
+              <option value="MISCELLANEOUS">Miscellaneous</option>
+              <option value="TAX">Tax</option>
+              <option value="SERVICE_CHARGE">Service Charge</option>
+            </select>
+            <label
+              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+              Charge Type <span class="text-red-500">*</span>
+            </label>
+          </div>
+
+          <!-- Amount -->
+          <div class="relative">
+            <input
+              type="number"
+              [(ngModel)]="chargeData.amount"
+              name="amount"
+              required
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              class="peer block w-full pl-12 pr-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none z-10">Rs.</span>
+            <label
+              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+              Amount <span class="text-red-500">*</span>
+            </label>
+          </div>
+
+          <!-- Quantity -->
+          <div class="relative">
+            <input
+              type="number"
+              [(ngModel)]="chargeData.quantity"
+              name="quantity"
+              required
+              min="1"
+              placeholder="1"
+              class="peer block w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors">
+            <label
+              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+              Quantity <span class="text-red-500">*</span>
+            </label>
+          </div>
+
+          <!-- Tax Amount -->
+          <div class="relative">
+            <input
+              type="number"
+              [(ngModel)]="chargeData.taxAmount"
+              name="taxAmount"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              class="peer block w-full pl-12 pr-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-purple-500 transition-colors">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none z-10">Rs.</span>
+            <label
+              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+              Tax Amount
+            </label>
+          </div>
+
+          <!-- Description -->
+          <div class="relative col-span-2">
+            <textarea
+              [(ngModel)]="chargeData.description"
+              name="description"
+              required
+              rows="3"
+              class="peer block w-full px-3 py-2.5 pt-12 bg-white border border-gray-300 rounded-lg text-sm resize-vertical focus:outline-none focus:border-purple-500 transition-colors"></textarea>
+            <label
+              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+              Description <span class="text-red-500">*</span>
+            </label>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Form Footer -->
+  <div class="px-4 py-3 bg-white border-t border-gray-200">
+    <div class="flex justify-end">
+      <button
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="!isFormValid()"
+        class="px-4 py-2 text-xs font-medium text-white rounded-lg shadow-sm transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        [class.bg-gradient-to-r]="isFormValid()"
+        [class.from-indigo-600]="isFormValid()"
+        [class.to-purple-600]="isFormValid()"
+        [class.bg-gray-300]="!isFormValid()">
+        Add Charge
+      </button>
+    </div>
+  </div>
+</div>

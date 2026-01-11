@@ -5,6 +5,7 @@ export interface FolioCharge {
   description: string;
   user: string;
   amount: number;
+  isVoided: boolean;
 }
 
 export interface FolioDetails {
@@ -36,6 +37,7 @@ export interface FolioPayment {
   paymentType: string;
   paymentMethod: string;
   amount: number;
+  isRefunded: boolean;
   paymentDate: string;
   reference?: string;
   receivedBy: string;
