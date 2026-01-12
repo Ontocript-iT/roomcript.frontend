@@ -57,14 +57,13 @@ export class AuthService {
     if (rolesString) {
       try {
         const roles = JSON.parse(rolesString);
-        // Ensure it's an array
-        this.currentUserRoles.next(Array.isArray(roles) ? roles : []);  // FIX: Pass the parsed roles or empty array
+        this.currentUserRoles.next(Array.isArray(roles) ? roles : []);
       } catch (e) {
         console.error('Error parsing user roles:', e);
-        this.currentUserRoles.next([]);  // FIX: Pass empty array
+        this.currentUserRoles.next([]);
       }
     } else {
-      this.currentUserRoles.next([]);  // FIX: Pass empty array
+      this.currentUserRoles.next([]);
     }
   }
 
@@ -81,7 +80,7 @@ export class AuthService {
   }
 
   setUserRoles(roles: string[]): void {
-    this.currentUserRoles.next(roles);  // FIX: Pass the roles array
+    this.currentUserRoles.next(roles);
     localStorage.setItem('userRoles', JSON.stringify(roles));
   }
 
@@ -89,7 +88,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/register`, data).pipe(
       tap((response) => {
         localStorage.setItem(this.TOKEN_KEY, response.token);
-        this.userSubject.next(response.user);  // FIX: Pass the user object
+        this.userSubject.next(response.user);
       })
     );
   }
@@ -100,8 +99,8 @@ export class AuthService {
     localStorage.removeItem(this.USERNAME_KEY);
     localStorage.removeItem(this.ROLE_KEY);
     localStorage.removeItem('userRoles');
-    this.userSubject.next(null);  // FIX: Pass null
-    this.currentUserRoles.next([]);  // FIX: Pass empty array
+    this.userSubject.next(null);
+    this.currentUserRoles.next([]);
     this.router.navigate(['/login']);
   }
 
@@ -119,7 +118,6 @@ export class AuthService {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
 
-        // Load name and username from localStorage
         const name = localStorage.getItem(this.NAME_KEY);
         const username = localStorage.getItem(this.USERNAME_KEY);
         const role = localStorage.getItem(this.ROLE_KEY);
@@ -131,7 +129,7 @@ export class AuthService {
           role: role || 'GUEST'
         };
 
-        this.userSubject.next(user);  // FIX: Pass the user object
+        this.userSubject.next(user);
       } catch (e) {
         this.logout();
       }

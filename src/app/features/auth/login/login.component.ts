@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../../core/services/auth.service';
-
+import { IdleService } from '../../../core/services/idle.service';
 
 @Component({
   selector: 'app-login',
@@ -40,7 +40,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private idleService: IdleService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +59,7 @@ export class LoginComponent implements OnInit {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
           this.isLoading = false;
+          this.idleService.startWatching();
           this.router.navigate(['/dashboard']);
         },
         error: (error) => {
