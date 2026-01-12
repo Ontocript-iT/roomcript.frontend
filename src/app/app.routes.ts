@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard,  noAuthGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
@@ -24,7 +24,11 @@ import {InhouseGuestsComponent} from './features/guest-management/inhouse-guests
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
+  {
+    path: 'login',
+    component: LoginComponent,
+    canActivate: [noAuthGuard]
+  },
   { path: 'register', component: RegisterComponent },
   {
     path: 'dashboard',
