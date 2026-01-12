@@ -1,70 +1,76 @@
-// Compact list items
-::ng-deep .mat-mdc-list-item {
-  height: 40px !important;
-  min-height: 40px !important;
-}
+//// Compact list items
+//::ng-deep .mat-mdc-list-item {
+//  height: 40px !important;
+//  min-height: 40px !important;
+//}
+//
+//// Reduce padding between icon and text
+//::ng-deep .mat-mdc-list-item-icon {
+//  margin-right: 12px !important;
+//}
+//
+//// Compact list content padding
+//::ng-deep .mat-mdc-list-item-content {
+//  padding: 0 8px !important;
+//}
+//
+//::ng-deep .mat-drawer {
+//  background-color: #131c36 !important;
+//  transition: width 0.3s ease !important;
+//}
+//
+//
+//// Expansion panel customization
+//::ng-deep .mat-expansion-panel {
+//  background: transparent !important;
+//  box-shadow: none !important;
+//
+//  &.expanded {
+//    .mat-expansion-panel-header {
+//      background-color: rgba(0, 75, 196, 0.5) !important;
+//    }
+//  }
+//}
+//
+//::ng-deep .mat-expansion-panel-header {
+//  padding: 0 12px !important;
+//  height: 40px !important;
+//
+//  &:hover {
+//    background-color: rgba(31, 41, 55, 1) !important;
+//  }
+//}
+//
+//::ng-deep .mat-expansion-panel-body {
+//  padding: 4px 0 8px 0 !important;
+//}
+//
+//::ng-deep .mat-expansion-indicator {
+//  &::after {
+//    color: white !important;
+//  }
+//}
+//
+//// Submenu styling
+//.submenu-container {
+//  padding: 4px;
+//
+//  a {
+//    border-radius: 6px;
+//    margin-bottom: 2px;
+//  }
+//}
+//
+//::ng-deep .mat-mdc-list-item {
+//  height: 40px !important;
+//  min-height: 40px !important;
+//}
 
-// Reduce padding between icon and text
-::ng-deep .mat-mdc-list-item-icon {
-  margin-right: 12px !important;
-}
-
-// Compact list content padding
-::ng-deep .mat-mdc-list-item-content {
-  padding: 0 8px !important;
-}
-
-::ng-deep .mat-drawer {
-  background-color: #131c36 !important;
-  transition: width 0.3s ease !important;
-}
 
 
-// Expansion panel customization
-::ng-deep .mat-expansion-panel {
-  background: transparent !important;
-  box-shadow: none !important;
-  
-  &.expanded {
-    .mat-expansion-panel-header {
-      background-color: rgba(0, 75, 196, 0.5) !important;
-    }
-  }
-}
 
-::ng-deep .mat-expansion-panel-header {
-  padding: 0 12px !important;
-  height: 40px !important;
-  
-  &:hover {
-    background-color: rgba(31, 41, 55, 1) !important;
-  }
-}
 
-::ng-deep .mat-expansion-panel-body {
-  padding: 4px 0 8px 0 !important;
-}
 
-::ng-deep .mat-expansion-indicator {
-  &::after {
-    color: white !important;
-  }
-}
-
-// Submenu styling
-.submenu-container {
-  padding: 4px;
-  
-  a {
-    border-radius: 6px;
-    margin-bottom: 2px;
-  }
-}
-
-::ng-deep .mat-mdc-list-item {
-  height: 40px !important;
-  min-height: 40px !important;
-}
 
 
 // // Resize handle styling
@@ -92,3 +98,105 @@
 // :host {
 //   user-select: none;
 // }
+
+
+
+// Force ALL list items full white (overrides Material disabled)
+::ng-deep .mat-mdc-list-item,
+::ng-deep .mat-mdc-list-item * {
+  opacity: 1 !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .mat-mdc-list-item .mat-mdc-list-item-icon {
+  color: #ffffff !important;
+}
+
+// Fix ONLY Dashboard/Settings icons alignment (simple list items)
+a[routerLink][mat-list-item]:not(.mat-expansion-panel) ::ng-deep mat-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 20px !important;
+  width: 20px !important;
+  font-size: 20px !important;
+  line-height: 20px !important;
+  position: relative !important;
+  top: 1px !important;  // Perfect match to expansion icons
+}
+
+// Compact list items
+::ng-deep .mat-mdc-list-item {
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+// Reduce padding between icon and text
+::ng-deep .mat-mdc-list-item-icon {
+  margin-right: 12px !important;
+}
+
+// Compact list content padding
+::ng-deep .mat-mdc-list-item-content {
+  padding: 0 8px !important;
+}
+
+::ng-deep .mat-drawer {
+  background-color: #131c36 !important;
+  transition: width 0.3s ease !important;
+}
+
+// Expansion panel customization
+::ng-deep .mat-expansion-panel {
+  background: transparent !important;
+  box-shadow: none !important;
+
+  &.expanded {
+    .mat-expansion-panel-header {
+      background-color: rgba(0, 75, 196, 0.5) !important;
+    }
+  }
+}
+
+::ng-deep .mat-expansion-panel-header {
+  padding: 0 12px !important;
+  height: 40px !important;
+
+  &:hover {
+    background-color: rgba(31, 41, 55, 1) !important;
+  }
+}
+
+::ng-deep .mat-expansion-panel-body {
+  padding: 4px 0 8px 0 !important;
+}
+
+::ng-deep .mat-expansion-indicator {
+  &::after {
+    color: white !important;
+  }
+}
+
+// Perfect submenu icons + spacing for wide text
+.submenu-container {
+  padding: 2px 4px !important;
+
+  ::ng-deep .mat-mdc-list-item {
+    height: 34px !important;
+    padding: 4px 8px !important;
+
+    mat-icon {
+      width: 18px !important;
+      height: 18px !important;
+      font-size: 18px !important;
+      margin-right: 10px !important;
+      margin-left: 8px !important;
+      vertical-align: middle !important;
+    }
+
+    span {
+      font-size: 13px !important;  // Slightly smaller for fit
+      line-height: 1.3 !important;
+    }
+  }
+}
