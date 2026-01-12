@@ -29,7 +29,7 @@ export class Sidebar implements OnInit {
   userRoles: string[] = [];
   isAuthenticated = false;
   sidenavOpened = true;
-  sidenavWidth = 224; // 56 * 4 = 224px (w-56 in Tailwind)
+  sidenavWidth = 260; // 56 * 4 = 224px (w-56 in Tailwind)
   minWidth = 180;
   maxWidth = 400;
   isResizing = false;
