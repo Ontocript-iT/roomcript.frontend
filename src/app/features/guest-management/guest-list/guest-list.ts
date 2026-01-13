@@ -63,61 +63,62 @@ export class GuestListComponent implements OnInit {
     Swal.fire({
       title: 'Guest Details',
       html: `
-      <div class="text-left space-y-2" style="font-size: 14px;">
-        <!-- Personal Info -->
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 60px;">Name: </span>
-            <span>${guest.name}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 60px;">Email: </span>
-            <span>${guest.email || 'N/A'}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 60px;">Phone: </span>
-            <span>${guest.phone || 'N/A'}</span>
-          </div>
+    <div class="text-left space-y-2" style="font-size: 14px;">
+      <!-- Personal Info -->
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 60px;">Name: </span>
+          <span>${guest.name}</span>
         </div>
-
-
-        <hr class="my-4 border-gray-300" />
-        <h3 class="font-semibold text-lg mb-4 text-gray-800">Address Details</h3>
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 65px;">Address: </span>
-            <span>${guest.address || 'N/A'}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 65px;">City: </span>
-            <span>${guest.city || 'N/A'}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 65px;">State: </span>
-            <span>${guest.state || 'N/A'}</span>
-          </div>
-          <div class="flex">
-            <span class="font-semibold inline-block" style="min-width: 65px;">Country: </span>
-            <span>${guest.country || 'N/A'}</span>
-          </div>
-          <div class="col-span-2 flex">
-            <span class="font-semibold inline-block" style="min-width: 65px;">Zip Code: </span>
-            <span>${guest.zipCode || 'N/A'}</span>
-          </div>
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 60px;">Email: </span>
+          <span>${guest.email || 'N/A'}</span>
+        </div>
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 60px;">Phone: </span>
+          <span>${guest.phone || 'N/A'}</span>
         </div>
       </div>
-    `,
+
+      <hr class="my-4 border-gray-300" />
+      <h3 class="font-semibold text-lg mb-4 text-gray-800">Address Details</h3>
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 65px;">Address: </span>
+          <span>${guest.address || 'N/A'}</span>
+        </div>
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 65px;">City: </span>
+          <span>${guest.city || 'N/A'}</span>
+        </div>
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 65px;">State: </span>
+          <span>${guest.state || 'N/A'}</span>
+        </div>
+        <div class="flex">
+          <span class="font-semibold inline-block" style="min-width: 65px;">Country: </span>
+          <span>${guest.country || 'N/A'}</span>
+        </div>
+        <div class="col-span-2 flex">
+          <span class="font-semibold inline-block" style="min-width: 65px;">Zip Code: </span>
+          <span>${guest.zipCode || 'N/A'}</span>
+        </div>
+      </div>
+    </div>
+  `,
       icon: 'info',
-      showCancelButton: false,
-      showConfirmButton: true,
-      confirmButtonText: 'Close',
-      confirmButtonColor: '#6b7280',
+      iconColor: '#6366f1',
+      showConfirmButton: false,
+      showCancelButton: true,
+      cancelButtonText: 'Close',
       width: '800px',
+      padding: '1.5rem',
+      buttonsStyling: false,
       customClass: {
-        popup: 'rounded-xl',
-        title: 'text-2xl font-bold text-gray-800',
-        htmlContainer: 'text-sm',
-        confirmButton: 'swal-cancel-btn'
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        cancelButton: 'swal-cancel-btn'
       }
     });
   }
@@ -129,60 +130,49 @@ export class GuestListComponent implements OnInit {
   editGuest(guest: Guest): void {
     Swal.fire({
       title: 'Edit Guest',
-      width: '900px',
       html: `
-      <div class="text-left space-y-2" style="font-size: 14px;">
-        <div class="grid grid-cols-2 gap-x-8 gap-y-4">
-          <div>
-            <label class="block font-semibold mb-1">Name:</label>
-            <input id="editName" value="${guest.name || ''}"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Email:</label>
-            <input id="editEmail" value="${guest.email || ''}"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div>
-            <label class="block font-semibold mb-1">Phone:</label>
-            <input id="editPhone" value="${guest.phone || ''}"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          </div>
-          <div class="col-span-2">
-            <label class="block font-semibold mb-1">Address:</label>
-            <textarea id="editAddress" rows="3"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${guest.address || ''}</textarea>
-          </div>
+    <div class="text-left space-y-2" style="font-size: 14px;">
+      <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+        <div>
+          <label class="block font-semibold mb-1">Name:</label>
+          <input id="editName" value="${guest.name || ''}"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Email:</label>
+          <input id="editEmail" value="${guest.email || ''}"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Phone:</label>
+          <input id="editPhone" value="${guest.phone || ''}"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="col-span-2">
+          <label class="block font-semibold mb-1">Address:</label>
+          <textarea id="editAddress" rows="3"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">${guest.address || ''}</textarea>
         </div>
       </div>
-    `,
+    </div>
+  `,
+      icon: 'info',
+      iconColor: '#6366f1',
+      showConfirmButton: true,
       showCancelButton: true,
-
-      // PMS-style button labels
-      confirmButtonText: `
-      <span style="display:flex;align-items:center;gap:6px;">
-        ✓
-        <span>Update Guest</span>
-      </span>
-    `,
-      cancelButtonText: `
-      <span style="display:flex;align-items:center;gap:6px;">
-        ✕
-        <span>Cancel</span>
-      </span>
-    `,
-
-
+      confirmButtonText: 'Yes, Update',
+      cancelButtonText: 'Close',
+      width: '900px',
+      padding: '1.5rem',
       buttonsStyling: false,
-
       customClass: {
-        popup: 'rounded-xl',
-        title: 'text-2xl font-bold text-gray-800',
-        htmlContainer: 'text-sm',
-        confirmButton: 'swal-update-btn',
-        cancelButton: 'swal-cancel-btn'
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
       },
-
       preConfirm: () => {
         const popup = Swal.getPopup();
         return {
@@ -224,22 +214,8 @@ export class GuestListComponent implements OnInit {
     `,
       icon: 'warning',
       showCancelButton: true,
-
-
-      confirmButtonText: `
-      <span style="display:flex;align-items:center;gap:6px;">
-        ✕
-        <span>Yes, Delete</span>
-      </span>
-    `,
-      cancelButtonText: `
-      <span style="display:flex;align-items:center;gap:6px;">
-        ⤺
-        <span>No</span>
-      </span>
-    `,
-
-
+      confirmButtonText: `Yes, Delete`,
+      cancelButtonText: `Close`,
       buttonsStyling: false,
       customClass: {
         popup: 'rounded-xl',
