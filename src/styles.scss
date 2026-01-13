@@ -1,13 +1,10 @@
-
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
 // Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
+// custom components at [https://material.angular.dev/guide/theming](https://material.angular.dev/guide/theming)
 @use '@angular/material' as mat;
 @use "tailwindcss";
-
-
 
 html {
   @include mat.theme((
@@ -28,7 +25,7 @@ body {
 
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
+  // variables at [https://material.angular.dev/guide/system-variables](https://material.angular.dev/guide/system-variables)
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
@@ -36,16 +33,65 @@ body {
   // Reset the user agent margin.
   margin: 0;
 }
+
 /* You can add global styles to this file, and also import other style files */
-
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
-
-.mdc-notched-outline__notch
-{
-  border-right: none !important
+html, body {
+  height: 100%;
 }
 
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.mdc-notched-outline__notch {
+  border-right: none !important;
+}
+
+// ========================================
+// SweetAlert2 Custom Global Styles
+// ========================================
+
+// Small Popup Container
+.swal-small-popup {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Title Styling
+.swal-small-title {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  margin-bottom: 8px !important;
+}
+
+// Text/HTML Container
+.swal-small-text {
+  font-size: 13px !important;
+  margin: 0 !important;
+
+  p {
+    margin: 0 !important;
+    line-height: 1.5 !important;
+  }
+}
+
+// Question Icon
+.swal2-icon.swal2-question {
+  width: 50px !important;
+  height: 50px !important;
+  margin: 0 auto 16px !important;
+  border-width: 2px !important;
+}
+
+// Actions Container
+.swal-actions {
+  gap: 10px !important;
+  margin-top: 20px !important;
+}
+
+// Update/Confirm Button - Gradient Purple (existing, kept for compatibility)
 .swal-update-btn {
   display: inline-flex;
   align-items: center;
@@ -62,74 +108,153 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   margin-left: 0.5rem;
   margin-right: 0.5rem;
   transition: all 0.2s ease-in-out;
+
+  &:hover {
+    box-shadow: 0 12px 20px rgba(79, 70, 229, 0.45) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+  }
+
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+  }
 }
 
+// Confirm Button - New Enhanced Version
+.swal-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(to right, #4f46e5, #9333ea) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+  }
+
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+  }
+}
+
+// Cancel Button (existing, kept for compatibility)
 .swal-cancel-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1.6rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  background-color: #ffffff;
-  color: #2563eb;
-  border: 1px solid #cbd5f5;
-  cursor: pointer;
+  padding: 8px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  background: white !important;
+  color: #6b7280 !important;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+  cursor: pointer !important;
   margin-right: 0.5rem;
-  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background: #f9fafb !important;
+    border-color: #9ca3af !important;
+    color: #374151 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  &:active {
+    transform: translateY(0) !important;
+  }
+
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1) !important;
+  }
 }
 
-.swal-cancel-btn:hover {
-  background-color: #eff6ff;
-}
-
-
+// Delete Button (existing, updated with proper structure)
 .swal-delete-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1.6rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  background: linear-gradient(90deg, #ef4444, #b91c1c);
-  color: #ffffff;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 10px 18px rgba(239, 68, 68, 0.35);
+  padding: 8px 20px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  background: linear-gradient(to right, #dc2626, #f97316) !important;
+  color: #ffffff !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3) !important;
   margin-left: 0.5rem;
   margin-right: 0.5rem;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.2s ease !important;
 
-  .dialog-backdrop-dark {
-    background: rgba(0, 0, 0, 0.6) !important;
+  &:hover {
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+    transform: translateY(-1px) !important;
   }
 
-  .cdk-overlay-backdrop.dialog-backdrop-dark {
-    backdrop-filter: none;
+  &:active {
+    transform: translateY(0) !important;
   }
 
-  .right-side-panel-dialog {
-    border-radius: 0 !important;
+  &:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2) !important;
   }
+}
 
-  .right-side-panel-dialog .mat-mdc-dialog-container,
-  .right-side-panel-dialog .mdc-dialog__surface {
-    border-radius: 0 !important;
-  }
+// ========================================
+// Material Dialog Custom Styles
+// ========================================
 
-  // Override Material Dialog border radius
-  .mat-mdc-dialog-container,
-  .mat-mdc-dialog-surface,
-  .mdc-dialog__surface {
-    border-radius: 5px !important;
-  }
+.dialog-backdrop-dark {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
 
-  // Or apply to specific dialog only
-  .context-menu-popup .mat-mdc-dialog-container,
-  .context-menu-popup .mat-mdc-dialog-surface,
-  .context-menu-popup .mdc-dialog__surface {
-    border-radius: 5px !important;
-  }
+.cdk-overlay-backdrop.dialog-backdrop-dark {
+  backdrop-filter: none;
+}
+
+.right-side-panel-dialog {
+  border-radius: 0 !important;
+}
+
+.right-side-panel-dialog .mat-mdc-dialog-container,
+.right-side-panel-dialog .mdc-dialog__surface {
+  border-radius: 0 !important;
+}
+
+// Override Material Dialog border radius
+.mat-mdc-dialog-container,
+.mat-mdc-dialog-surface,
+.mdc-dialog__surface {
+  border-radius: 5px !important;
+}
+
+// Apply to specific dialog only
+.context-menu-popup .mat-mdc-dialog-container,
+.context-menu-popup .mat-mdc-dialog-surface,
+.context-menu-popup .mdc-dialog__surface {
+  border-radius: 5px !important;
 }
