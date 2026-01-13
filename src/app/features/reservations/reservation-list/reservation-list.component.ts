@@ -228,7 +228,7 @@ export class ReservationListComponent implements OnInit {
   }
 
 
-    cancelReservation(reservation: any): void {
+  cancelReservation(reservation: any): void {
     const cancellationReasons = [
       'Guest request',
       'Duplicate reservation',
@@ -244,31 +244,42 @@ export class ReservationListComponent implements OnInit {
     Swal.fire({
       title: 'Cancel Reservation',
       html: `
-    <div class="text-left space-y-2" style="font-size: 14px;">
-      <div class="w-full mb-2">
-        <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700">Cancellation Reason</label>
-        <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="" disabled selected>Select a reason</option>
-          ${optionsHtml}
-        </select>
+      <div class="text-left space-y-3">
+        <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          <p class="text-sm font-semibold text-orange-800 mb-1">Reservation Details</p>
+          <p class="text-sm text-gray-700">
+            <span class="font-medium">Guest:</span> ${reservation.name}
+          </p>
+          <p class="text-sm text-gray-700">
+            <span class="font-medium">Reservation ID:</span> ${reservation.id}
+          </p>
+        </div>
+        <div class="w-full">
+          <label for="cancelReasonSelect" class="block mb-2 font-medium text-gray-700 text-sm">
+            Cancellation Reason <span class="text-red-600">*</span>
+          </label>
+          <select id="cancelReasonSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500">
+            <option value="" disabled selected>Select a reason</option>
+            ${optionsHtml}
+          </select>
+        </div>
       </div>
-      <div class="mt-4 text-center">
-        Are you sure you want to cancel reservation for <strong>${reservation.name}</strong>?
-      </div>
-    </div>
-  `,
+    `,
       icon: 'warning',
+      iconColor: '#f97316',
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, Cancel',
       cancelButtonText: 'No',
+      width: '500px',
+      padding: '1.5rem',
+      buttonsStyling: false,
       customClass: {
-        popup: 'text-xs',
-        title: 'text-sm font-bold',
-        htmlContainer: 'text-xs',
-        confirmButton: 'text-xs px-4 py-2 rounded-lg',
-        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
       },
       preConfirm: () => {
         const select = (Swal.getPopup() as HTMLElement).querySelector<HTMLSelectElement>('#cancelReasonSelect');
