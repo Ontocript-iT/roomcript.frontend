@@ -36,18 +36,21 @@ export class AuthService {
 
         const primaryRole = response.roles?.[0] || 'GUEST';
         localStorage.setItem(this.ROLE_KEY, primaryRole);
+
         const userWithRole: User = {
           ...response.user,
+          name: response.name,
+          username: response.username,
           role: primaryRole
         };
 
-        this.userSubject.next(userWithRole);  // FIX: Pass the user object
+        this.userSubject.next(userWithRole);
 
         const cleanRoles = (response.roles || []).map((role: string) =>
           role.replace('ROLE_', '')
         );
         localStorage.setItem('userRoles', JSON.stringify(cleanRoles));
-        this.currentUserRoles.next(cleanRoles);  // FIX: Pass the roles array
+        this.currentUserRoles.next(cleanRoles);
       })
     );
   }
