@@ -1,0 +1,173 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="mx-auto">
+    <div class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+            <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">cleaning_services</mat-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Housekeeping Tasks</h1>
+            <p class="text-gray-500 mt-1">Manage cleaning schedules for {{ propertyName }}</p>
+          </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <mat-form-field appearance="outline" class="w-48 !subscript-wrapper-none">
+            <mat-label>Filter by Status</mat-label>
+            <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+              <mat-select-trigger>
+                 <span class="font-medium text-indigo-700">{{ selectedStatus === 'ALL' ? 'All Tasks' : (selectedStatus | titlecase) }}</span>
+              </mat-select-trigger>
+              <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+                <div class="flex items-center">
+                    <div [class]="'w-2 h-2 rounded-full mr-2 ' + (status.value === 'ALL' ? 'bg-gray-400' : getStatusClass(status.value).split(' ')[0].replace('bg-', 'bg-').replace('-100', '-500'))"></div>
+                    {{ status.label }}
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-icon matPrefix class="!text-gray-400 !mr-2">filter_list</mat-icon>
+          </mat-form-field>
+
+          <button
+            mat-raised-button
+            routerLink="/housekeeping/assign"
+            class="!h-[56px] !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300">
+            <mat-icon class="!mr-2">add_task</mat-icon>
+            Assign Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+      <mat-card-content class="!p-0">
+        
+        <div *ngIf="isLoading" class="flex items-center justify-center py-16">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+
+        <div *ngIf="!isLoading && tasks.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
+          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">cleaning_services</mat-icon>
+          <h3 class="text-xl font-semibold text-gray-700 mb-2">No {{ selectedStatus !== 'ALL' ? (selectedStatus | titlecase) : '' }} Tasks Found</h3>
+          <p class="text-gray-500 mb-6">
+            {{ selectedStatus !== 'ALL' ? 'Try changing the filter or assign a new task.' : 'There are no housekeeping tasks scheduled yet.' }}
+          </p>
+          <button
+            mat-raised-button
+            color="primary"
+            routerLink="/housekeeping/assign"
+            class="!rounded-lg">
+            <mat-icon class="!mr-2">add</mat-icon>
+            Create Task
+          </button>
+        </div>
+
+        <div *ngIf="!isLoading && tasks.length > 0" class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-16">No.</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Room Info</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Task Details</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Assigned To</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Scheduled Time</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200 text-xs">
+              <tr *ngFor="let task of tasks; let i = index"
+                  [ngClass]="i % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'"
+                  class="transition-colors duration-150 border-b border-gray-200">
+                
+                <td class="px-4 py-3 whitespace-nowrap"><span class="font-semibold text-gray-500">{{ i + 1 }}</span></td>
+
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shadow-sm border border-indigo-100">
+                      {{ task.roomNumber }}
+                    </div>
+                    <div class="ml-3">
+                      <div class="font-bold text-gray-900">Room {{ task.roomNumber }}</div>
+                      <div class="text-xs text-gray-500">{{ task.roomType }}</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-medium text-gray-900">{{ formatTaskType(task.taskType) }}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide w-fit"
+                          [ngClass]="getPriorityClass(task.priority)">
+                      {{ task.priority }}
+                    </span>
+                  </div>
+                </td>
+
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <div class="flex items-center" *ngIf="task.assignedToName; else unassigned">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                      {{ task.assignedToName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="ml-2 font-medium text-gray-700 truncate max-w-[120px]" [matTooltip]="task.assignedToName">
+                      {{ task.assignedToName }}
+                    </span>
+                  </div>
+                  <ng-template #unassigned>
+                    <span class="text-gray-400 italic flex items-center">
+                      <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">person_off</mat-icon>
+                      Unassigned
+                    </span>
+                  </ng-template>
+                </td>
+
+                <td class="px-4 py-3 whitespace-nowrap">
+                  <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                        [ngClass]="getStatusClass(task.status)">
+                    <span class="w-2 h-2 rounded-full mr-2"
+                          [class.bg-green-500]="task.status === 'COMPLETED' || task.status === 'VERIFIED'"
+                          [class.bg-yellow-500]="task.status === 'PENDING'"
+                          [class.bg-purple-500]="task.status === 'IN_PROGRESS'"
+                          [class.bg-blue-500]="task.status === 'ASSIGNED'"
+                          [class.bg-red-500]="task.status === 'REJECTED'"
+                          [class.bg-gray-500]="task.status === 'CANCELLED'">
+                    </span>
+                    {{ task.status }}
+                  </span>
+                </td>
+
+                <td class="px-4 py-3 whitespace-nowrap text-gray-700">
+                  <div class="flex flex-col">
+                    <div class="flex items-center">
+                        <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-1">event</mat-icon>
+                        <span class="font-medium">{{ task.scheduledTime | date:'MMM d, y' }}</span>
+                    </div>
+                    <div class="flex items-center mt-1 text-gray-500">
+                        <mat-icon class="!w-4 !h-4 !text-[16px] !text-gray-400 mr-1">schedule</mat-icon>
+                        <span>{{ task.scheduledTime | date:'shortTime' }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="px-4 py-3 whitespace-nowrap text-center">
+                  <div class="flex items-center justify-center">
+                    <button mat-icon-button matTooltip="View Details" class="!text-indigo-600 hover:!bg-indigo-50">
+                      <mat-icon class="action-icon">visibility</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Edit Task" class="!text-blue-600 hover:!bg-blue-50">
+                      <mat-icon class="action-icon">edit</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Delete Task" class="!text-red-500 hover:!bg-red-50">
+                      <mat-icon class="action-icon">delete_outline</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

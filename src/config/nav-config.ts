@@ -60,13 +60,13 @@ export const NAV_ITEMS: NavItem[] = [
   {
     title: 'Rooms',
     icon: 'meeting_room',
-    roles: ['SUPER_ADMIN'],
+    roles: ['SUPER_ADMIN','ADMIN'],
     subItems: [
       {
         title: 'All Rooms',
         route: '/rooms/all',
         icon: 'view_list',
-        roles: ['SUPER_ADMIN']
+        roles: ['SUPER_ADMIN','ADMIN']
       },
       {
         title: 'Add Room',
@@ -144,14 +144,39 @@ export const NAV_ITEMS: NavItem[] = [
       }
     ]
   },
+   {
+    title: 'Housekeeping',
+    icon: 'people',
+    roles: ['ADMIN', 'MANAGER'],
+    subItems: [
+      {
+        title: 'Create Housekeeping Task',
+        route: 'housekeeping/create-task',
+        icon: 'list',
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
+      },
+       {
+        title: 'All Tasks',
+        route: 'housekeeping/view-all-task',
+        icon: 'list',
+        roles: ['ADMIN', 'MANAGER']
+      },
+      {
+        title: 'Lost and Found Items',
+        route: 'housekeeping/view-all-found-items',
+        icon: 'list',
+        roles: ['ADMIN', 'MANAGER']
+      }
+    ]
+  },
   {
     title: 'Reports',
     icon: 'assessment',
     roles: ['ADMIN', 'MANAGER'],
     subItems: [
       {
-        title: 'Occupancy Report',
-        route: '/reports/occupancy',
+        title: 'Reservation Report',
+        route: '/reports/reservations',
         icon: 'pie_chart',
         roles: ['ADMIN', 'MANAGER']
       },

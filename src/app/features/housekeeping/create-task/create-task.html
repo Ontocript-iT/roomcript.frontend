@@ -1,0 +1,169 @@
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-4">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-4">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">cleaning_services</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Assign Housekeeping Task</h1>
+          <p class="text-gray-500 mt-1">Schedule cleaning tasks for your property</p>
+        </div>
+      </div>
+    </div>
+
+    <mat-card class="!shadow-xl !rounded-xl overflow-hidden">
+      <mat-card-content class="!p-4">
+        <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+          
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-4">
+              <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+                <mat-icon class="!text-indigo-600 !w-5 !h-5 !text-[20px]">task_alt</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Task Details</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              
+              <mat-form-field appearance="fill" class="lg:col-span-2">
+                <mat-label>Select Room</mat-label>
+                <mat-select formControlName="roomId">
+                  <mat-option *ngFor="let room of rooms" [value]="room.id">
+                    <span class="font-medium text-gray-900">Room {{ room.roomNumber }}</span>
+                    <span class="text-xs text-gray-500 ml-2">({{ room.roomType }})</span>
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">bedroom_parent</mat-icon>
+                <mat-error *ngIf="taskForm.get('roomId')?.hasError('required')">
+                  Room is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Task Type</mat-label>
+                <mat-select formControlName="taskType">
+                  <mat-option *ngFor="let type of taskTypes" [value]="type.value">
+                    {{ type.label }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">category</mat-icon>
+                <mat-error *ngIf="taskForm.get('taskType')?.hasError('required')">
+                    Task Type is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Priority</mat-label>
+                <mat-select formControlName="priority">
+                  <mat-option *ngFor="let p of priorities" [value]="p.value">
+                    <span [class.text-red-600]="p.value === 'HIGH'" 
+                          [class.font-semibold]="p.value === 'HIGH'">
+                      {{ p.label }}
+                    </span>
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">flag</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Scheduled Time</mat-label>
+                <input matInput type="datetime-local" formControlName="scheduledTime" />
+                <mat-icon matPrefix class="!text-gray-400">schedule</mat-icon>
+                <mat-error *ngIf="taskForm.get('scheduledTime')?.hasError('required')">
+                    Time is required
+                </mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Duration (mins)</mat-label>
+                <input matInput type="number" formControlName="estimatedDuration" placeholder="45" />
+                <mat-icon matPrefix class="!text-gray-400">timer</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Condition Before</mat-label>
+                <mat-select formControlName="roomConditionBefore">
+                  <mat-option *ngFor="let c of roomConditions" [value]="c.value">
+                    {{ c.label }}
+                  </mat-option>
+                </mat-select>
+                <mat-icon matPrefix class="!text-gray-400">assignment</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill">
+                <mat-label>Assign To (Staff ID)</mat-label>
+                <input matInput type="number" formControlName="assignedToId" placeholder="e.g. 5" />
+                <mat-icon matPrefix class="!text-gray-400">person</mat-icon>
+              </mat-form-field>
+              
+               <mat-form-field appearance="fill">
+                <mat-label>Reservation ID</mat-label>
+                <input matInput type="number" formControlName="reservationId" placeholder="e.g. 10" />
+                <mat-icon matPrefix class="!text-gray-400">confirmation_number</mat-icon>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div class="mb-2 pt-2 border-t border-gray-300">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <mat-icon class="!text-purple-600 !w-5 !h-5 !text-[20px]">description</mat-icon>
+              </div>
+              <h2 class="text-md font-semibold text-gray-800">Instructions & Notes</h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <mat-form-field appearance="fill" class="w-full">
+                    <mat-label>Special Instructions</mat-label>
+                    <textarea matInput formControlName="specialInstructions" rows="2" placeholder="e.g. Check for damages..."></textarea>
+                    <mat-icon matPrefix class="!text-gray-400">notes</mat-icon>
+                </mat-form-field>
+
+                <mat-form-field appearance="fill" class="w-full">
+                    <mat-label>Internal Notes</mat-label>
+                    <textarea matInput formControlName="notes" rows="2" placeholder="Internal notes..."></textarea>
+                    <mat-icon matPrefix class="!text-gray-400">comment</mat-icon>
+                </mat-form-field>
+            </div>
+            
+            <div class="flex flex-wrap gap-4 mt-2">
+                <mat-checkbox formControlName="requiresInspection" color="primary">
+                    Require Inspection
+                </mat-checkbox>
+                <mat-checkbox formControlName="isCheckoutCleaning" color="primary">
+                    Is Checkout Cleaning
+                </mat-checkbox>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-4 pt-2 border-t border-gray-200 mt-4">
+            <button
+              mat-raised-button
+              type="submit"
+              [disabled]="taskForm.invalid || isLoading"
+              class="!h-8 !px-6 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !font-semibold !shadow-lg hover:!shadow-xl !transition-all !duration-300 disabled:!opacity-50 disabled:!cursor-not-allowed">
+              <mat-spinner
+                *ngIf="isLoading"
+                diameter="20"
+                class="!inline-block !mr-2">
+              </mat-spinner>
+              <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+              {{ isLoading ? 'Assigning...' : 'Assign Task' }}
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              (click)="onCancel()"
+              [disabled]="isLoading"
+              class="!h-8 !px-6 !text-gray-700 !border-gray-300 hover:!bg-gray-50 !rounded-lg !font-medium">
+              <mat-icon class="!mr-2">cancel</mat-icon>
+              Cancel
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
