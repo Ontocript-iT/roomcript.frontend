@@ -1,0 +1,27 @@
+/* reservation-reports.component.css */
+::ng-deep .success-snackbar {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+::ng-deep .error-snackbar {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+::ng-deep .warning-snackbar {
+  background-color: #ff9800 !important;
+  color: white !important;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+mat-card {
+  border-radius: 12px;
+}
+
+.hover\:bg-gray-50:hover {
+  transition: background-color 0.2s ease;
+}
