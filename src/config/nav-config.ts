@@ -26,18 +26,18 @@ export const NAV_ITEMS: NavItem[] = [
     icon: 'person_manage',
     roles: ['ADMIN','SUPER_ADMIN'],
      subItems: [
-      {
-        title: 'Add User',
-        route: '/users/addUser',
-        icon: 'person_add',
-        roles: ['SUPER_ADMIN', 'ADMIN']
-      },
-      {
-        title: 'Assign User Roles',
-        route: '/users/all',
-        icon: 'person_assign',
-        roles: ['SUPER_ADMIN', 'ADMIN']
-      },]
+       {
+         title: 'All Users',
+         route: '/users/all',
+         icon: 'person_assign',
+         roles: ['SUPER_ADMIN', 'ADMIN']
+       },
+       {
+          title: 'Add User',
+          route: '/users/addUser',
+          icon: 'person_add',
+          roles: ['SUPER_ADMIN', 'ADMIN']
+       },]
   },
   {
     title: 'Property',

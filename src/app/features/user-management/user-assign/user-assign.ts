@@ -175,12 +175,12 @@ export class UserAssign implements OnInit {
             </select>
           </div>
         </div>
-        <p class="text-red-600 font-semibold mt-4">This action cannot be undone. Are you sure?</p>
+        <p class="text-red-600 font-semibold text-center mt-4">This action cannot be undone. Are you sure?</p>
       `,
       icon: 'warning',
       iconColor: '#f97316',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Revoke Access',
+      confirmButtonText: 'Yes, Revoke',
       cancelButtonText: 'Cancel',
       width: '500px',
       padding: '1.5rem',
@@ -242,7 +242,7 @@ export class UserAssign implements OnInit {
           <p class="text-sm text-gray-600">@${user.username}</p>
           <p class="text-sm text-gray-600">${user.propertyName}</p>
         </div>
-        <p class="text-red-600 font-semibold mt-3">
+        <p class="text-red-600 font-semibold mt-3 text-center">
           This action cannot be undone. Are you sure?
         </p>
       </div>
@@ -250,7 +250,7 @@ export class UserAssign implements OnInit {
       icon: 'warning',
       iconColor: '#f97316',
       showCancelButton: true,
-      confirmButtonText: 'Yes, Revoke User',
+      confirmButtonText: 'Yes, Revoke',
       cancelButtonText: 'Cancel',
       width: '500px',
       padding: '1.5rem',
@@ -279,14 +279,62 @@ export class UserAssign implements OnInit {
     });
   }
 
-  editUser(user: PropertyUser): void {
-    console.log('Edit user:', user);
-    this.router.navigate(['/users/edit', user.userId]);
+  openViewUserDetailsDialog(user: PropertyUser): void {
+    const rolesBadgesHtml = this.getRolesBadges(user)
+      .map(badge => `
+      <div class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${badge.class}">
+        <mat-icon class="text-xs mr-1" style="font-size: 16px;">${badge.icon}</mat-icon>
+        ${badge.displayName}
+      </div>
+    `)
+      .join('') || '<p class="text-sm text-gray-500 italic">No roles assigned</p>';
+
+    Swal.fire({
+      title: 'User Details',
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+    <div class="grid grid-cols-1 gap-y-3">
+      <div class="flex">
+        <span class="font-semibold w-24">User:</span>
+        <span>${user.firstName} ${user.lastName}</span>
+      </div>
+      <div class="flex">
+        <span class="font-semibold w-24">Username:</span>
+        <span>@${user.username}</span>
+      </div>
+      <div class="flex">
+        <span class="font-semibold w-24">Property:</span>
+        <span> ${user.propertyName}</span>
+      </div>
+      <div class="flex mb-4">
+        <span class="font-semibold w-24">Current Roles:</span>
+        <span>${this.getRolesDisplayString(user)}</span>
+      </div>
+    </div>
+    `,
+      icon: 'info',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: true,
+      allowEscapeKey: true,
+      cancelButtonText: 'Cancel',
+      width: '650px',
+      padding: '1.75rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-user-details-popup',
+        title: 'swal-large-title',
+        htmlContainer: 'swal-user-details-content',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      }
+    });
   }
 
   viewUser(user: PropertyUser): void {
     console.log('View user details:', user);
-    this.router.navigate(['/users/view', user.userId]);
+    this.openViewUserDetailsDialog(user);
   }
 
   private showSuccess(message: string): void {
@@ -352,7 +400,7 @@ export class UserAssign implements OnInit {
           </select>
         </div>
       ` : `
-        <p class="text-red-600 font-semibold">User already has Administrator access. Role assignment not allowed.</p>
+        <p class="text-red-600 font-semibold text-center">User already has Administrator access. Role assignment not allowed.</p>
       `}
     </div>
   </div>
