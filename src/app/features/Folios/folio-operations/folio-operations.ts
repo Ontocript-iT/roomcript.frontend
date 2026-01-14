@@ -364,7 +364,7 @@ export class FolioOperations implements OnInit, OnChanges {
       .reduce((sum, charge) => sum + charge.totalAmount, 0);
 
     const realPayments = folio.payments
-      .filter(payment => !payment.isRefunded) 
+      .filter(payment => !payment.isRefunded)
       .reduce((sum, payment) => sum + payment.amount, 0);
 
     return realCharges - realPayments;

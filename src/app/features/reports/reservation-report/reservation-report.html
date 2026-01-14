@@ -1,0 +1,222 @@
+<div class="min-h-screen bg-gray-50 py-6 px-4 font-sans">
+  <div class="max-w-[1400px] mx-auto">
+    
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+          <mat-icon class="text-indigo-600">assessment</mat-icon>
+          Analytics & Reporting
+        </h1>
+        <p class="text-sm text-gray-500">Business Intelligence Dashboard</p>
+      </div>
+      
+      <div class="bg-white p-2 rounded-lg shadow-sm border border-gray-200 flex flex-wrap gap-2 items-center">
+        <mat-form-field appearance="outline" class="w-48 !subscript-wrapper-none">
+          <mat-select [(ngModel)]="selectedReportType" (selectionChange)="generateReport()">
+            <mat-option *ngFor="let type of reportTypes" [value]="type.value">{{ type.label }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <ng-container *ngIf="showSingleDate">
+            <input type="date" [(ngModel)]="singleDate" class="border rounded px-3 py-2 text-sm text-gray-700 bg-gray-50 h-[50px]">
+        </ng-container>
+
+        <ng-container *ngIf="showMonthYear">
+            <select [(ngModel)]="selectedYear" class="border rounded px-3 py-2 text-sm h-[50px]">
+                <option *ngFor="let y of [2025,2026,2027]" [value]="y">{{y}}</option>
+            </select>
+            <select [(ngModel)]="selectedMonth" class="border rounded px-3 py-2 text-sm h-[50px]">
+                <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">Month {{m}}</option>
+            </select>
+        </ng-container>
+
+        <ng-container *ngIf="showDateRange">
+            <mat-date-range-input [rangePicker]="picker" class="border rounded px-3 py-2 h-[50px] w-64 bg-gray-50">
+                <input matStartDate [(ngModel)]="startDate" placeholder="Start">
+                <input matEndDate [(ngModel)]="endDate" placeholder="End">
+            </mat-date-range-input>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+            <mat-datepicker-toggle [for]="picker"></mat-datepicker-toggle>
+        </ng-container>
+
+        <button mat-flat-button color="primary" class="!h-[50px]" (click)="generateReport()" [disabled]="isLoading">
+            <mat-icon>refresh</mat-icon> Update
+        </button>
+        <button mat-stroked-button class="!h-[50px] !text-gray-600" (click)="downloadPDF()">
+            <mat-icon>download</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center h-64">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p class="mt-4 text-gray-500 text-sm animate-pulse">Crunching the numbers...</p>
+    </div>
+
+    <div *ngIf="!isLoading && reportData" class="space-y-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
+                <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Revenue</div>
+                <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ reportData.totalRevenue || 0 | currency }}
+                </div>
+                <div class="text-xs text-green-600 mt-2 flex items-center">
+                    <mat-icon class="!text-[16px] !w-4 !h-4">trending_up</mat-icon> Gross Income
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500">
+                <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Reservations</div>
+                <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ reportData.totalReservations || 0 }}
+                </div>
+                <div class="text-xs text-indigo-600 mt-2">
+                    Confirmed Bookings
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500">
+                <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Avg Daily Rate (ADR)</div>
+                <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ reportData.averageRoomRate || 0 | currency }}
+                </div>
+                <div class="text-xs text-gray-400 mt-2">Per Occupied Room</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-orange-500">
+                <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Occupancy Rate</div>
+                <div class="text-2xl font-bold text-gray-900 mt-1">
+                    {{ reportData.occupancyPercentage || 0 | number:'1.1-2' }}%
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                    <div class="bg-orange-500 h-1.5 rounded-full" [style.width.%]="reportData.occupancyPercentage || 0"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" *ngIf="lineChartData.datasets.length > 0 || pieChartData.datasets.length > 0 || barChartData.datasets.length > 0">
+            
+            <mat-card class="!rounded-xl !shadow-sm overflow-hidden border border-gray-100 col-span-1 lg:col-span-1" *ngIf="selectedReportType === 'MONTHLY'">
+                <mat-card-header class="border-b p-4">
+                    <mat-card-title class="text-base font-semibold text-gray-800">Revenue & Occupancy Trend</mat-card-title>
+                </mat-card-header>
+                <div class="p-4 h-[300px]">
+                    <canvas baseChart [data]="lineChartData" [options]="lineChartOptions" [type]="lineChartType"></canvas>
+                </div>
+            </mat-card>
+
+            <mat-card class="!rounded-xl !shadow-sm overflow-hidden border border-gray-100" 
+                *ngIf="['BOOKING_SOURCE', 'NATIONALITY', 'OCCUPANCY'].includes(selectedReportType)">
+                <mat-card-header class="border-b p-4">
+                    <mat-card-title class="text-base font-semibold text-gray-800">Distribution Analysis</mat-card-title>
+                </mat-card-header>
+                <div class="p-4 h-[300px]">
+                    <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType"></canvas>
+                </div>
+            </mat-card>
+
+             <mat-card class="!rounded-xl !shadow-sm overflow-hidden border border-gray-100" 
+             *ngIf="['REVENUE_ROOM'].includes(selectedReportType)">
+             <mat-card-header class="border-b p-4">
+                 <mat-card-title class="text-base font-semibold text-gray-800">Comparative Analysis</mat-card-title>
+             </mat-card-header>
+             <div class="p-4 h-[300px]">
+                 <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType"></canvas>
+             </div>
+         </mat-card>
+        </div>
+
+        <mat-card class="!rounded-xl !shadow-md overflow-hidden">
+            <mat-card-header class="bg-gray-50 border-b p-4 flex justify-between items-center">
+                <mat-card-title class="text-base font-semibold text-gray-800">Detailed Data Records</mat-card-title>
+            </mat-card-header>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left" *ngIf="reportData.reservations?.length || reportData.cancellations?.length">
+                    <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">Confirmation</th>
+                            <th class="px-6 py-3">Guest</th>
+                            <th class="px-6 py-3">Period</th>
+                            <th class="px-6 py-3">Room</th>
+                            <th class="px-6 py-3">Status</th>
+                            <th class="px-6 py-3 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let row of (reportData.reservations || reportData.cancellations)" class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ row.confirmationNumber }}</td>
+                            <td class="px-6 py-4">
+                                <div class="font-semibold">{{ row.guestName }}</div>
+                                <div class="text-xs text-gray-500">{{ row.guestEmail }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600">
+                                {{ row.checkInDate | date:'MMM d' }} - {{ row.checkOutDate | date:'MMM d' }}
+                                <span class="text-xs bg-gray-100 px-1 rounded ml-1">{{ row.nightsStayed }}n</span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600">{{ row.roomTypes }} <span class="text-xs text-gray-400">#{{row.roomNumbers}}</span></td>
+                            <td class="px-6 py-4">
+                                <span class="px-2 py-1 rounded text-xs font-bold"
+                                    [ngClass]="{
+                                        'bg-green-100 text-green-700': row.status === 'CONFIRMED',
+                                        'bg-red-100 text-red-700': row.status === 'CANCELLED',
+                                        'bg-blue-100 text-blue-700': row.status === 'CHECKED_IN'
+                                    }">
+                                    {{ row.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right font-medium">{{ row.totalAmount | currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="w-full text-sm text-left" *ngIf="reportData.dailyOccupancy">
+                    <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">Date</th>
+                            <th class="px-6 py-3 text-center">Occupancy</th>
+                            <th class="px-6 py-3 text-right">Revenue</th>
+                            <th class="px-6 py-3">Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let day of reportData.dailyOccupancy" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium">{{ day.date | date:'mediumDate' }}</td>
+                            <td class="px-6 py-4 text-center">{{ day.occupancyPercentage | number:'1.0-0' }}%</td>
+                            <td class="px-6 py-4 text-right">{{ day.revenue | currency }}</td>
+                            <td class="px-6 py-4">
+                                <div class="w-32 bg-gray-200 rounded-full h-1.5">
+                                    <div class="h-1.5 rounded-full" 
+                                         [style.width.%]="day.occupancyPercentage"
+                                         [ngClass]="day.occupancyPercentage > 70 ? 'bg-green-500' : (day.occupancyPercentage > 40 ? 'bg-orange-400' : 'bg-red-400')">
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="w-full text-sm text-left" *ngIf="reportData.bookingSources || reportData.nationalities">
+                    <thead class="text-xs text-gray-500 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3">Category</th>
+                            <th class="px-6 py-3 text-center">Volume</th>
+                            <th class="px-6 py-3 text-center">Share</th>
+                            <th class="px-6 py-3 text-right">Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let item of (reportData.bookingSources || reportData.nationalities)" class="hover:bg-gray-50">
+                            <td class="px-6 py-4 font-medium">{{ item.bookingSource || item.country }}</td>
+                            <td class="px-6 py-4 text-center">{{ item.totalReservations || item.totalGuests }}</td>
+                            <td class="px-6 py-4 text-center">{{ item.percentage }}%</td>
+                            <td class="px-6 py-4 text-right">{{ (item.totalRevenue || 0) | currency }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </mat-card>
+    </div>
+  </div>
+</div>

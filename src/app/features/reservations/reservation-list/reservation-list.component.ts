@@ -219,14 +219,34 @@ export class ReservationListComponent implements OnInit {
       return;
     }
 
-    console.log('Navigating to edit reservation:', reservation.id);
+    console.log('Opening edit reservation dialog:', reservation.id);
 
-    this.router.navigate(['/reservations/edit', reservation.id], {
-      state: { reservation: reservation }
+    // Open UpdateReservation dialog
+    const dialogRef = this.dialog.open(UpdateReservation, {
+      width: '90vw',
+      maxWidth: '1200px',
+      height: '90vh',
+      maxHeight: '90vh',
+      data: {
+        reservation: reservation,
+        propertyCode: this.propertyCode  // Pass property code if needed
+      },
+      disableClose: false,
+      panelClass: 'edit-reservation-dialog',  // Custom styling class
+      autoFocus: false
     });
 
-  }
+    // Handle dialog close
+    dialogRef.afterClosed().subscribe(result => {
+      console.log('Edit dialog closed:', result);
 
+      // If reservation was updated successfully, reload the list
+      if (result?.updated) {
+        this.loadReservations();  // or fetchFilteredReservations() if filtering
+        this.showSuccess('Reservation updated successfully!');
+      }
+    });
+  }
 
   cancelReservation(reservation: any): void {
     const cancellationReasons = [

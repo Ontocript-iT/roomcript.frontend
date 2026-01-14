@@ -1,7 +1,11 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit,} from '@angular/core';
+import {
+  MAT_DIALOG_DATA,
+} from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,7 +21,13 @@ import { Reservation } from '../../../core/models/reservation.model';
 import { RoomService } from '../../../core/services/room.service';
 import { Room } from '../../../core/models/room.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import {MatCheckbox} from '@angular/material/checkbox';
+import {MatCheckbox, MatCheckboxModule} from '@angular/material/checkbox';
+import {MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+
+interface DialogData {
+  reservation: Reservation;
+  propertyCode: string;
+}
 
 @Component({
   selector: 'app-update-reservation',
@@ -25,7 +35,6 @@ import {MatCheckbox} from '@angular/material/checkbox';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -36,7 +45,8 @@ import {MatCheckbox} from '@angular/material/checkbox';
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatCheckbox,
+    MatCheckboxModule,
+    MatDialogModule
   ],
   templateUrl: './update-reservation.html',
   styleUrls: ['./update-reservation.scss']
@@ -50,18 +60,20 @@ export class UpdateReservation implements OnInit {
   private originalCheckInDate!: Date;
   private originalCheckOutDate!: Date;
 
+  reservation!: Reservation;
+
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
-    { value: 'UNCONFIRMED', label: 'Unconfirm Booking'},
-    { value: 'FAILED', label: 'Online Failed Booking'},
-    { value: 'HOLD-CONFIRMED', label: 'Hold Confirm Booking'},
-    { value: 'HOLD-UNCONFIRMED', label: 'Hold Unconfirm Booking'}
+    { value: 'TENTATIVE', label: 'Tentative Booking'},
   ];
 
   availableBookingSources = [
     { value: 'Direct', label: 'Direct'},
+    { value: 'Walking', label: 'Walking'},
     { value: 'Booking.com', label: 'Booking.com'},
     { value: 'Airbnb', label: 'Airbnb'},
+    { value: 'Expedia', label: 'Expedia'},
+    { value: 'Agoda', label: 'Agoda'},
   ];
 
   availableRoomTypes = [
@@ -80,10 +92,15 @@ export class UpdateReservation implements OnInit {
     private roomService: RoomService,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<UpdateReservation>,
-    @Inject(MAT_DIALOG_DATA) public data: { reservation: Reservation }
+    @Inject(MAT_DIALOG_DATA) public data: DialogData
   ) {}
 
   ngOnInit(): void {
+    this.reservation = this.data.reservation;
+    this.propertyCode = this.data.propertyCode || localStorage.getItem("propertyCode") || '';
+
+    console.log('Dialog data received:', this.reservation);
+
     this.initForm();
     this.loadAvailableRooms();
     this.populateForm();
@@ -128,8 +145,8 @@ export class UpdateReservation implements OnInit {
   }
 
   populateForm(): void {
-    if (this.data.reservation) {
-      const res = this.data.reservation;
+    if (this.reservation) {
+      const res = this.reservation;
 
       this.originalCheckInDate = new Date(res.checkInDate);
       this.originalCheckOutDate = new Date(res.checkOutDate);
@@ -262,7 +279,7 @@ export class UpdateReservation implements OnInit {
     if (!this.propertyCode) {
       return;
     }
-    const res = this.data.reservation;
+    const res = this.reservation;
 
     this.originalCheckInDate = new Date(res.checkInDate);
     this.originalCheckOutDate = new Date(res.checkOutDate);
@@ -368,18 +385,6 @@ export class UpdateReservation implements OnInit {
     );
   }
 
-  incrementRooms(): void {
-    const current = this.updateReservationForm.get('numberOfRooms')?.value || 0;
-    this.updateReservationForm.patchValue({ numberOfRooms: current + 1 });
-  }
-
-  decrementRooms(): void {
-    const current = this.updateReservationForm.get('numberOfRooms')?.value || 0;
-    if (current > 1) {
-      this.updateReservationForm.patchValue({ numberOfRooms: current - 1 });
-    }
-  }
-
   incrementAdults(index: number): void {
     const room = this.rooms.at(index);
     const current = room.get('adults')?.value || 0;
@@ -439,11 +444,13 @@ export class UpdateReservation implements OnInit {
 
       const payload = this.transformFormData(this.updateReservationForm.value);
 
-      this.reservationService.updateReservation(this.data.reservation.id!, payload).subscribe({
+      this.reservationService.updateReservation(this.reservation.id, payload).subscribe({
         next: (response) => {
           this.isLoading = false;
           this.showSuccess('Reservation updated successfully!');
-          this.dialogRef.close(true);
+
+          // 👇 DIALOG: Close with success result instead of navigation
+          this.dialogRef.close({ updated: true, reservation: response });
         },
         error: (error) => {
           this.isLoading = false;
@@ -580,6 +587,6 @@ export class UpdateReservation implements OnInit {
   }
 
   onCancel(): void {
-    this.dialogRef.close(false);
+    this.dialogRef.close();
   }
 }
