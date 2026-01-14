@@ -174,6 +174,7 @@ export class ReservationActionDialog {
   constructor(
     public dialogRef: MatDialogRef<ReservationActionDialog>,
     @Inject(MAT_DIALOG_DATA) public data: ReservationActionData,
+    private router: Router
   ) {}
 
   getDayCount(): number {
@@ -182,7 +183,17 @@ export class ReservationActionDialog {
   }
 
   onAddReservation(): void {
-    this.dialogRef.close({ action: 'reservation', data: this.data });
+    const stateKey = 'reservation_dates_' + Date.now();
+    localStorage.setItem(stateKey, JSON.stringify({
+      checkIn: new Date(this.data.startDate),
+      checkOut: new Date(this.data.endDate),
+      timestamp: Date.now()
+    }));
+
+    this.dialogRef.close();
+    this.router.navigate(['/reservations/add'], {
+      state: { dateStateKey: stateKey }
+    });
   }
 
   onMaintenanceBlock(): void {
@@ -488,12 +499,10 @@ export class CalendarView implements OnInit, OnDestroy {
       autoFocus: false,
     });
 
-    // Only refresh calendar if changes were made
     dialogRef.afterClosed()
       .pipe(takeUntil(this.destroy$))
       .subscribe((result: any) => {
         if (result && result.refreshCalendar) {
-          console.log('🔄 Refreshing calendar view due to changes...');
           this.loadReservationsAndMaintenance();
         } else {
           console.log('ℹ️ No changes made, skipping calendar refresh');
