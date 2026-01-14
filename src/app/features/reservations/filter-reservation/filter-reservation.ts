@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import {Component, Output, EventEmitter, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule} from '@angular/forms';
 import {MatCard, MatCardContent, MatCardTitle} from '@angular/material/card';
 import {MatCheckbox} from '@angular/material/checkbox';
@@ -33,7 +33,7 @@ import {MatIconModule} from '@angular/material/icon';
   ],
   styleUrls: ['./filter-reservation.scss']
 })
-export class FilterReservation {
+export class FilterReservation implements OnInit{
   @Output() filterChanged = new EventEmitter<any>();
 
   filterForm!: FormGroup;
@@ -77,15 +77,19 @@ export class FilterReservation {
     this.initForm();
   }
 
+  ngOnInit(): void {
+    this.setupCheckboxListeners();
+  }
+
   initForm(): void {
     this.filterForm = this.fb.group({
       status: [''],
       useResDate: [false],
-      resStart: [''],
-      resEnd: [''],
+      resStart: [{ value: '', disabled: true }],
+      resEnd: [{ value: '', disabled: true }],
       useArrival: [false],
-      arrivalStart: [''],
-      arrivalEnd: [''],
+      arrivalStart: [{ value: '', disabled: true }],
+      arrivalEnd: [{ value: '', disabled: true }],
       bookingSource: [''],
       roomType: [''],
       reservationType: [''],
@@ -94,8 +98,41 @@ export class FilterReservation {
     });
   }
 
+  private setupCheckboxListeners(): void {
+    // Listen to Reservation Date checkbox changes
+    this.filterForm.get('useResDate')?.valueChanges.subscribe(enabled => {
+      if (enabled) {
+        this.filterForm.get('resStart')?.enable();
+        this.filterForm.get('resEnd')?.enable();
+      } else {
+        this.filterForm.get('resStart')?.disable();
+        this.filterForm.get('resEnd')?.disable();
+        // Clear values when disabled
+        this.filterForm.patchValue({
+          resStart: '',
+          resEnd: ''
+        }, { emitEvent: false });
+      }
+    });
+
+    this.filterForm.get('useArrival')?.valueChanges.subscribe(enabled => {
+      if (enabled) {
+        this.filterForm.get('arrivalStart')?.enable();
+        this.filterForm.get('arrivalEnd')?.enable();
+      } else {
+        this.filterForm.get('arrivalStart')?.disable();
+        this.filterForm.get('arrivalEnd')?.disable();
+
+        this.filterForm.patchValue({
+          arrivalStart: '',
+          arrivalEnd: ''
+        }, { emitEvent: false });
+      }
+    });
+  }
+
   onSubmit(): void {
-    const formValue = this.filterForm.value;
+    const formValue = this.filterForm.getRawValue();
 
     const toYYYYMMDD = (date: any): string | undefined => {
       if (!date) return undefined;
@@ -108,13 +145,23 @@ export class FilterReservation {
       return `${year}-${month}-${day}`;
     };
 
-    const filterParams: Record<string, any> = {  // ← Use Record type
+    const toTimestamp = (date: any): string | undefined => {
+      if (!date) return undefined;
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return undefined;
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}T00:00:00`;  // ← Added timestamp
+    };
+
+    const filterParams: Record<string, any> = {
       status: formValue.status || undefined,
       startReservationDate: formValue.useResDate && formValue.resStart
-        ? toYYYYMMDD(formValue.resStart)
+        ? toTimestamp(formValue.resStart)  // ← Changed to toTimestamp
         : undefined,
       endReservationDate: formValue.useResDate && formValue.resEnd
-        ? toYYYYMMDD(formValue.resEnd)
+        ? toTimestamp(formValue.resEnd)    // ← Changed to toTimestamp
         : undefined,
       startCheckInDate: formValue.useArrival && formValue.arrivalStart
         ? toYYYYMMDD(formValue.arrivalStart)
@@ -129,14 +176,12 @@ export class FilterReservation {
       guestPhone: formValue.guestPhone || undefined
     };
 
-    // Remove undefined values
     Object.keys(filterParams).forEach(key => {
       if (filterParams[key] === undefined) {
         delete filterParams[key];
       }
     });
 
-    console.log('Emitting filter params:', filterParams);
     this.filterChanged.emit(filterParams);
   }
 
@@ -155,6 +200,11 @@ export class FilterReservation {
       guestEmail: '',
       guestPhone: ''
     });
+
+    this.filterForm.get('resStart')?.disable();
+    this.filterForm.get('resEnd')?.disable();
+    this.filterForm.get('arrivalStart')?.disable();
+    this.filterForm.get('arrivalEnd')?.disable();
 
     this.filterChanged.emit({});
   }

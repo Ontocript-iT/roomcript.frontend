@@ -117,7 +117,21 @@ export class ReservationFormComponent implements OnInit {
     private roomService: RoomService,
     private snackBar: MatSnackBar,
     private datePipe: DatePipe,
-) {}
+) {
+    // Read state during navigation
+    const navigation = this.router.getCurrentNavigation();
+    const state = navigation?.extras.state as any;
+
+    if (state?.dateStateKey) {
+      const stored = localStorage.getItem(state.dateStateKey);
+      if (stored) {
+        const dates = JSON.parse(stored);
+        // Store for form patching
+        (window as any).pendingReservationDates = dates;
+        localStorage.removeItem(state.dateStateKey);  // Cleanup
+      }
+    }
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -128,6 +142,7 @@ export class ReservationFormComponent implements OnInit {
     this.subscribeToHoldReservationChanges();
     this.loadGuestData();
     this.setupGuestAutocomplete();
+    this.prefillDates();
   }
 
   initForm(): void {
@@ -162,6 +177,21 @@ export class ReservationFormComponent implements OnInit {
       releaseTime: [{ value: '', disabled: true }],
       remindDaysBeforeRelease: [{ value: 0, disabled: true }, [Validators.min(0)]]
     });
+  }
+
+  private prefillDates(): void {
+    const pendingDates = (window as any).pendingReservationDates;
+    if (pendingDates?.checkIn && pendingDates?.checkOut) {
+      setTimeout(() => {
+        this.reservationForm.patchValue({
+          checkIn: pendingDates.checkIn,
+          checkOut: pendingDates.checkOut
+        });
+        delete (window as any).pendingReservationDates;
+        this.updateBillingSummary();
+        this.loadAvailableRooms();
+      }, 0);
+    }
   }
 
   private getCombinedReleaseDateTime(): string | null {
@@ -659,12 +689,8 @@ export class ReservationFormComponent implements OnInit {
     });
 
     const guestFullName = `${formValue.guestTitle}. ${formValue.guestName}`;
-
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
-
-    const reservationCategory = formValue.isGroupReservation ? 'GROUP' : 'INDIVIDUAL';
-    const isGroupReservationNumeric = formValue.isGroupReservation ? 1 : 0;
 
     const rawFormValue = this.reservationForm.getRawValue();
     const sendVoucher = rawFormValue.confirmationVoucher ?? false;
@@ -685,28 +711,35 @@ export class ReservationFormComponent implements OnInit {
       roomIds: roomIds,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
+
       numberOfGuests: totalAdults + totalChildren,
       numberOfAdults: totalAdults,
       numberOfChildren: totalChildren,
-      roomCount: formValue.rooms.length,
 
-      reservationCategory: reservationCategory,
-      isGroupReservation: isGroupReservationNumeric,
+      roomCount: formValue.rooms.length,
+      roomGuests: roomGuests,
+
+      reservationCategory: formValue.isGroupReservation ? 'GROUP' : 'INDIVIDUAL',
+      isGroupReservation: formValue.isGroupReservation ? 1 : 0,
+      groupReservation: formValue.isGroupReservation ? true : false,
       reservationType: formValue.reservationType,
       bookingSource: formValue.bookingSource,
       sendVoucher: sendVoucher,
+
       discountPercentage: this.discountType === 'percentage' ? (formValue.discount || 0) : 0,
-      discountAmount: this.billingSummary.discount,
+      discountAmount: this.billingSummary.discount || 0,
       discountType: this.discountType,
-      subtotal: this.billingSummary.roomCharges,
-      totalAmount: this.billingSummary.totalAmount,
+      subtotal: this.billingSummary.roomCharges || 0,
+      totalAmount: this.billingSummary.totalAmount || 0,
       advanceDeposit: formValue.advance || 0,
-      balanceAmount: this.billingSummary.balanceAmount,
+      paidAmount: formValue.advance || 0,
+      balanceAmount: this.billingSummary.balanceAmount || 0,
       specialRequests: formValue.specialRequests || '',
-      roomGuests: roomGuests,
-      isOnHold: formValue.isOnHold,
-      releaseDateTime: formattedDateTime,
-      remindDaysBeforeRelease: formValue.remindDaysBeforeRelease,
+
+      isOnHold: formValue.isOnHold || false,
+      releaseDateTime: formattedDateTime || null,
+      remindDaysBeforeRelease: formValue.remindDaysBeforeRelease || 0,
+      autoCancelEnabled: formValue.autoCancelEnabled || false
     };
   }
 
@@ -730,10 +763,30 @@ export class ReservationFormComponent implements OnInit {
       this.reservationService.createGroupReservation(this.propertyCode, payload).subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.showSuccess('Reservation created successfully!');
+
+          const reservationId = response.reservationId || response.id;
+          const folioId = response.folioId;
+          const folioNumber = response.folioNumber;
+
+          let successMessage = 'Reservation created successfully!';
+          if (folioNumber) {
+            successMessage += ` Folio #${folioNumber} has been generated.`;
+          }
+
+          this.showSuccess(successMessage);
+
+          if (folioId) {
+            console.log('🎫 Folio auto-generated:', {
+              folioId: folioId,
+              folioNumber: folioNumber,
+              reservationId: reservationId
+            });
+          }
 
           setTimeout(() => {
-            this.router.navigate(['/reservations/all']);
+            if (reservationId) {
+              this.router.navigate(['/reservations/all']);
+            }
           }, 1500);
 
           this.reservationForm.reset();
