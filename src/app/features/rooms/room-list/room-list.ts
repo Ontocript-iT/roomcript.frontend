@@ -45,6 +45,7 @@ import {UpdateRoom} from '../update-room/update-room';
 export class RoomListComponent implements OnInit {
   rooms: Room[] = [];
   isLoading = false;
+  isSuperAdmin = false;
 
   propertyControl = new FormControl('');
   properties: PropertyResponse[] = [];
@@ -61,7 +62,13 @@ export class RoomListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.checkUserRole();
     this.loadProperties();
+  }
+
+  checkUserRole(): void {
+    const role = localStorage.getItem('role');
+    this.isSuperAdmin = role === 'ROLE_SUPER_ADMIN';
   }
 
   loadProperties(): void {
@@ -237,6 +244,127 @@ export class RoomListComponent implements OnInit {
           error: (error: HttpErrorResponse) => {
             console.error('Delete room error:', error);
             this.showError('Failed to delete room');
+          }
+        });
+      }
+    });
+  }
+
+  changeStatus(room: Room): void {
+    const statuses = [
+      { value: 'AVAILABLE', label: 'Available' },
+      { value: 'OCCUPIED', label: 'Occupied' },
+      { value: 'MAINTENANCE', label: 'Maintenance' },
+      { value: 'CLEANING', label: 'Cleaning' },
+      { value: 'OUT_OF_ORDER', label: 'Out of Order' }
+    ];
+
+    // Helper function for status display name
+    const getStatusDisplayName = (status: string): string => {
+      const statusMap: { [key: string]: string } = {
+        'AVAILABLE': 'Available',
+        'OCCUPIED': 'Occupied',
+        'MAINTENANCE': 'Maintenance',
+        'CLEANING': 'Cleaning',
+        'OUT_OF_ORDER': 'Out of Order'
+      };
+      return statusMap[status] || status;
+    };
+
+    const statusOptionsHtml = statuses
+      .map((status) => `
+      <option value="${status.value}">
+        ${status.label}
+      </option>
+    `)
+      .join('');
+
+    Swal.fire({
+      title: 'Change Room Status',
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="grid grid-cols-2 gap-y-3">
+          <div class="flex">
+            <span class="font-semibold w-32">Room Number:</span>
+            <span>${room.roomNumber}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold w-32">Room Type:</span>
+            <span>${room.roomType}</span>
+          </div>
+          <div class="flex">
+            <span class="font-semibold w-32">Floor:</span>
+            <span>${room.floor}</span>
+          </div>
+          <div class="flex mb-4">
+            <span class="font-semibold w-32">Current Status:</span>
+            <span>${room.status || 'N/A'}</span>
+          </div>
+        </div>
+        <div class="text-left">
+          <div class="w-full mb-3">
+            <label for="statusSelect" class="block mb-2 font-medium text-gray-700">Select new status</label>
+            <select id="statusSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="" disabled selected>Select a status</option>
+              ${statusOptionsHtml}
+            </select>
+          </div>
+          <div class="w-full">
+            <label for="statusReason" class="block mb-2 font-medium text-gray-700">Reason for status change</label>
+            <textarea
+              id="statusReason"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter reason for status change..."
+              rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+    `,
+      icon: 'info',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      confirmButtonText: 'Update Status',
+      cancelButtonText: 'Cancel',
+      width: '600px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      },
+      preConfirm: () => {
+        const selectedStatus = (document.getElementById('statusSelect') as HTMLSelectElement).value;
+        const reason = (document.getElementById('statusReason') as HTMLTextAreaElement).value;
+
+        if (!selectedStatus) {
+          Swal.showValidationMessage('Please select a status');
+          return false;
+        }
+
+        if (!reason || reason.trim() === '') {
+          Swal.showValidationMessage('Please provide a reason for the status change');
+          return false;
+        }
+
+        return { selectedStatus, reason };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { selectedStatus, reason } = result.value;
+
+        this.roomService.updateRoomStatus(room.id, selectedStatus, reason).subscribe({
+          next: () => {
+            this.showSuccess(`Room ${room.roomNumber} status has been successfully updated to "${getStatusDisplayName(selectedStatus)}"`);
+            this.loadRooms();
+          },
+          error: (error: HttpErrorResponse) => {
+            const errorMsg = error.error?.message || 'Failed to update room status. Please try again later.';
+            console.error('Error updating room status:', error);
+            this.showError(`Failed to update room ${room.roomNumber} status. ${errorMsg}`);
           }
         });
       }
