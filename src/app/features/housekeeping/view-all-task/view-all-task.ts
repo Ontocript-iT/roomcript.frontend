@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms'; // Import FormsModule for ngModel
+import { FormsModule } from '@angular/forms';
 
 // Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSelectModule } from '@angular/material/select'; // Import MatSelect
+import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { HousekeepingService, HousekeepingTask, TaskResponse } from '../../../core/services/housekeeping.service';
@@ -19,7 +19,7 @@ import { HousekeepingService, HousekeepingTask, TaskResponse } from '../../../co
   selector: 'app-housekeeping-list',
   standalone: true,
   imports: [
-   CommonModule,
+    CommonModule,
     RouterModule,
     HttpClientModule,
     FormsModule,
@@ -32,11 +32,13 @@ import { HousekeepingService, HousekeepingTask, TaskResponse } from '../../../co
     MatFormFieldModule
   ],
   templateUrl: './view-all-task.html',
+  styleUrls: ['./view-all-task.scss']
 })
 export class ViewAllTask implements OnInit {
   tasks: HousekeepingTask[] = [];
+  allTasks: HousekeepingTask[] = []; // Store all tasks for client-side filtering
   isLoading = true;
-  propertyName = 'Ocean View Hotel'; // Example property name
+  propertyName = 'Ocean View Hotel';
   propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
 
   // Filter State
@@ -60,24 +62,38 @@ export class ViewAllTask implements OnInit {
     this.loadTasks();
   }
 
-loadTasks(): void {
+  loadTasks(): void {
     this.isLoading = true;
-    this.housekeepingService.getTasks(this.propertyCode, this.selectedStatus).subscribe({
+
+    // Call getAllTasks with propertyCode
+    this.housekeepingService.getAllTasks(this.propertyCode).subscribe({
       next: (response: TaskResponse) => {
-        this.tasks = response.result || [];
+        this.allTasks = response.result || [];
+        this.filterTasks(); // Apply filter after loading
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error fetching tasks:', error);
+        this.tasks = [];
+        this.allTasks = [];
         this.isLoading = false;
       }
     });
   }
 
+  // Client-side filtering based on selected status
+  filterTasks(): void {
+    if (this.selectedStatus === 'ALL') {
+      this.tasks = [...this.allTasks];
+    } else {
+      this.tasks = this.allTasks.filter(task => task.status === this.selectedStatus);
+    }
+  }
 
   onFilterChange(): void {
-    this.loadTasks();
+    this.filterTasks(); // Apply filter without reloading from server
   }
+
   // --- Helper Methods for UI Styling ---
 
   formatTaskType(type: string): string {
@@ -100,6 +116,9 @@ loadTasks(): void {
       case 'ASSIGNED': return 'bg-blue-100 text-blue-800';
       case 'IN_PROGRESS': return 'bg-purple-100 text-purple-800';
       case 'PENDING': return 'bg-yellow-100 text-yellow-800';
+      case 'VERIFIED': return 'bg-teal-100 text-teal-800';
+      case 'REJECTED': return 'bg-red-100 text-red-800';
+      case 'CANCELLED': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   }

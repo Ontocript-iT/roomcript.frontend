@@ -34,6 +34,7 @@ import { HousekeepingService, LostFoundItem, LostFoundResponse } from '../../../
     MatSnackBarModule
   ],
   templateUrl: './view-all-found-items.html',
+  styleUrl: './view-all-found-items.scss',
 })
 export class ViewAllFoundItems implements OnInit {
   items: LostFoundItem[] = [];
@@ -91,8 +92,8 @@ export class ViewAllFoundItems implements OnInit {
     const statusBadge = `<span style="background-color: ${statusColor}20; color: ${statusColor}; padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;">${item.status}</span>`;
 
     // Handle Image
-    const imgHtml = item.imageUrl 
-      ? `<img src="${item.imageUrl}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e5e7eb;">` 
+    const imgHtml = item.imageUrl
+      ? `<img src="${item.imageUrl}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 16px; border: 1px solid #e5e7eb;">`
       : `<div style="width: 100%; height: 150px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-bottom: 16px; color: #9ca3af;"><span style="font-size: 14px;">No Image Available</span></div>`;
 
     Swal.fire({
@@ -107,7 +108,7 @@ export class ViewAllFoundItems implements OnInit {
           ${imgHtml}
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-            
+
             <div style="grid-column: span 2; background: #f9fafb; padding: 10px; border-radius: 6px;">
               <div style="font-weight: 600; color: #374151; margin-bottom: 4px; display: flex; align-items: center;">
                 <span class="material-icons" style="font-size: 16px; margin-right: 4px;">location_on</span> Found Details

@@ -220,4 +220,23 @@ export class RoomService {
       })
     );
   }
+
+  updateRoomStatus(roomId: number, newStatus: string, reason: string): Observable<any> {
+    const url = `${environment.apiUrl}/housekeeping/rooms/${roomId}/status`;
+    const headers = this.getHeaders();
+
+    return this.http.put(url, null, {
+      headers,
+      params: {
+        newStatus: newStatus,
+        reason: reason
+      }
+    }).pipe(
+      tap(() => console.log(`Room ${roomId} status updated to ${newStatus}`)),
+      catchError(error => {
+        console.error(`Error updating room ${roomId} status:`, error);
+        throw error;
+      })
+    );
+  }
 }

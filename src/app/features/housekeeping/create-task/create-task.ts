@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatDatepicker } from '@angular/material/datepicker';
+import { NgxMaterialTimepickerComponent } from 'ngx-material-timepicker';
 
 // Angular Material Imports
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +20,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { HousekeepingService, Room, CreateTaskRequest } from '../../../core/services/housekeeping.service';
+import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 @Component({
   selector: 'app-housekeeping-add',
@@ -36,16 +39,22 @@ import { HousekeepingService, Room, CreateTaskRequest } from '../../../core/serv
     MatDatepickerModule,
     MatNativeDateModule,
     MatCheckboxModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    NgxMaterialTimepickerModule
   ],
   templateUrl: './create-task.html',
+  styleUrls: ['./create-task.scss']
 })
 export class CreateTask implements OnInit {
   taskForm!: FormGroup;
   isLoading = false;
   rooms: Room[] = [];
-  
+
   propertyCode = localStorage.getItem("propertyCode") || 'PROP0005';
+
+  // Template references for date/time pickers
+  @ViewChild('scheduledDatePicker') scheduledDatePicker!: MatDatepicker<Date>;
+  @ViewChild('scheduledTimePicker') scheduledTimePicker!: NgxMaterialTimepickerComponent;
 
   // Enums for dropdowns
   taskTypes = [
@@ -80,17 +89,22 @@ export class CreateTask implements OnInit {
   }
 
   private initializeForm(): void {
-    const defaultDate = new Date().toISOString().slice(0, 16); // Current time for datetime-local
+    const now = new Date();
+    const defaultTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, '0')}`; // "HH:mm"
 
     this.taskForm = this.fb.group({
       roomId: [null, [Validators.required]],
       taskType: ['CHECKOUT_CLEANING', [Validators.required]],
       priority: ['MEDIUM', [Validators.required]],
-      scheduledTime: [defaultDate, [Validators.required]],
+      scheduledDate: [now, [Validators.required]],
+      scheduledTime: [defaultTimeStr, [Validators.required]], // <- string, not object
       estimatedDuration: [45, [Validators.required, Validators.min(1)]],
       roomConditionBefore: ['DIRTY', [Validators.required]],
-      assignedToId: [null], // Optional: ID of the staff member
-      reservationId: [null], // Optional: Linked reservation
+      assignedToId: [null],
+      reservationId: [null],
       notes: [''],
       specialInstructions: [''],
       requiresInspection: [true],
@@ -110,23 +124,34 @@ export class CreateTask implements OnInit {
     });
   }
 
+  // Time picker icon click handler
+  onTimePickerIconClick(timepicker: NgxMaterialTimepickerComponent): void {
+    timepicker.open();
+  }
+
   onSubmit(): void {
     if (this.taskForm.valid) {
       this.isLoading = true;
       const formValue = this.taskForm.value;
 
-      // Format date correctly for LocalDateTime (e.g., "2026-01-06T10:00:00")
-      // The datetime-local input usually gives "YYYY-MM-DDTHH:mm", so we append :00 if needed
-      let formattedDate = formValue.scheduledTime;
-      if (formattedDate.length === 16) {
-        formattedDate += ':00';
-      }
+      // Combine date + time into "2026-01-06T10:00:00" format
+      const scheduledDate = new Date(formValue.scheduledDate);
+      const scheduledTime = formValue.scheduledTime;
+
+      // Set time components from time picker
+      scheduledDate.setHours(scheduledTime.hour || 0);
+      scheduledDate.setMinutes(scheduledTime.minute || 0);
+      scheduledDate.setSeconds(0);
+      scheduledDate.setMilliseconds(0);
+
+      // Format as ISO string without timezone (matches backend LocalDateTime)
+      const formattedScheduledTime = scheduledDate.toISOString().slice(0, 19).replace('Z', '');
 
       const taskData: CreateTaskRequest = {
         roomId: formValue.roomId,
         taskType: formValue.taskType,
         priority: formValue.priority,
-        scheduledTime: formattedDate,
+        scheduledTime: formattedScheduledTime, // "2026-01-06T10:00:00"
         notes: formValue.notes,
         specialInstructions: formValue.specialInstructions,
         estimatedDuration: formValue.estimatedDuration,
@@ -141,13 +166,9 @@ export class CreateTask implements OnInit {
         next: () => {
           this.isLoading = false;
           this.showSuccess('Task assigned successfully!');
-          this.taskForm.reset({ 
-            priority: 'MEDIUM',
-            roomConditionBefore: 'DIRTY',
-            estimatedDuration: 45,
-            requiresInspection: true
-          });
-          // setTimeout(() => this.router.navigate(['/housekeeping/tasks']), 1500);
+          setTimeout(() => {
+            this.router.navigate(['/housekeeping/view-all-task']);
+          }, 1500);
         },
         error: (error) => {
           this.isLoading = false;
