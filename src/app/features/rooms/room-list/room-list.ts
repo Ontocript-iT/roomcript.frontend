@@ -19,7 +19,6 @@ import {map, Observable, startWith} from 'rxjs';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatAutocompleteModule, MatAutocompleteTrigger} from '@angular/material/autocomplete';
 import {MatInputModule} from '@angular/material/input';
-import {ViewRoomDetailsComponent} from '../view-room-details/view-room-details';
 import Swal from 'sweetalert2';
 import {UpdateRoom} from '../update-room/update-room';
 
