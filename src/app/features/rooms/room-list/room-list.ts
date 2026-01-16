@@ -167,20 +167,94 @@ export class RoomListComponent implements OnInit {
 
   viewRoom(room: Room): void {
     const selectedProperty = this.properties.find(p => p.propertyCode === this.selectedPropertyCode);
+    const propertyName = selectedProperty?.propertyName || 'N/A';
+    const propertyCode = selectedProperty?.propertyCode || this.selectedPropertyCode || 'N/A';
 
-    const dialogData = {
-      room: {
-        ...room,
-        propertyName: selectedProperty?.propertyName || 'N/A',
-        propertyCode: selectedProperty?.propertyCode || this.selectedPropertyCode || 'N/A'
-      }
+    // Helper function for status badge
+    const getStatusBadge = (status: string): string => {
+      const statusConfig: { [key: string]: { class: string, display: string } } = {
+        'AVAILABLE': { class: 'bg-green-100 text-green-800', display: 'Available' },
+        'OCCUPIED': { class: 'bg-blue-100 text-blue-800', display: 'Occupied' },
+        'MAINTENANCE': { class: 'bg-yellow-100 text-yellow-800', display: 'Maintenance' },
+        'CLEANING': { class: 'bg-purple-100 text-purple-800', display: 'Cleaning' },
+        'OUT_OF_ORDER': { class: 'bg-red-100 text-red-800', display: 'Out of Order' }
+      };
+      const config = statusConfig[status] || { class: 'bg-gray-100 text-gray-800', display: status };
+      return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${config.class}">${config.display}</span>`;
     };
 
-    const dialogRef = this.dialog.open(ViewRoomDetailsComponent, {
-      width: '800px',
-      maxWidth: '95vw',
-      data: dialogData,
-      panelClass: 'room-details-dialog'
+    Swal.fire({
+      title: 'Room Details',
+      html: `
+      <div class="text-left space-y-4" style="font-size: 14px;">
+        <!-- Property Information -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500 font-medium mb-1">Property Name</span>
+              <span class="font-bold text-gray-900">${propertyName}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500 font-medium mb-1">Property Code</span>
+              <span class="font-bold text-gray-900">${propertyCode}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Room Information (Two Columns) -->
+        <div class="pt-4">
+          <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+            <div class="flex">
+              <span class="font-semibold w-28">Room Number:</span>
+              <span>${room.roomNumber}</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Room Type:</span>
+              <span>${room.roomType}</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Floor:</span>
+              <span>${room.floor || 'N/A'}</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Capacity:</span>
+              <span>${room.capacity} guests</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Bed Type:</span>
+              <span>${room.bedType || 'N/A'}</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Base Price:</span>
+              <span class="text-green-600 font-semibold">$${room.basePrice?.toFixed(2)}</span>
+            </div>
+            <div class="flex">
+              <span class="font-semibold w-28">Status:</span>
+              <div class="flex items-center">
+                ${getStatusBadge(room.status)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+      icon: 'info',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      showConfirmButton: false,
+      allowOutsideClick: true,
+      allowEscapeKey: true,
+      cancelButtonText: 'Close',
+      width: '650px',
+      padding: '1.75rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-user-details-popup',
+        title: 'swal-large-title',
+        htmlContainer: 'swal-user-details-content',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      }
     });
   }
 
@@ -213,26 +287,53 @@ export class RoomListComponent implements OnInit {
       title: 'Delete Room',
       html: `
       <div class="text-left space-y-2" style="font-size: 14px;">
-        <div class="mt-4 text-center">
-          Are you sure you want to delete room <strong>${room.roomNumber}</strong> (${room.roomType})?
+        <p class="text-sm text-gray-700">
+          This action will permanently delete the following room:
+        </p>
+        <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 mt-3">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-semibold text-gray-900">Room ${room.roomNumber}</span>
+            <span class="text-sm text-gray-600">${room.roomType}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+            <div class="flex items-center">
+              <span class="font-medium mr-1">Floor:</span>
+              <span>${room.floor}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium mr-1">Capacity:</span>
+              <span>${room.capacity} guests</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium mr-1">Base Price:</span>
+              <span>$${room.basePrice?.toFixed(2) || 'N/A'}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium mr-1">Bed Type:</span>
+              <span>${room.bedType || 'N/A'}</span>
+            </div>
+          </div>
         </div>
-        <div class="text-sm text-center text-gray-600">
-          This action cannot be undone.
-        </div>
+        <p class="text-red-600 font-semibold mt-4 text-center">
+          This action cannot be undone. Are you sure?
+        </p>
       </div>
     `,
       icon: 'warning',
+      iconColor: '#f97316',
       showCancelButton: true,
-      confirmButtonColor: '#dc2626',
-      cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, Delete',
-      cancelButtonText: 'No',
+      cancelButtonText: 'Cancel',
+      width: '500px',
+      padding: '1.5rem',
+      buttonsStyling: false,
       customClass: {
-        popup: 'text-xs',
-        title: 'text-sm font-bold',
-        htmlContainer: 'text-xs',
-        confirmButton: 'text-xs px-4 py-2 rounded-lg',
-        cancelButton: 'text-xs px-4 py-2 rounded-lg'
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
       }
     }).then((result) => {
       if (result.isConfirmed) {
@@ -243,7 +344,8 @@ export class RoomListComponent implements OnInit {
           },
           error: (error: HttpErrorResponse) => {
             console.error('Delete room error:', error);
-            this.showError('Failed to delete room');
+            const errorMessage = error.error?.message || 'Failed to delete room';
+            this.showError(errorMessage);
           }
         });
       }

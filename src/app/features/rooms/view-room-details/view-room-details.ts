@@ -39,21 +39,15 @@ export class ViewRoomDetailsComponent implements OnInit {
     this.dialogRef.close();
   }
 
-  getStatusBgColor(status: string): string {
-    switch (status) {
-      case 'AVAILABLE': return '#d1fae5';
-      case 'OCCUPIED': return '#fef3c7';
-      case 'MAINTENANCE': return '#fee2e2';
-      default: return '#f3f4f6';
-    }
+  getStatusClass(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'AVAILABLE': 'status-available',
+      'OCCUPIED': 'status-occupied',
+      'MAINTENANCE': 'status-maintenance',
+      'CLEANING': 'status-cleaning',
+      'OUT_OF_ORDER': 'status-out-of-order'
+    };
+    return statusMap[status] || 'status-available';
   }
 
-  getStatusTextColor(status: string): string {
-    switch (status) {
-      case 'AVAILABLE': return '#065f46';
-      case 'OCCUPIED': return '#92400e';
-      case 'MAINTENANCE': return '#991b1b';
-      default: return '#374151';
-    }
-  }
 }

@@ -78,19 +78,19 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Room Types',
         route: '/rooms/types',
         icon: 'category',
-        roles: ['ADMIN', 'MANAGER']
+        roles: ['SUPER_ADMIN', 'MANAGER']
       },
       {
         title: 'Room Status',
         route: '/rooms/status',
         icon: 'info',
-        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
+        roles: ['SUPER_ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
       },
       {
         title: 'Maintenance',
         route: '/rooms/maintenance',
         icon: 'build',
-        roles: ['ADMIN', 'MANAGER', 'HOUSEKEEPING']
+        roles: ['SUPER_ADMIN', 'MANAGER', 'HOUSEKEEPING']
       }
     ]
   },
