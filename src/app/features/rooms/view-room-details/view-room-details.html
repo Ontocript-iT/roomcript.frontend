@@ -1,75 +1,87 @@
-<div class="max-w-7xl m-5">
+<div class="dialog-container">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6 pb-4">
+  <div class="dialog-header">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">hotel</mat-icon>
+      <div class="icon-wrapper">
+        <mat-icon class="!text-white !w-6 !h-6">hotel</mat-icon>
       </div>
       <div>
-        <h2 class="text-xl font-bold text-gray-900">Room Details</h2>
-        <p class="text-sm text-gray-500">View room information</p>
+        <h2 class="dialog-title">Room Details</h2>
+        <p class="dialog-subtitle">View room information</p>
       </div>
     </div>
-    <button mat-icon-button (click)="onCancel()" class="!text-gray-500 hover:!text-gray-700">
+    <button mat-icon-button (click)="onCancel()" class="close-button">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Property Information -->
-  <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+  <!-- Property Information Card -->
+  <div class="property-card">
     <div class="grid grid-cols-2 gap-4">
-      <div class="flex flex-col">
-        <span class="text-sm text-gray-500 font-medium">Property Name:</span>
-        <span class="font-bold text-gray-900 text-lg">{{ data.room.propertyName || 'N/A' }}</span>
+      <div class="info-item">
+        <span class="info-label">Property Name</span>
+        <span class="info-value-large">{{ data.room.propertyName || 'N/A' }}</span>
       </div>
-      <div class="flex flex-col">
-        <span class="text-sm text-gray-500 font-medium">Property Code:</span>
-        <span class="font-bold text-gray-900 text-lg">{{ data.room.propertyCode || 'N/A' }}</span>
+      <div class="info-item">
+        <span class="info-label">Property Code</span>
+        <span class="info-value-large">{{ data.room.propertyCode || 'N/A' }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Room Information -->
-  <div class="grid grid-cols-2" style="gap: 0.5rem 2rem; margin-bottom: 20px;">
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Room No:</span>
-      <span>{{ data.room.roomNumber }}</span>
+  <!-- Room Information Section -->
+  <div class="section-header">
+    <mat-icon class="section-icon">info</mat-icon>
+    <h3 class="section-title">Room Information</h3>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-row">
+      <span class="info-label">Room Number</span>
+      <span class="info-value">{{ data.room.roomNumber }}</span>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Room Type:</span>
-      <span>{{ data.room.roomType }}</span>
+    <div class="info-row">
+      <span class="info-label">Room Type</span>
+      <span class="info-value">{{ data.room.roomType }}</span>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Floor:</span>
-      <span>{{ data.room.floor || 'N/A' }}</span>
+    <div class="info-row">
+      <span class="info-label">Floor</span>
+      <span class="info-value">{{ data.room.floor || 'N/A' }}</span>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Capacity:</span>
-      <span>{{ data.room.capacity }}</span>
+    <div class="info-row">
+      <span class="info-label">Capacity</span>
+      <span class="info-value">{{ data.room.capacity }} guests</span>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Bed Type:</span>
-      <span>{{ data.room.bedType || 'N/A' }}</span>
+    <div class="info-row">
+      <span class="info-label">Bed Type</span>
+      <span class="info-value">{{ data.room.bedType || 'N/A' }}</span>
     </div>
-    <div class="flex" style="gap: 0.5rem;">
-      <span class="font-semibold" style="min-width: 100px;">Base Price:</span>
-      <span>${{ data.room.basePrice?.toFixed(2) }}</span>
+    <div class="info-row">
+      <span class="info-label">Base Price</span>
+      <span class="info-value info-value-price">${{ data.room.basePrice?.toFixed(2) }}</span>
     </div>
   </div>
 
-  <!-- Status -->
-  <div class="flex mb-8" style="gap: 0.5rem;">
-    <span class="font-semibold" style="min-width: 100px;">Status:</span>
-    <span [ngStyle]="{
-            'background-color': getStatusBgColor(data.room.status),
-            'color': getStatusTextColor(data.room.status),
-            'display': 'inline-block',
-            'padding': '0.5rem 1rem',
-            'border-radius': '9999px',
-            'font-size': '14px',
-            'font-weight': '600'
-          }">
+  <!-- Status Section -->
+  <div class="section-header mt-6">
+    <mat-icon class="section-icon">check_circle</mat-icon>
+    <h3 class="section-title">Current Status</h3>
+  </div>
+
+  <div class="status-container">
+    <span class="status-badge" [ngClass]="getStatusClass(data.room.status)">
       {{ data.room.status }}
     </span>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="dialog-actions">
+    <button
+      mat-raised-button
+      (click)="onCancel()"
+      class="action-button action-button-primary">
+      <mat-icon class="!mr-2">check</mat-icon>
+      Close
+    </button>
   </div>
 </div>

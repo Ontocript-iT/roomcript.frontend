@@ -211,7 +211,7 @@
                     mat-icon-button
                     matTooltip="Delete Room"
                     (click)="deleteRoom(room)"
-                    class="!transition-all !duration-200">
+                    class="!transition-all !duration-200" *ngIf="isSuperAdmin">
                     <mat-icon class="action-icon">delete</mat-icon>
                   </button>
                 </div>
