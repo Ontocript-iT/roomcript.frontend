@@ -78,19 +78,19 @@ export const NAV_ITEMS: NavItem[] = [
         title: 'Room Types',
         route: '/rooms/types',
         icon: 'category',
-        roles: ['ADMIN', 'MANAGER']
+        roles: ['SUPER_ADMIN', 'MANAGER']
       },
       {
         title: 'Room Status',
         route: '/rooms/status',
         icon: 'info',
-        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
+        roles: ['SUPER_ADMIN', 'MANAGER', 'FRONT_DESK', 'HOUSEKEEPING']
       },
       {
         title: 'Maintenance',
         route: '/rooms/maintenance',
         icon: 'build',
-        roles: ['ADMIN', 'MANAGER', 'HOUSEKEEPING']
+        roles: ['SUPER_ADMIN', 'MANAGER', 'HOUSEKEEPING']
       }
     ]
   },
@@ -135,12 +135,6 @@ export const NAV_ITEMS: NavItem[] = [
         route: '/guest/inhouse',
         icon: 'home',
         roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
-      },
-      {
-        title: 'Add Guest',
-        route: '/guests/add',
-        icon: 'person_add',
-        roles: ['ADMIN', 'FRONT_DESK']
       }
     ]
   },
@@ -150,16 +144,16 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['ADMIN', 'MANAGER'],
     subItems: [
       {
-        title: 'Create Housekeeping Task',
-        route: 'housekeeping/create-task',
-        icon: 'list',
-        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
-      },
-       {
         title: 'All Tasks',
         route: 'housekeeping/view-all-task',
         icon: 'list',
         roles: ['ADMIN', 'MANAGER']
+      },
+      {
+        title: 'Create Task',
+        route: 'housekeeping/create-task',
+        icon: 'list',
+        roles: ['ADMIN', 'MANAGER', 'FRONT_DESK']
       },
       {
         title: 'Lost and Found Items',
