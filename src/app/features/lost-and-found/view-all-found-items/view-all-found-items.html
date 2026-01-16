@@ -157,24 +157,35 @@
                       mat-icon-button
                       matTooltip="View Full Details"
                       (click)="onViewDetails(item)"
-                      class="!text-indigo-600 hover:!bg-indigo-50 !transition-all !duration-200">
+                      class="!transition-all !duration-200">
                       <mat-icon class="action-icon">visibility</mat-icon>
                     </button>
 
-                    <button
-                      mat-icon-button
-                      matTooltip="Edit Item"
-                      class="!text-blue-600 hover:!bg-blue-50 !transition-all !duration-200">
-                      <mat-icon class="action-icon">edit</mat-icon>
-                    </button>
+<!--                    <button-->
+<!--                      mat-icon-button-->
+<!--                      matTooltip="Edit Item"-->
+<!--                      class="!transition-all !duration-200">-->
+<!--                      <mat-icon class="action-icon">edit</mat-icon>-->
+<!--                    </button>-->
 
                     <button
                       mat-icon-button
-                      matTooltip="Dispose Item"
-                      (click)="onDispose(item)"
-                      class="!text-red-500 hover:!bg-red-50 !transition-all !duration-200">
-                      <mat-icon class="action-icon">delete_forever</mat-icon>
+                      matTooltip="Notify Guest"
+                      (click)="onNotifyGuest(item)"
+                      [disabled]="!item.guestEmail"
+                      class="!transition-all !duration-200"
+                      [class.!text-gray-300]="!item.guestEmail"
+                      [class.!cursor-not-allowed]="!item.guestEmail">
+                      <mat-icon class="action-icon">email</mat-icon>
                     </button>
+
+<!--                    <button-->
+<!--                      mat-icon-button-->
+<!--                      matTooltip="Dispose Item"-->
+<!--                      (click)="onDispose(item)"-->
+<!--                      class="!transition-all !duration-200">-->
+<!--                      <mat-icon class="action-icon">delete</mat-icon>-->
+<!--                    </button>-->
                   </div>
                 </td>
               </tr>

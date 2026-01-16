@@ -81,9 +81,6 @@
                     Status
                   </th>
                   <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Check In/Out
-                  </th>
-                  <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -155,40 +152,7 @@
                     </span>
                   </td>
 
-                  <!-- Check In/Check out -->
-                  <td class="px-2 py-2 whitespace-nowrap text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <!-- Check-In Button: -->
-                      <button
-                        *ngIf="!res.checkInStatus"
-                        mat-raised-button
-                        (click)="onCheckIn(res)"
-                        class="!h-8 !px-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !text-xs hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">login</mat-icon>
-                        Check In
-                      </button>
-
-                      <!-- Check-Out Button: -->
-                      <button
-                        *ngIf="res.checkInStatus && !res.checkOutStatus"
-                        mat-raised-button
-                        (click)="onCheckOut(res)"
-                        class="!h-8 !px-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !text-xs hover:!from-indigo-700 hover:!to-purple-700 !rounded-lg !shadow-lg hover:!shadow-xl !transition-all !duration-300">
-                        <mat-icon class="!w-4 !h-4 !text-xs !mr-1">logout</mat-icon>
-                        Check Out
-                      </button>
-
-                      <!-- Completed: -->
-                      <span
-                        *ngIf="res.checkInStatus && res.checkOutStatus"
-                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                        <mat-icon class="!w-4 !h-4 !text-[16px] !mr-1">check_circle</mat-icon>
-                        Completed
-                      </span>
-
-                    </div>
-                  </td>
-                                    <!-- Actions -->
+                  <!-- Actions -->
                   <td class="px-2 py-2 whitespace-nowrap text-center">
                     <div class="flex items-center justify-center">
                       <button
