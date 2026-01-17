@@ -8,7 +8,7 @@ import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio
 import { ReservationHeader} from '../reservation-header/reservation-header';
 import { FolioOperations} from '../folio-operations/folio-operations';
 import { BookingDetails} from '../booking-details/booking-details';
-import { GuestDetails} from '../guest-details/guest-details';
+import { GuestDetailsComponent} from '../guest-details/guest-details';
 import { RoomCharges} from '../room-charges/room-charges';
 import { CreditCard} from '../credit-card/credit-card';
 
@@ -20,7 +20,7 @@ import { CreditCard} from '../credit-card/credit-card';
     ReservationHeader,
     FolioOperations,
     BookingDetails,
-    GuestDetails,
+    GuestDetailsComponent,
     RoomCharges,
     CreditCard
   ],
@@ -53,6 +53,10 @@ export class ReservationUpdates implements OnInit {
         this.error = 'Invalid reservation ID provided';
       }
     });
+  }
+
+  get guestId(): number {
+    return this.reservationDetails?.guestId || 0;
   }
 
   loadData(): void {
