@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import {catchError, map, Observable, of} from 'rxjs';
+import {catchError, map, Observable, of, throwError} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
@@ -232,10 +232,32 @@ export class RoomService {
         reason: reason
       }
     }).pipe(
-      tap(() => console.log(`Room ${roomId} status updated to ${newStatus}`)),
       catchError(error => {
         console.error(`Error updating room ${roomId} status:`, error);
         throw error;
+      })
+    );
+  }
+
+  updateReservationRoomStatus(
+    roomConfirmationNumber: string,
+    status: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/reservations/reservation-room/${roomConfirmationNumber}/status`;
+    const headers = this.getHeaders();
+
+    return this.http.put(url, null, {
+      headers,
+      params: {
+        status: status
+      }
+    }).pipe(
+      tap(response => {
+        console.log(`Room ${roomConfirmationNumber} status updated to ${status}:`, response);
+      }),
+      catchError(error => {
+        console.error(`Error updating room ${roomConfirmationNumber} status:`, error);
+        return throwError(() => error);
       })
     );
   }

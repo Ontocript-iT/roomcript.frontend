@@ -4,7 +4,7 @@ import {Observable} from 'rxjs';
 import {map, tap} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {AuthService} from './auth.service';
-import {Guest, InhouseGuest} from '../models/guest.model';
+import {Guest, InhouseGuest, GuestDetails} from '../models/guest.model';
 
 @Injectable({
   providedIn: 'root'
@@ -80,4 +80,17 @@ export class GuestService {
       })
     );
   }
+
+  getGuestDetailsByGuestId(guestId: number): Observable<GuestDetails> {
+    return this.http.get<any>(
+      `${environment.apiUrl}/properties/getGuestDetailsByGuestId/${guestId}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.body || response),
+      tap(guestDetails => {
+        console.log('Guest details:', guestDetails);
+      })
+    );
+  }
+
 }

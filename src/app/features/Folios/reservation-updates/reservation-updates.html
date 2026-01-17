@@ -6,7 +6,8 @@
     [reservationId]="reservationId"
     [loading]="loading"
     (backClick)="goBack()"
-    (editDeparture)="onEditDeparture()">
+    (editDeparture)="onEditDeparture()"
+    (statusUpdated)="onStatusUpdated()">
   </app-reservation-header>
 
   <!-- Error Message -->
@@ -80,6 +81,7 @@
         <app-guest-details
           *ngIf="activeTab === 'guest-details'"
           [reservationDetails]="reservationDetails"
+          [guestId]="guestId"
           [reservationId]=reservationId>
         </app-guest-details>
 

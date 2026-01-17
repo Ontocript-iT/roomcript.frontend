@@ -106,14 +106,24 @@
 
         <!-- Status Badge -->
         <div>
-          <span class="px-2 py-1 text-[10px] font-medium rounded border"
-                [ngClass]="{
-                  'bg-green-50 text-green-700 border-green-200': reservationDetails.status === 'CHECKED_IN',
-                  'bg-blue-50 text-blue-700 border-blue-200': reservationDetails.status === 'CONFIRMED',
-                  'bg-yellow-50 text-yellow-700 border-yellow-200': reservationDetails.status === 'PENDING',
-                  'bg-gray-50 text-gray-700 border-gray-200': reservationDetails.status === 'CHECKED_OUT'
-                }">
-            {{ getStatusDisplay() }}
+          <button
+            *ngIf="getRoomStatus() !== 'CHECK_IN' && getRoomStatus() !== 'CHECK_OUT'"
+            (click)="onCheckIn()"
+            class="px-3 py-1 text-xs font-medium rounded !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white transition-colors">
+            Check In
+          </button>
+
+          <button
+            *ngIf="getRoomStatus() === 'CHECK_IN'"
+            (click)="onCheckOut()"
+            class="px-3 py-1 text-xs font-medium rounded !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white transition-colors">
+            Check Out
+          </button>
+
+          <span
+            *ngIf="getRoomStatus() === 'CHECK_OUT'"
+            class="px-2 py-1 text-[10px] font-medium rounded border bg-gray-50 text-gray-700 border-gray-200">
+            Checked Out
           </span>
         </div>
       </div>

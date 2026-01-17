@@ -8,7 +8,7 @@ import { ReservationRoomDetails, FolioDetails } from '../../../core/models/folio
 import { ReservationHeader} from '../reservation-header/reservation-header';
 import { FolioOperations} from '../folio-operations/folio-operations';
 import { BookingDetails} from '../booking-details/booking-details';
-import { GuestDetails} from '../guest-details/guest-details';
+import { GuestDetailsComponent} from '../guest-details/guest-details';
 import { RoomCharges} from '../room-charges/room-charges';
 import { CreditCard} from '../credit-card/credit-card';
 
@@ -20,7 +20,7 @@ import { CreditCard} from '../credit-card/credit-card';
     ReservationHeader,
     FolioOperations,
     BookingDetails,
-    GuestDetails,
+    GuestDetailsComponent,
     RoomCharges,
     CreditCard
   ],
@@ -55,6 +55,10 @@ export class ReservationUpdates implements OnInit {
     });
   }
 
+  get guestId(): number {
+    return this.reservationDetails?.guestId || 0;
+  }
+
   loadData(): void {
     this.loading = true;
     this.error = null;
@@ -80,6 +84,18 @@ export class ReservationUpdates implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  onStatusUpdated(): void {
+    this.folioService.getReservationDetailsById(this.reservationId)
+      .subscribe({
+        next: (reservation) => {
+          this.reservationDetails = reservation; // Only update header data
+        },
+        error: (error) => {
+          console.error('Error refreshing reservation:', error);
+        }
+      });
   }
 
   goBack(): void {
