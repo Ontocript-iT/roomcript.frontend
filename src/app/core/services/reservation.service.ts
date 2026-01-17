@@ -130,16 +130,12 @@ export class ReservationService {
     return this.http.put<any>(url, reservationData, {
       headers: this.getHeaders()
     }).pipe(
-      tap(response => console.log('PUT Response:', response)), // 👈 Log success response
       catchError(error => {
-        console.error('PUT Error:', error.status, error.message);
-        console.error('Error body:', error.error);
         return throwError(() => error);
       })
     );
   }
-
-
+  
   updateCheckInAndCheckOutStatus(
     reservationId: number,
     isCheckedIn: boolean,
