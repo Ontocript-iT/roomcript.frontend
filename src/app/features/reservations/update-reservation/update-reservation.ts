@@ -99,8 +99,6 @@ export class UpdateReservation implements OnInit {
     this.reservation = this.data.reservation;
     this.propertyCode = this.data.propertyCode || localStorage.getItem("propertyCode") || '';
 
-    console.log('Dialog data received:', this.reservation);
-
     this.initForm();
     this.loadAvailableRooms();
     this.populateForm();
@@ -177,12 +175,6 @@ export class UpdateReservation implements OnInit {
         zipCode: res.zipCode || '',
       });
 
-      console.log('Address fields loaded:', {
-        country: res.country,
-        state: res.state,
-        city: res.city,
-        zipCode: res.zipCode
-      });
       // Populate rooms
       if (res.roomDetails && res.roomDetails.length > 0) {
         this.rooms.clear();
@@ -463,6 +455,7 @@ export class UpdateReservation implements OnInit {
     }
   }
 
+  // 🔥 THIS IS THE MAIN FIX - Updated transformFormData method
   private transformFormData(formValue: any): any {
     let totalAdults = 0;
     let totalChildren = 0;
@@ -500,7 +493,9 @@ export class UpdateReservation implements OnInit {
     const checkInDate = this.formatDate(formValue.checkIn);
     const checkOutDate = this.formatDate(formValue.checkOut);
 
+    // 🔥 FIX: Return payload with BOTH regular AND guest-prefixed fields
     return {
+      // Regular fields (for backward compatibility)
       name: guestFullName,
       email: formValue.email,
       phone: formValue.mobile,
@@ -510,6 +505,17 @@ export class UpdateReservation implements OnInit {
       country: formValue.country || '',
       zipCode: formValue.zipCode || '',
 
+      // 👇 🔥 GUEST-PREFIXED FIELDS (THIS IS THE FIX!)
+      guestName: guestFullName,
+      guestEmail: formValue.email,
+      guestPhone: formValue.mobile,
+      guestAddress: formValue.address || '',
+      guestCity: formValue.city || '',
+      guestState: formValue.state || '',
+      guestCountry: formValue.country || '',
+      guestZipCode: formValue.zipCode || '',
+
+      // Reservation details
       roomIds: roomIds,
       checkInDate: checkInDate,
       checkOutDate: checkOutDate,
