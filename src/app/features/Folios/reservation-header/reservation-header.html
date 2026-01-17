@@ -109,14 +109,14 @@
           <button
             *ngIf="getRoomStatus() !== 'CHECK_IN' && getRoomStatus() !== 'CHECK_OUT'"
             (click)="onCheckIn()"
-            class="px-3 py-1 text-xs font-medium rounded bg-green-500 text-white hover:bg-green-600 transition-colors">
+            class="px-3 py-1 text-xs font-medium rounded !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white transition-colors">
             Check In
           </button>
 
           <button
             *ngIf="getRoomStatus() === 'CHECK_IN'"
             (click)="onCheckOut()"
-            class="px-3 py-1 text-xs font-medium rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors">
+            class="px-3 py-1 text-xs font-medium rounded !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white transition-colors">
             Check Out
           </button>
 
