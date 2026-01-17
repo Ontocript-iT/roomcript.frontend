@@ -4,6 +4,7 @@ import {catchError, map, Observable, of, throwError} from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Reservation, ReservationFilter, MaintenanceBlock } from '../models/reservation.model';
 import { AuthService } from './auth.service';
+import {tap} from 'rxjs/operators';
 
 
 // ========== ADDED: Stay View Interfaces START ==========
@@ -121,14 +122,23 @@ export class ReservationService {
 
   updateReservation(id: number, reservationData: any): Observable<any> {
     const url = `${this.apiUrl}/${id}`;
+
+    // 👇 Log before sending
+    console.log('PUT URL:', url);
+    console.log('PUT Payload:', reservationData);
+
     return this.http.put<any>(url, reservationData, {
       headers: this.getHeaders()
     }).pipe(
+      tap(response => console.log('PUT Response:', response)), // 👈 Log success response
       catchError(error => {
-        throw error;
+        console.error('PUT Error:', error.status, error.message);
+        console.error('Error body:', error.error);
+        return throwError(() => error);
       })
     );
   }
+
 
   updateCheckInAndCheckOutStatus(
     reservationId: number,

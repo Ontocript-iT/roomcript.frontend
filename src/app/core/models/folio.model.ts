@@ -129,4 +129,5 @@ export interface RoomDetail {
   numberOfAdults: number;
   numberOfChildren: number;
   roomConfirmationNumber: string | null;
+  checkInCheckOutStatus: string;
 }

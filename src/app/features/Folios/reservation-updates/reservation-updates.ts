@@ -82,6 +82,18 @@ export class ReservationUpdates implements OnInit {
     });
   }
 
+  onStatusUpdated(): void {
+    this.folioService.getReservationDetailsById(this.reservationId)
+      .subscribe({
+        next: (reservation) => {
+          this.reservationDetails = reservation; // Only update header data
+        },
+        error: (error) => {
+          console.error('Error refreshing reservation:', error);
+        }
+      });
+  }
+
   goBack(): void {
     this.location.back();
   }
