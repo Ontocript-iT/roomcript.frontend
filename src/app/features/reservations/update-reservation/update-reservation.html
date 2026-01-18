@@ -1,347 +1,359 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-  <div class="max-w-7xl m-5">
+<div class="dialog-container">
   <!-- Header -->
-  <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
-        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">edit</mat-icon>
-      </div>
-      <div>
-        <h2 class="text-xl font-bold text-gray-900">Update Reservation</h2>
-        <p class="text-sm text-gray-500">Modify reservation details</p>
+  <div class="dialog-header py-4 px-4">
+    <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+          <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">edit</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Update Reservation</h2>
+          <p class="text-sm text-gray-500">Modify reservation details</p>
+        </div>
       </div>
     </div>
   </div>
 
+  <mat-dialog-content class="dialog-content">
     <div *ngIf="isLoading" class="loading-container">
       <mat-spinner></mat-spinner>
       <p>Loading reservation...</p>
     </div>
-  <!-- Form Content -->
+
     <div *ngIf="!isLoading && updateReservationForm">
       <form [formGroup]="updateReservationForm" (ngSubmit)="onSubmit()">
 
-      <!-- Reservation Details Section -->
-      <div class="mb-4 border-b border-gray-200">
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-2 mb-4">
-          <!-- Check In Date -->
-          <mat-form-field appearance="fill">
-            <mat-label>Check-In Date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="checkInPicker"
-              formControlName="checkIn"
-              placeholder="Select date">
-            <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
-            <mat-datepicker #checkInPicker></mat-datepicker>
-            <mat-error *ngIf="updateReservationForm.get('checkIn')?.hasError('required')">
-              Check-in date is required
-            </mat-error>
-          </mat-form-field>
+        <!-- Reservation Details Section -->
+        <div class="mb-4 border-b border-gray-200">
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-2 mb-4">
+            <!-- Check In Date -->
+            <mat-form-field appearance="fill">
+              <mat-label>Check-In Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="checkInPicker"
+                formControlName="checkIn"
+                placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="checkInPicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkInPicker></mat-datepicker>
+              <mat-error *ngIf="updateReservationForm.get('checkIn')?.hasError('required')">
+                Check-in date is required
+              </mat-error>
+            </mat-form-field>
 
-          <!-- Check Out Date -->
-          <mat-form-field appearance="fill">
-            <mat-label>Check-Out Date</mat-label>
-            <input
-              matInput
-              [matDatepicker]="checkOutPicker"
-              formControlName="checkOut"
-              placeholder="Select date">
-            <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
-            <mat-datepicker #checkOutPicker></mat-datepicker>
-            <mat-error *ngIf="updateReservationForm.get('checkOut')?.hasError('required')">
-              Check-out date is required
-            </mat-error>
-          </mat-form-field>
+            <!-- Check Out Date -->
+            <mat-form-field appearance="fill">
+              <mat-label>Check-Out Date</mat-label>
+              <input
+                matInput
+                [matDatepicker]="checkOutPicker"
+                formControlName="checkOut"
+                placeholder="Select date">
+              <mat-datepicker-toggle matSuffix [for]="checkOutPicker"></mat-datepicker-toggle>
+              <mat-datepicker #checkOutPicker></mat-datepicker>
+              <mat-error *ngIf="updateReservationForm.get('checkOut')?.hasError('required')">
+                Check-out date is required
+              </mat-error>
+            </mat-form-field>
 
-          <!-- Number of Rooms -->
-          <mat-form-field appearance="fill">
-            <mat-label>Rooms</mat-label>
-            <input matInput type="number" formControlName="numberOfRooms" readonly>
-          </mat-form-field>
+            <!-- Number of Rooms -->
+            <mat-form-field appearance="fill">
+              <mat-label>Rooms</mat-label>
+              <input matInput type="number" formControlName="numberOfRooms" readonly>
+            </mat-form-field>
 
-          <!-- Reservation Type -->
-          <mat-form-field appearance="fill">
-            <mat-label>Reservation Type</mat-label>
-            <mat-select formControlName="reservationType">
-              <mat-option *ngFor="let type of availableReservationTypes" [value]="type.value">
-                {{ type.label }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
+            <!-- Reservation Type -->
+            <mat-form-field appearance="fill">
+              <mat-label>Reservation Type</mat-label>
+              <mat-select formControlName="reservationType">
+                <mat-option *ngFor="let type of availableReservationTypes" [value]="type.value">
+                  {{ type.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
-          <!-- Booking Source -->
-          <mat-form-field appearance="fill">
-            <mat-label>Booking Source</mat-label>
-            <mat-select formControlName="bookingSource">
-              <mat-option *ngFor="let source of availableBookingSources" [value]="source.value">
-                {{ source.label }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-        </div>
-      </div>
-
-      <!-- Room Details Section -->
-      <div class="mb-8 pb-4 border-b border-gray-300">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-              <mat-icon class="!text-purple-600 !w-5 !h-5">hotel</mat-icon>
-            </div>
-            <h3 class="text-md font-semibold text-gray-800">Room Details</h3>
+            <!-- Booking Source -->
+            <mat-form-field appearance="fill">
+              <mat-label>Booking Source</mat-label>
+              <mat-select formControlName="bookingSource">
+                <mat-option *ngFor="let source of availableBookingSources" [value]="source.value">
+                  {{ source.label }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
-
-          <mat-checkbox
-            formControlName="isGroupReservation"
-            class="!m-0">
-            <span class="text-sm font-medium text-gray-700">Group Reservation</span>
-          </mat-checkbox>
         </div>
-        <!-- Dynamic Room Entries -->
-        <div formArrayName="rooms">
-          <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-2">
-            <div class="grid grid-cols-1 lg:grid-cols-8 gap-2 items-start">
 
-              <!-- Room Type -->
-              <mat-form-field appearance="fill" class="lg:col-span-2">
-                <mat-label>Room Type</mat-label>
-                <mat-select formControlName="roomType" (selectionChange)="onRoomTypeChange(i)">
-                  <mat-option
-                    *ngFor="let roomType of availableRoomTypes"
-                    [value]="roomType.value"
-                    [disabled]="roomType.availableCount === 0">
-                    <span class="room-label text-xs">{{ roomType.label }}</span>
-                    <span class="room-count-badge">{{ roomType.availableCount }}</span>
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+        <!-- Room Details Section -->
+        <div class="mb-8 pb-4 border-b border-gray-300">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
+                <mat-icon class="!text-purple-600 !w-5 !h-5">hotel</mat-icon>
+              </div>
+              <h3 class="text-md font-semibold text-gray-800">Room Details</h3>
+            </div>
 
-              <!-- Room Number -->
-              <mat-form-field appearance="fill" class="lg:col-span-1">
-                <mat-label>Room</mat-label>
-                <mat-select formControlName="roomNumber" (selectionChange)="onRoomSelect(i)">
-                  <mat-option
-                    *ngIf="getAvailableRoomsForIndex(i).length === 0"
-                    disabled>
-                    No rooms
-                  </mat-option>
-                  <mat-option
-                    *ngFor="let room of getAvailableRoomsForIndex(i)"
-                    [value]="room.id"
-                    class="!text-xs">
-                    {{ room.roomNumber }}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
+            <mat-checkbox
+              formControlName="isGroupReservation"
+              class="!m-0">
+              <span class="text-sm font-medium text-gray-700">Group Reservation</span>
+            </mat-checkbox>
+          </div>
+          <!-- Dynamic Room Entries -->
+          <div formArrayName="rooms">
+            <div *ngFor="let room of rooms.controls; let i = index" [formGroupName]="i" class="mb-2">
+              <div class="grid grid-cols-1 lg:grid-cols-8 gap-2 items-start">
 
-              <!-- Adults -->
-              <mat-form-field appearance="fill" class="lg:col-span-1">
-                <mat-label>Adults</mat-label>
-                <input matInput type="number" formControlName="adults" readonly>
-                <div matSuffix class="flex flex-col gap-0 mb-1">
-                  <button mat-button type="button" (click)="incrementAdults(i)"
-                          class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                          style="line-height: 1; border-radius: 4px 4px 0 0;">
-                    <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_up</mat-icon>
+                <!-- Room Type -->
+                <mat-form-field appearance="fill" class="lg:col-span-2">
+                  <mat-label>Room Type</mat-label>
+                  <mat-select formControlName="roomType" (selectionChange)="onRoomTypeChange(i)">
+                    <mat-option
+                      *ngFor="let roomType of availableRoomTypes"
+                      [value]="roomType.value"
+                      [disabled]="roomType.availableCount === 0">
+                      <span class="room-label text-xs">{{ roomType.label }}</span>
+                      <span class="room-count-badge">{{ roomType.availableCount }}</span>
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Room Number -->
+                <mat-form-field appearance="fill" class="lg:col-span-1">
+                  <mat-label>Room</mat-label>
+                  <mat-select formControlName="roomNumber" (selectionChange)="onRoomSelect(i)">
+                    <mat-option
+                      *ngIf="getAvailableRoomsForIndex(i).length === 0"
+                      disabled>
+                      No rooms
+                    </mat-option>
+                    <mat-option
+                      *ngFor="let room of getAvailableRoomsForIndex(i)"
+                      [value]="room.id"
+                      class="!text-xs">
+                      {{ room.roomNumber }}
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- Adults -->
+                <mat-form-field appearance="fill" class="lg:col-span-1">
+                  <mat-label>Adults</mat-label>
+                  <input matInput type="number" formControlName="adults" readonly>
+                  <div matSuffix class="flex flex-col gap-0 mb-1">
+                    <button mat-button type="button" (click)="incrementAdults(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
+                            style="line-height: 1; border-radius: 4px 4px 0 0;">
+                      <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_up</mat-icon>
+                    </button>
+                    <button mat-button type="button" (click)="decrementAdults(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
+                            style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
+                      <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_down</mat-icon>
+                    </button>
+                  </div>
+                </mat-form-field>
+                <!-- Children -->
+                <mat-form-field appearance="fill" class="lg:col-span-1">
+                  <mat-label>Children</mat-label>
+                  <input matInput type="number" formControlName="children" readonly>
+                  <div matSuffix class="flex flex-col gap-0 mb-1">
+                    <button mat-button type="button" (click)="incrementChildren(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
+                            style="line-height: 1; border-radius: 4px 4px 0 0;">
+                      <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_up</mat-icon>
+                    </button>
+                    <button mat-button type="button" (click)="decrementChildren(i)"
+                            class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
+                            style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
+                      <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_down</mat-icon>
+                    </button>
+                  </div>
+                </mat-form-field>
+
+                <!-- Rate -->
+                <mat-form-field appearance="fill" class="lg:col-span-2">
+                  <mat-label>Rate</mat-label>
+                  <input matInput type="number" formControlName="rate"
+                         [readonly]="!room.get('manualRate')?.value">
+                  <button mat-icon-button matSuffix type="button" (click)="toggleManualRate(i)">
+                    <mat-icon class="!text-gray-600">
+                      {{ room.get('manualRate')?.value ? 'refresh' : 'edit' }}
+                    </mat-icon>
                   </button>
-                  <button mat-button type="button" (click)="decrementAdults(i)"
-                          class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                          style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
-                    <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_down</mat-icon>
+                </mat-form-field>
+
+                <!-- Remove Button -->
+                <div class="lg:col-span-1 flex items-center justify-start" style="height: 56px;">
+                  <button mat-icon-button type="button" (click)="removeRoom(i)"
+                          *ngIf="i > 0" class="!text-red-600 hover:!bg-red-50">
+                    <mat-icon>remove_circle_outline</mat-icon>
                   </button>
                 </div>
-              </mat-form-field>
-              <!-- Children -->
-              <mat-form-field appearance="fill" class="lg:col-span-1">
-                <mat-label>Children</mat-label>
-                <input matInput type="number" formControlName="children" readonly>
-                <div matSuffix class="flex flex-col gap-0 mb-1">
-                  <button mat-button type="button" (click)="incrementChildren(i)"
-                          class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                          style="line-height: 1; border-radius: 4px 4px 0 0;">
-                    <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_up</mat-icon>
-                  </button>
-                  <button mat-button type="button" (click)="decrementChildren(i)"
-                          class="!min-w-0 !w-8 !h-4 !p-0 !bg-gray-200 hover:!bg-gray-300"
-                          style="line-height: 1; margin-top: 1px; border-radius: 0 0 4px 4px;">
-                    <mat-icon class="!text-black !text-base !m-0">keyboard_arrow_down</mat-icon>
-                  </button>
-                </div>
-              </mat-form-field>
-
-              <!-- Rate -->
-              <mat-form-field appearance="fill" class="lg:col-span-2">
-                <mat-label>Rate</mat-label>
-                <input matInput type="number" formControlName="rate"
-                       [readonly]="!room.get('manualRate')?.value">
-                <button mat-icon-button matSuffix type="button" (click)="toggleManualRate(i)">
-                  <mat-icon class="!text-gray-600">
-                    {{ room.get('manualRate')?.value ? 'refresh' : 'edit' }}
-                  </mat-icon>
-                </button>
-              </mat-form-field>
-
-              <!-- Remove Button -->
-              <div class="lg:col-span-1 flex items-center justify-start" style="height: 56px;">
-                <button mat-icon-button type="button" (click)="removeRoom(i)"
-                        *ngIf="i > 0" class="!text-red-600 hover:!bg-red-50">
-                  <mat-icon>remove_circle_outline</mat-icon>
-                </button>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Add Room Button & Discount Section (Same Line) -->
-        <div class="flex justify-start items-center gap-3 mt-2">
-          <!-- Add Room Button -->
-          <button
-            mat-raised-button
-            type="button"
-            (click)="addRoom()"
-            [disabled]="!canAddRoom"
-            [class]="canAddRoom
-                          ? '!bg-purple-600 !text-white hover:!bg-purple-700'
-                          : '!bg-gray-300 !text-gray-500 !cursor-not-allowed'">
-            <mat-icon class="!mr-2">add</mat-icon>
-            Add Room
-          </button>
+          <!-- Add Room Button & Discount Section (Same Line) -->
+          <div class="flex justify-start items-center gap-3 mt-2">
+            <!-- Add Room Button -->
+            <button
+              mat-raised-button
+              type="button"
+              (click)="addRoom()"
+              [disabled]="!canAddRoom"
+              [class]="canAddRoom
+                            ? '!bg-purple-600 !text-white hover:!bg-purple-700'
+                            : '!bg-gray-300 !text-gray-500 !cursor-not-allowed'">
+              <mat-icon class="!mr-2">add</mat-icon>
+              Add Room
+            </button>
 
-          <!-- Add Discount Button (Show when field is hidden) -->
-          <button
-            *ngIf="!showDiscountField"
-            mat-stroked-button
-            type="button"
-            (click)="toggleDiscountField()"
-            class="!bg-purple-600 !text-white hover:!bg-purple-700">
-            <mat-icon class="!mr-2">add</mat-icon>
-            Add Discount
-          </button>
+            <!-- Add Discount Button (Show when field is hidden) -->
+            <button
+              *ngIf="!showDiscountField"
+              mat-stroked-button
+              type="button"
+              (click)="toggleDiscountField()"
+              class="!bg-purple-600 !text-white hover:!bg-purple-700">
+              <mat-icon class="!mr-2">add</mat-icon>
+              Add Discount
+            </button>
 
-          <!-- Discount Field -->
-          <mat-form-field
-            *ngIf="showDiscountField"
-            appearance="fill"
-            class="!w-48 !mt-4">
-            <mat-label>Discount %</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="discount"
-              placeholder="0"
-              min="0"
-              max="100"
-              step="0.5">
-            <span matSuffix class="!text-gray-600 !font-semibold">%</span>
-            <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('min')">
-              Min 0%
-            </mat-error>
-            <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('max')">
-              Max 100%
-            </mat-error>
-          </mat-form-field>
+            <!-- Discount Field -->
+            <mat-form-field
+              *ngIf="showDiscountField"
+              appearance="fill"
+              class="!w-48 !mt-4">
+              <mat-label>Discount %</mat-label>
+              <input
+                matInput
+                type="number"
+                formControlName="discount"
+                placeholder="0"
+                min="0"
+                max="100"
+                step="0.5">
+              <span matSuffix class="!text-gray-600 !font-semibold">%</span>
+              <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('min')">
+                Min 0%
+              </mat-error>
+              <mat-error *ngIf="updateReservationForm.get('discount')?.hasError('max')">
+                Max 100%
+              </mat-error>
+            </mat-form-field>
 
-          <!-- Remove Discount Button -->
-          <button
-            *ngIf="showDiscountField"
-            mat-icon-button
-            type="button"
-            (click)="removeDiscount()"
-            class="!text-red-500 hover:!bg-red-50"
-            matTooltip="Remove Discount">
-            <mat-icon>remove_circle_outline</mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <!-- Guest Information Section -->
-      <div class="mb-6">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <mat-icon class="!text-indigo-600 !w-5 !h-5">person</mat-icon>
+            <!-- Remove Discount Button -->
+            <button
+              *ngIf="showDiscountField"
+              mat-icon-button
+              type="button"
+              (click)="removeDiscount()"
+              class="!text-red-500 hover:!bg-red-50"
+              matTooltip="Remove Discount">
+              <mat-icon>remove_circle_outline</mat-icon>
+            </button>
           </div>
-          <h3 class="text-md font-semibold text-gray-800">Guest Information</h3>
         </div>
 
-        <!-- Row 1 -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-4">
-          <!-- Guest Name -->
-          <div class="flex gap-0">
-            <mat-form-field appearance="fill" class="!w-20">
-              <mat-select formControlName="guestTitle">
-                <mat-option value="MR">Mr.</mat-option>
-                <mat-option value="MRS">Mrs.</mat-option>
-                <mat-option value="MS">Ms.</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="fill" class="flex-1">
-              <mat-label>Guest Name</mat-label>
-              <input matInput formControlName="guestName">
-            </mat-form-field>
+        <!-- Guest Information Section -->
+        <div class="mb-6">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <mat-icon class="!text-indigo-600 !w-5 !h-5">person</mat-icon>
+            </div>
+            <h3 class="text-md font-semibold text-gray-800">Guest Information</h3>
           </div>
 
-          <!-- Mobile -->
-          <mat-form-field appearance="fill">
-            <mat-label>Mobile</mat-label>
-            <input matInput formControlName="mobile">
-          </mat-form-field>
+          <!-- Row 1 -->
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-2 mb-4">
+            <!-- Guest Name -->
+            <div class="flex gap-0">
+              <mat-form-field appearance="fill" class="!w-20">
+                <mat-select formControlName="guestTitle">
+                  <mat-option value="MR">Mr.</mat-option>
+                  <mat-option value="MRS">Mrs.</mat-option>
+                  <mat-option value="MS">Ms.</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="fill" class="flex-1">
+                <mat-label>Guest Name</mat-label>
+                <input matInput formControlName="guestName">
+              </mat-form-field>
+            </div>
 
-          <!-- Email -->
-          <mat-form-field appearance="fill">
-            <mat-label>Email</mat-label>
-            <input
-              matInput
-              type="email"
-              formControlName="email"
-              readonly
-              class="!cursor-not-allowed !bg-gray-100">
-            <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
-          </mat-form-field>
+            <!-- Mobile -->
+            <mat-form-field appearance="fill">
+              <mat-label>Mobile</mat-label>
+              <input matInput formControlName="mobile">
+            </mat-form-field>
 
-          <!-- Address -->
-          <mat-form-field appearance="fill">
-            <mat-label>Address</mat-label>
-            <input matInput formControlName="address">
-          </mat-form-field>
+            <!-- Email -->
+            <mat-form-field appearance="fill">
+              <mat-label>Email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="email"
+                readonly
+                class="!cursor-not-allowed !bg-gray-100">
+              <mat-icon matSuffix class="!text-gray-400">lock</mat-icon>
+            </mat-form-field>
+
+            <!-- Address -->
+            <mat-form-field appearance="fill">
+              <mat-label>Address</mat-label>
+              <input matInput formControlName="address">
+            </mat-form-field>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <mat-form-field appearance="fill">
+              <mat-label>Country</mat-label>
+              <input matInput formControlName="country">
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>State</mat-label>
+              <input matInput formControlName="state">
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="city">
+            </mat-form-field>
+            <mat-form-field appearance="fill">
+              <mat-label>Zip Code</mat-label>
+              <input matInput formControlName="zipCode">
+            </mat-form-field>
+          </div>
         </div>
 
-        <!-- Row 3 -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <mat-form-field appearance="fill">
-            <mat-label>Country</mat-label>
-            <input matInput formControlName="country">
-          </mat-form-field>
-          <mat-form-field appearance="fill">
-            <mat-label>State</mat-label>
-            <input matInput formControlName="state">
-          </mat-form-field>
-          <mat-form-field appearance="fill">
-            <mat-label>City</mat-label>
-            <input matInput formControlName="city">
-          </mat-form-field>
-          <mat-form-field appearance="fill">
-            <mat-label>Zip Code</mat-label>
-            <input matInput formControlName="zipCode">
-          </mat-form-field>
-        </div>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  </mat-dialog-content>
 
   <!-- Footer Actions -->
-  <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
-    <button mat-raised-button (click)="onSubmit()" [disabled]="updateReservationForm.invalid || isLoading"
-            class="!px-6 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
-      <mat-spinner *ngIf="isLoading" diameter="20" class="!inline-block !mr-2"></mat-spinner>
-      <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
-      {{ isLoading ? 'Updating...' : 'Update Reservation' }}
-    </button>
-    <button mat-stroked-button type="button" (click)="onCancel()" [disabled]="isLoading"
-            class="!px-6 !py-2">
-      <mat-icon class="!mr-2">close</mat-icon>
-      Cancel
-    </button>
-  </div>
-</div>
+  <mat-dialog-actions class="dialog-actions">
+    <div class="flex items-center justify-end gap-3 w-full">
+      <button
+        mat-raised-button
+        (click)="onSubmit()"
+        [disabled]="updateReservationForm.invalid || isLoading"
+        class="!inline-flex !items-center !justify-center !px-5 !py-2 !text-[13px] !font-medium !rounded-lg !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !border-none !shadow-lg !shadow-indigo-600/30 !transition-all !duration-200 !ease-in-out hover:!shadow-xl hover:!shadow-indigo-600/40 hover:!scale-[1.02] active:!scale-[0.98] disabled:!opacity-50 disabled:!cursor-not-allowed disabled:!shadow-none !mx-2">
+        <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+        {{ isLoading ? 'Updating...' : 'Update Reservation' }}
+      </button>
+
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="onCancel()"
+        [disabled]="isLoading"
+        class="!inline-flex !items-center !justify-center !px-5 !py-2 !text-[13px] !font-medium !rounded-lg !bg-white !text-gray-500 !border !border-gray-300 !shadow-sm !transition-all !duration-200 !ease-in-out hover:!bg-gray-50 hover:!shadow-md hover:!border-gray-400 active:!scale-[0.98] disabled:!opacity-50 disabled:!cursor-not-allowed !mr-2">
+        <mat-icon class="!mr-2">close</mat-icon>
+        Cancel
+      </button>
+    </div>
+  </mat-dialog-actions>
 </div>
