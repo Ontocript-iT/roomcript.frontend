@@ -24,6 +24,7 @@ import { CreateTask } from './features/housekeeping/create-task/create-task';
 import { ViewAllTask } from './features/housekeeping/view-all-task/view-all-task';
 import { ViewAllFoundItems } from './features/lost-and-found/view-all-found-items/view-all-found-items';
 import { ReservationReportsComponent } from './features/reports/reservation-report/reservation-report';
+import {MaintenanceRequests} from './features/maintenance/maintenance-requests/maintenance-requests';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -128,7 +129,12 @@ export const routes: Routes = [
     component: ViewAllFoundItems,
     canActivate: [authGuard],
   },
-    {
+  {
+    path: 'maintenance/all-requests',
+    component: MaintenanceRequests,
+    canActivate: [authGuard],
+  },
+  {
     path: 'reports/reservations',
     component: ReservationReportsComponent,
     canActivate: [authGuard],
