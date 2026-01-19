@@ -5,6 +5,8 @@ import { map, tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { AllRoles} from '../models/user.model';
+import { PaginatedResponse } from '../models/pagination.model';
+import { PaginationComponent } from '../../shared/components/pagination/pagination';
 
 export interface CreateUserRequest {
   username: string;
@@ -134,7 +136,7 @@ export class UserService {
   // Add this method inside the UserService class
 getUserAccountDetails(userId: string): Observable<{ propertyDetails: PropertyDetails; userDetails: UserDetails }> {
   const params = new HttpParams().set('userId', userId);
-  
+
   return this.http.get<AccountResponse>(
     `${environment.apiUrl}/users/getUserDetails`,
     {
@@ -153,45 +155,63 @@ getUserAccountDetails(userId: string): Observable<{ propertyDetails: PropertyDet
   );
 }
 
+  getPropertyUsers(
+    propertyCode: string,
+    page: number = 0,
+    size: number = 10
+  ): Observable<PaginatedResponse<PropertyUser>> {
+    const params = new HttpParams()
+      .set('propertyCode', propertyCode)
+      .set('page', page.toString())
+      .set('size', size.toString());
 
-getPropertyUsers(propertyCode: string): Observable<PropertyUser[]> {
-  const params = { propertyCode };
-  return this.http.get<any>(
-    `${environment.apiUrl}/properties/getPropertyUsers`,
-    {
-      headers: this.getHeaders(),
-      params
-    }
-  ).pipe(
-    map(response => {
-
-      if (Array.isArray(response)) {
-        return response as PropertyUser[];
+    return this.http.get<any>(
+      `${environment.apiUrl}/properties/getPropertyUsers`,
+      {
+        headers: this.getHeaders(),
+        params
       }
+    ).pipe(
+      map(response => {
 
-      if (response && typeof response === 'object') {
-
-        if (response.body && Array.isArray(response.body)) {
-          return response.body as PropertyUser[];
-        }
-
-        const keys = Object.keys(response);
-        for (const key of keys) {
-          if (Array.isArray(response[key])) {
-            return response[key] as PropertyUser[];
+        if (response && response.body) {
+          if (Array.isArray(response.body)) {
+            return {
+              content: response.body,
+              totalElements: response.body.length,
+              totalPages: 1,
+              size: response.body.length,
+              number: 0
+            } as PaginatedResponse<PropertyUser>;
           }
+          return {
+            content: response.body.content || [],
+            totalElements: response.body.totalElements || 0,
+            totalPages: response.body.totalPages || 0,
+            size: response.body.size || size,
+            number: response.body.number || page
+          } as PaginatedResponse<PropertyUser>;
         }
-      }
-      return [];
-    }),
-    // tap(users => {
-    //   console.log('Users count:', users.length);
-    //   if (users.length > 0) {
-    //     console.log('First user sample:', users[0]);
-    //   }
-    // })
-  );
-}
+
+        return {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: size,
+          number: page
+        } as PaginatedResponse<PropertyUser>;
+      }),
+      catchError(error => {
+        return of({
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          size: size,
+          number: page
+        } as PaginatedResponse<PropertyUser>);
+      })
+    );
+  }
 
   getAllRoles(): Observable<AllRoles[]> {
     const url = `${environment.apiUrl}/users/getAllRoles`;
