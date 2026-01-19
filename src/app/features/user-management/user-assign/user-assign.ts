@@ -11,8 +11,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import Swal from 'sweetalert2';
-
-// Services
+import { PaginationComponent} from '../../../shared/components/pagination/pagination';
+import { PaginatedResponse} from '../../../core/models/pagination.model';
 import { UserService, PropertyUser } from '../../../core/services/user.service';
 
 @Component({
@@ -27,7 +27,8 @@ import { UserService, PropertyUser } from '../../../core/services/user.service';
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    PaginationComponent,
   ],
   templateUrl: './user-assign.html',
   styleUrls: ['./user-assign.scss']
@@ -36,7 +37,14 @@ export class UserAssign implements OnInit {
   users: PropertyUser[] = [];
   isLoading = false;
   propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
-  propertyName = 'Beach Resort Hotel'; // You can fetch this from API
+  propertyName = 'Beach Resort Hotel';
+
+  // Pagination properties
+  currentPage: number = 0;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalElements: number = 0;
+  pageSizeOptions: number[] = [5, 10, 25, 50, 100];
 
   availableRoles = [
     { value: 'ROLE_ADMIN', label: 'Administrator', description: 'Full system access and management' },
@@ -58,16 +66,34 @@ export class UserAssign implements OnInit {
 
   loadUsers(): void {
     this.isLoading = true;
-    this.userService.getPropertyUsers(this.propertyCode).subscribe({
-      next: (users) => {
-        this.users = users;
+    this.userService.getPropertyUsers(this.propertyCode, this.currentPage, this.pageSize).subscribe({
+      next: (response: PaginatedResponse<PropertyUser>) => {
+        // Add safety checks here
+        this.users = Array.isArray(response?.content) ? response.content : [];
+        this.totalPages = response?.totalPages ?? 0;
+        this.totalElements = response?.totalElements ?? 0;
+        this.currentPage = response?.number ?? 0;
         this.isLoading = false;
       },
-      error: () => {
+      error: (error) => {
+        this.users = [];
+        this.totalPages = 0;
+        this.totalElements = 0;
         this.isLoading = false;
         this.showError('Failed to load users');
       }
     });
+  }
+
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadUsers();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0; // Reset to first page
+    this.loadUsers();
   }
 
   getRolesDisplayString(user: PropertyUser): string {

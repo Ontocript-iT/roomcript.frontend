@@ -1,0 +1,74 @@
+<div *ngIf="totalElements > 0" class="pagination-container">
+  <!-- Left side: Page Size Selector -->
+  <div class="page-size-selector">
+    <label class="text-sm text-gray-600 mr-2">Rows per page:</label>
+    <select
+      [(ngModel)]="pageSize"
+      (ngModelChange)="onPageSizeChange($event)"
+      class="page-size-select">
+      <option *ngFor="let size of pageSizeOptions" [value]="size">
+        {{ size }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Center: Details -->
+  <div class="pagination-info">
+    <span class="text-sm text-gray-600">
+      Showing {{ startItem }} to {{ endItem }} of {{ totalElements }} entries
+    </span>
+  </div>
+
+  <!-- Right side: Navigation -->
+  <div class="pagination-controls">
+    <div class="pagination-buttons">
+      <button
+        mat-icon-button
+        [disabled]="isFirstPage()"
+        (click)="goToFirstPage()"
+        class="pagination-btn"
+        matTooltip="First Page">
+        <mat-icon>first_page</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        [disabled]="isFirstPage()"
+        (click)="goToPreviousPage()"
+        class="pagination-btn"
+        matTooltip="Previous Page">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+
+      <!-- Page Numbers (Max 3) -->
+      <div class="page-numbers">
+        <button
+          *ngFor="let page of pageNumbers"
+          mat-button
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)"
+          class="page-number-btn">
+          {{ page + 1 }}
+        </button>
+      </div>
+
+      <button
+        mat-icon-button
+        [disabled]="isLastPage()"
+        (click)="goToNextPage()"
+        class="pagination-btn"
+        matTooltip="Next Page">
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+
+      <button
+        mat-icon-button
+        [disabled]="isLastPage()"
+        (click)="goToLastPage()"
+        class="pagination-btn"
+        matTooltip="Last Page">
+        <mat-icon>last_page</mat-icon>
+      </button>
+    </div>
+  </div>
+</div>
