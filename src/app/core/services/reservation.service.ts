@@ -135,7 +135,7 @@ export class ReservationService {
       })
     );
   }
-  
+
   updateCheckInAndCheckOutStatus(
     reservationId: number,
     isCheckedIn: boolean,

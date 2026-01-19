@@ -36,7 +36,7 @@ import { HousekeepingService, HousekeepingTask, TaskResponse } from '../../../co
 })
 export class ViewAllTask implements OnInit {
   tasks: HousekeepingTask[] = [];
-  allTasks: HousekeepingTask[] = []; // Store all tasks for client-side filtering
+  allTasks: HousekeepingTask[] = [];
   isLoading = true;
   propertyName = 'Ocean View Hotel';
   propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
