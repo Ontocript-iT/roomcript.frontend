@@ -12,6 +12,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {CommonModule} from '@angular/common';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import Swal from 'sweetalert2';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-maintenance-requests',
@@ -24,7 +25,8 @@ import Swal from 'sweetalert2';
     MatCardModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatSnackBarModule
   ],
   templateUrl: './maintenance-requests.html',
   styleUrl: './maintenance-requests.scss'
@@ -61,7 +63,10 @@ export class MaintenanceRequests implements OnInit {
     { value: 'OTHER', label: 'Other', icon: 'build' }
   ];
 
-  constructor(private maintenanceService: MaintenanceService) {}
+  constructor(
+    private maintenanceService: MaintenanceService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadMaintenanceRequests();
@@ -299,9 +304,232 @@ export class MaintenanceRequests implements OnInit {
     });
   }
 
-  editRequest(request: MaintenanceRequest): void {
-    console.log('Edit request:', request);
-    // Navigate to edit page or open dialog
+  assignMaintenance(request: MaintenanceRequest): void {
+    Swal.fire({
+      title: 'Assign Maintenance Request',
+      html: `
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500 font-medium mb-1">Room Number</span>
+              <span class="font-bold text-gray-900">${request.roomNumber}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500 font-medium mb-1">Maintenance Type</span>
+              <span class="font-bold text-gray-900">${request.maintenanceType}</span>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-xs text-gray-500 font-medium mb-1">Priority</span>
+              <span class="font-bold text-gray-900">${request.priority}</span>
+            </div>
+          </div>
+        </div>
+      <div class="text-left" style="font-size: 14px;">
+        <label for="userIdInput" class="block mb-2 font-medium">User ID</label>
+        <input type="number" id="userIdInput" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter user ID..." min="1" />
+      </div>
+    `,
+      icon: 'info',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      confirmButtonText: 'Assign',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: false,
+      customClass: {
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn'
+      },
+      preConfirm: () => {
+        const userId = (document.getElementById('userIdInput') as HTMLInputElement).value;
+        if (!userId || parseInt(userId) <= 0) {
+          Swal.showValidationMessage('Please enter a valid user ID');
+          return false;
+        }
+        return parseInt(userId);
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.maintenanceService.assignMaintenanceRequest(request.id, result.value).subscribe({
+          next: () => {
+            this.showSuccess(`Maintenance request ${request.requestNumber} has been successfully assigned`);
+            this.loadMaintenanceRequests();
+          },
+          error: (error) => {
+            const errorMsg = error.error?.message || 'Failed to assign maintenance request';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
   }
 
+  startMaintenance(request: MaintenanceRequest): void {
+    Swal.fire({
+      title: 'Start Maintenance Work',
+      html: `
+      <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Room Number</span>
+            <span class="font-bold text-gray-900">${request.roomNumber}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Maintenance Type</span>
+            <span class="font-bold text-gray-900">${request.maintenanceType}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Priority</span>
+            <span class="font-bold text-gray-900">${request.priority}</span>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-center mt-4">
+        <p>Are you sure you want to start maintenance work for request <strong>${request.requestNumber}</strong>?</p>
+      </div>
+    `,
+      icon: 'question',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Start',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: false,
+      padding: '2rem 1.75rem 1.75rem',
+      customClass: {
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.maintenanceService.startMaintenanceWork(request.id).subscribe({
+          next: () => {
+            this.showSuccess(`Maintenance work for ${request.requestNumber} has been started`);
+            this.loadMaintenanceRequests();
+          },
+          error: (error) => {
+            const errorMsg = error.error?.message || 'Failed to start maintenance work';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
+  }
+
+  completeMaintenance(request: MaintenanceRequest): void {
+    Swal.fire({
+      title: 'Complete Maintenance Work',
+      html: `
+      <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Room Number</span>
+            <span class="font-bold text-gray-900">${request.roomNumber}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Maintenance Type</span>
+            <span class="font-bold text-gray-900">${request.maintenanceType}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs text-gray-500 font-medium mb-1">Priority</span>
+            <span class="font-bold text-gray-900">${request.priority}</span>
+          </div>
+        </div>
+      </div>
+      <div class="text-xs text-center mt-4">
+        <p>Are you sure you want to mark maintenance work for request <strong>${request.requestNumber}</strong> as completed?</p>
+      </div>
+    `,
+      icon: 'question',
+      iconColor: '#10b981',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Complete',
+      cancelButtonText: 'Cancel',
+      buttonsStyling: false,
+      padding: '2rem 1.75rem 1.75rem',
+      customClass: {
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.maintenanceService.completeMaintenanceWork(request.id).subscribe({
+          next: () => {
+            this.showSuccess(`Maintenance work for ${request.requestNumber} has been completed`);
+            this.loadMaintenanceRequests();
+          },
+          error: (error) => {
+            const errorMsg = error.error?.message || 'Failed to complete maintenance work';
+            this.showError(errorMsg);
+          }
+        });
+      }
+    });
+  }
+
+  deleteRequest(request: MaintenanceRequest): void {
+    Swal.fire({
+      title: 'Delete Maintenance Request',
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="mt-4 text-center">
+          Are you sure you want to delete maintenance request <strong>${request.requestNumber}</strong>?
+        </div>
+        <div class="mt-4">
+          <label for="deleteReason" class="block mb-2 font-medium text-left">Reason for deletion</label>
+          <textarea id="deleteReason" class="w-full px-3 py-2 border rounded-lg" placeholder="Enter reason for deletion..." rows="3"></textarea>
+        </div>
+      </div>
+    `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Close',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'rounded-xl',
+        title: 'text-2xl font-bold text-gray-800',
+        htmlContainer: 'text-sm text-gray-700',
+        confirmButton: 'swal-delete-btn',
+        cancelButton: 'swal-cancel-btn'
+      },
+      preConfirm: () => {
+        const reason = (document.getElementById('deleteReason') as HTMLTextAreaElement).value;
+        if (!reason || reason.trim() === '') {
+          Swal.showValidationMessage('Please provide a reason for deletion');
+          return false;
+        }
+        return reason.trim();
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.maintenanceService.deleteMaintenanceRequest(request.id, result.value).subscribe({
+          next: () => {
+            this.showSuccess(`Maintenance request ${request.requestNumber} deleted successfully.`);
+            this.loadMaintenanceRequests();
+          },
+          error: (error) => {
+            console.error('Delete maintenance request error:', error);
+            this.showError('Failed to delete maintenance request');
+          }
+        });
+      }
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
 }

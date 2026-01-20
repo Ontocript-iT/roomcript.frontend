@@ -35,27 +35,34 @@ export class MaintenanceService {
     );
   }
 
-  // getMaintenanceRequestById(id: number): Observable<MaintenanceRequest> {
-  //   return this.http.get<MaintenanceRequest>(`${this.apiUrl}/${id}`, {
-  //     headers: this.getHeaders()
-  //   });
-  // }
-  //
-  // createMaintenanceRequest(requestData: Partial<MaintenanceRequest>): Observable<any> {
-  //   return this.http.post<any>(this.apiUrl, requestData, {
-  //     headers: this.getHeaders(),
-  //   });
-  // }
-  //
-  // updateMaintenanceRequest(id: number, requestData: Partial<MaintenanceRequest>): Observable<any> {
-  //   return this.http.put<any>(`${this.apiUrl}/${id}`, requestData, {
-  //     headers: this.getHeaders(),
-  //   });
-  // }
-  //
-  // deleteMaintenanceRequest(id: number): Observable<void> {
-  //   return this.http.delete<void>(`${this.apiUrl}/${id}`, {
-  //     headers: this.getHeaders()
-  //   });
-  // }
+  assignMaintenanceRequest(requestId: number, userId: number): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${requestId}/assign?userId=${userId}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  startMaintenanceWork(requestId: number): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${requestId}/start`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  completeMaintenanceWork(requestId: number): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/${requestId}/complete`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  deleteMaintenanceRequest(id: number, reason: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}?reason=${encodeURIComponent(reason)}`,
+      { headers: this.getHeaders() }
+    );
+  }
 }
