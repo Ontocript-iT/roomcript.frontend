@@ -31,8 +31,7 @@
         </div>
 
         <!-- Empty State -->
-        <div *ngIf="!isLoading && users.length === 0" class="flex flex-col items-center justify-center py-16 px-4">
-          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">people_outline</mat-icon>
+        <div *ngIf="!isLoading && users?.length === 0" class="flex flex-col items-center justify-center py-16 px-4">          <mat-icon class="!w-20 !h-20 !text-[80px] !text-gray-300 mb-4">people_outline</mat-icon>
           <h3 class="text-xl font-semibold text-gray-700 mb-2">No Users Found</h3>
           <p class="text-gray-500 mb-6">Start by adding your first user to this property</p>
           <button
@@ -46,7 +45,7 @@
         </div>
 
         <!-- Users Table -->
-        <div *ngIf="!isLoading && users.length > 0" class="overflow-x-auto">
+        <div *ngIf="!isLoading && users!.length > 0" class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-gray-50 border-b border-gray-200">
               <tr>
@@ -177,6 +176,16 @@
               </tr>
             </tbody>
           </table>
+
+          <app-pagination
+            [currentPage]="currentPage"
+            [totalPages]="totalPages"
+            [totalElements]="totalElements"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)">
+          </app-pagination>
         </div>
       </mat-card-content>
     </mat-card>

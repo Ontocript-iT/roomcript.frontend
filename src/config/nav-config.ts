@@ -164,6 +164,19 @@ export const NAV_ITEMS: NavItem[] = [
     ]
   },
   {
+    title: 'Maintenance',
+    icon: 'people',
+    roles: ['ADMIN', 'MANAGER'],
+    subItems: [
+      {
+        title: 'All Requests',
+        route: 'maintenance/all-requests',
+        icon: 'list',
+        roles: ['ADMIN', 'MANAGER']
+      },
+    ]
+  },
+  {
     title: 'Reports',
     icon: 'assessment',
     roles: ['ADMIN', 'MANAGER'],
