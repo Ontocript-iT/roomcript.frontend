@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-4">
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-4 px-4">
   <div class="mx-auto">
 
     <div class="mb-4">
@@ -193,16 +193,38 @@
                     class="!transition-all !duration-200">
                     <mat-icon class="action-icon">visibility</mat-icon>
                   </button>
+
+                  <!-- Assign button - only show for PENDING status -->
                   <button
                     mat-icon-button
-                    matTooltip="Edit Request"
-                    (click)="editRequest(request)"
+                    matTooltip="Assign User"
+                    (click)="assignMaintenance(request)"
                     class="!transition-all !duration-200">
-                    <mat-icon class="action-icon">edit</mat-icon>
+                    <mat-icon class="action-icon">person_add</mat-icon>
                   </button>
+
+                  <button
+                    *ngIf="request.status === 'ASSIGNED'"
+                    mat-icon-button
+                    matTooltip="Start Work"
+                    (click)="startMaintenance(request)"
+                    class="!transition-all !duration-200">
+                    <mat-icon class="action-icon">play_arrow</mat-icon>
+                  </button>
+
+                  <button
+                    *ngIf="request.status === 'IN_PROGRESS'"
+                    mat-icon-button
+                    matTooltip="Complete Work"
+                    (click)="completeMaintenance(request)"
+                    class="!transition-all !duration-200">
+                    <mat-icon class="action-icon">check_circle</mat-icon>
+                  </button>
+
                   <button
                     mat-icon-button
                     matTooltip="Delete Request"
+                    (click)="deleteRequest(request)"
                     class="!transition-all !duration-200">
                     <mat-icon class="action-icon">delete</mat-icon>
                   </button>
