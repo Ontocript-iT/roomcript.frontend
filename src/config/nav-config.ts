@@ -182,19 +182,25 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ['ADMIN', 'MANAGER'],
     subItems: [
       {
-        title: 'Reservation Report',
+        title: 'Reservation Reports',
         route: '/reports/reservations',
         icon: 'pie_chart',
         roles: ['ADMIN', 'MANAGER']
       },
       {
-        title: 'Revenue Report',
+        title: 'Revenue Reports',
         route: '/reports/revenue',
         icon: 'attach_money',
         roles: ['ADMIN', 'MANAGER']
       },
       {
-        title: 'Guest Analytics',
+        title: 'Front Office Reports',
+        route: '/reports/analytics',
+        icon: 'hotel',
+        roles: ['ADMIN', 'MANAGER']
+      },
+      {
+        title: 'Summary Reports',
         route: '/reports/analytics',
         icon: 'analytics',
         roles: ['ADMIN', 'MANAGER']

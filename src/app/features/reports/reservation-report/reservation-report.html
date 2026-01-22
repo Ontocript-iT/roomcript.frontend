@@ -1,257 +1,249 @@
-<!-- <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
-  <div class="max-w-7xl mx-auto">
-    
-    <div class="mb-8 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
-        <mat-icon class="!text-white !w-7 !h-7 !text-[28px]">analytics</mat-icon>
+<div class="bg-gray-100 min-h-screen">
+  <div class="pt-2">
+    <div class="w-full bg-white rounded-md shadow-sm border border-gray-200">
+      <!-- Tabs -->
+      <div class="border-b border-gray-200">
+        <nav class="flex text-sm overflow-x-auto">
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeTab === 'arrival' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('arrival')">
+            Arrival/Diparture
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeTab === 'daily' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('daily')">
+            Daily Reservation
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeTab === 'group' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('group')">
+            Group Reservation
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeTab === 'long-stay' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveTab('long-stay')">
+            Long Stay
+          </button>
+        </nav>
       </div>
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Reservation Reports</h1>
-        <p class="text-gray-500 mt-1">Generate and analyze property performance</p>
-      </div>
-    </div>
 
-    <mat-card class="!shadow-xl !rounded-xl overflow-hidden mb-6">
-      <mat-card-content class="!p-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-          
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Report Type</mat-label>
-            <mat-select [(ngModel)]="selectedReportType">
-              <mat-option *ngFor="let type of reportTypes" [value]="type.value">
-                {{ type.label }}
-              </mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-full" *ngIf="showSingleDate">
-            <mat-label>Select Date</mat-label>
-            <input matInput [matDatepicker]="pickerSingle" [(ngModel)]="singleDate">
-            <mat-datepicker-toggle matSuffix [for]="pickerSingle"></mat-datepicker-toggle>
-            <mat-datepicker #pickerSingle></mat-datepicker>
-          </mat-form-field>
-
-          <ng-container *ngIf="showDateRange">
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Start Date</mat-label>
-              <input matInput [matDatepicker]="pickerStart" [(ngModel)]="startDate">
-              <mat-datepicker-toggle matSuffix [for]="pickerStart"></mat-datepicker-toggle>
-              <mat-datepicker #pickerStart></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>End Date</mat-label>
-              <input matInput [matDatepicker]="pickerEnd" [(ngModel)]="endDate">
-              <mat-datepicker-toggle matSuffix [for]="pickerEnd"></mat-datepicker-toggle>
-              <mat-datepicker #pickerEnd></mat-datepicker>
-            </mat-form-field>
-          </ng-container>
-
-          <mat-form-field appearance="outline" class="w-full" *ngIf="selectedReportType === 'STATUS'">
-            <mat-label>Status</mat-label>
-            <mat-select [(ngModel)]="selectedStatus">
-              <mat-option value="CONFIRMED">Confirmed</mat-option>
-              <mat-option value="CHECKED_IN">Checked In</mat-option>
-              <mat-option value="CHECKED_OUT">Checked Out</mat-option>
-              <mat-option value="CANCELLED">Cancelled</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <div *ngIf="showMonthYear" class="flex gap-2 col-span-2">
-            <mat-form-field appearance="outline" class="w-1/2">
-                <mat-label>Year</mat-label>
-                <input matInput type="number" [(ngModel)]="selectedYear">
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-1/2">
-                <mat-label>Month</mat-label>
-                <mat-select [(ngModel)]="selectedMonth">
-                    <mat-option [value]="1">January</mat-option>
-                    <mat-option [value]="2">February</mat-option>
-                    <mat-option [value]="3">March</mat-option>
-                    </mat-select>
-            </mat-form-field>
+      <!-- Filters Section -->
+      <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+        <div class="flex flex-wrap gap-3 items-end">
+          <!-- Date Range Filter -->
+          <div *ngIf="showDateRangeFilter()" class="flex gap-2">
+            <div class="flex flex-col">
+              <label class="text-xs text-gray-600 mb-1">From Date</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.dateFrom"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex flex-col">
+              <label class="text-xs text-gray-600 mb-1">To Date</label>
+              <input
+                type="date"
+                [(ngModel)]="filters.dateTo"
+                class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
           </div>
 
-          <div class="flex gap-2">
-            <button mat-raised-button color="primary" class="!h-14 !flex-1" (click)="generateReport()" [disabled]="isLoading">
-              <mat-icon>search</mat-icon> Generate
+          <!-- Status Filter -->
+          <div *ngIf="showStatusFilter()" class="flex flex-col">
+            <label class="text-xs text-gray-600 mb-1">Status</label>
+            <select
+              [(ngModel)]="filters.status"
+              class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+            </select>
+          </div>
+
+          <!-- Room Type Filter -->
+          <div *ngIf="showRoomTypeFilter()" class="flex flex-col">
+            <label class="text-xs text-gray-600 mb-1">Room Type</label>
+            <select
+              [(ngModel)]="filters.roomType"
+              class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option *ngFor="let type of roomTypeOptions" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <!-- Source Filter -->
+          <div *ngIf="showSourceFilter()" class="flex flex-col">
+            <label class="text-xs text-gray-600 mb-1">Source</label>
+            <select
+              [(ngModel)]="filters.source"
+              class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option *ngFor="let source of sourceOptions" [value]="source">{{ source }}</option>
+            </select>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex gap-2 ml-auto">
+            <button type="button"
+                    (click)="applyFilters()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+              <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span>Apply Filters</span>
             </button>
-            <button mat-stroked-button color="accent" class="!h-14" (click)="downloadPDF()" [disabled]="!reportData">
-              <mat-icon>picture_as_pdf</mat-icon> PDF
+
+            <button type="button"
+                    (click)="resetFilters(); loadReportData()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+              <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span>Reset</span>
+            </button>
+
+            <button type="button"
+                    (click)="exportReport()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+              <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span>Export</span>
+            </button>
+
+            <button type="button"
+                    (click)="printReport()"
+                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50 shadow-sm transition-colors">
+              <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+              <span>Print</span>
             </button>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
 
-    <div *ngIf="isLoading" class="flex justify-center py-10">
-      <mat-spinner diameter="50"></mat-spinner>
-    </div>
-
-    <div *ngIf="!isLoading && reportData" class="animate-fade-in-up">
-      
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" *ngIf="reportData.totalRevenue !== undefined || reportData.totalReservations !== undefined">
-            <mat-card class="bg-indigo-50 !shadow-none border border-indigo-100">
-                <mat-card-content class="text-center py-4">
-                    <div class="text-xs uppercase text-indigo-500 font-bold">Total Reservations</div>
-                    <div class="text-2xl font-bold text-indigo-900">{{ reportData.totalReservations || 0 }}</div>
-                </mat-card-content>
-            </mat-card>
-            <mat-card class="bg-green-50 !shadow-none border border-green-100" *ngIf="reportData.totalRevenue !== undefined">
-                <mat-card-content class="text-center py-4">
-                    <div class="text-xs uppercase text-green-500 font-bold">Total Revenue</div>
-                    <div class="text-2xl font-bold text-green-900">{{ reportData.totalRevenue | currency }}</div>
-                </mat-card-content>
-            </mat-card>
-            </div>
-
-        <mat-card class="!shadow-lg !rounded-xl overflow-hidden" 
-            *ngIf="['DAILY', 'DATE_RANGE', 'CANCELLATIONS', 'GROUP', 'LONG_STAY', 'STATUS'].includes(selectedReportType)">
-            <mat-card-header class="bg-gray-50 border-b p-4">
-                <mat-card-title class="text-lg">Reservation Details</mat-card-title>
-            </mat-card-header>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3">Conf #</th>
-                            <th class="px-6 py-3">Guest</th>
-                            <th class="px-6 py-3">Dates</th>
-                            <th class="px-6 py-3">Room</th>
-                            <th class="px-6 py-3">Status</th>
-                            <th class="px-6 py-3 text-right">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let res of (reportData.reservations || reportData.cancellations || reportData.groupReservations || reportData.longStays)" 
-                            class="bg-white border-b hover:bg-gray-50">
-                            <td class="px-6 py-4 font-medium">{{ res.confirmationNumber }}</td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold">{{ res.guestName }}</div>
-                                <div class="text-xs text-gray-500">{{ res.guestPhone }}</div>
-                            </td>
-                            <td class="px-6 py-4">
-                                {{ res.checkInDate }} <span class="text-gray-400">to</span><br>
-                                {{ res.checkOutDate }}
-                            </td>
-                            <td class="px-6 py-4">{{ res.roomNumbers }} ({{res.roomTypes}})</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 rounded text-xs font-bold"
-                                    [ngClass]="{
-                                        'bg-green-100 text-green-800': res.status === 'CONFIRMED' || res.status === 'CHECKED_IN',
-                                        'bg-red-100 text-red-800': res.status === 'CANCELLED',
-                                        'bg-gray-100 text-gray-800': res.status === 'CHECKED_OUT'
-                                    }">
-                                    {{ res.status }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right font-bold">{{ res.totalAmount | currency }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </mat-card>
-
-        <mat-card class="!shadow-lg !rounded-xl overflow-hidden" *ngIf="selectedReportType === 'OCCUPANCY'">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3">Room Type</th>
-                            <th class="px-6 py-3 text-center">Total Rooms</th>
-                            <th class="px-6 py-3 text-center">Occupied</th>
-                            <th class="px-6 py-3 text-center">Available</th>
-                            <th class="px-6 py-3 text-center">Occupancy %</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let item of reportData.roomTypeOccupancy | keyvalue" class="bg-white border-b">
-                            <td class="px-6 py-4 font-bold">{{ item.value.roomType }}</td>
-                            <td class="px-6 py-4 text-center">{{ item.value.totalRooms }}</td>
-                            <td class="px-6 py-4 text-center">{{ item.value.occupiedRooms }}</td>
-                            <td class="px-6 py-4 text-center">{{ item.value.availableRooms }}</td>
-                            <td class="px-6 py-4 text-center">
-                                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                    <div class="bg-indigo-600 h-2.5 rounded-full" [style.width]="item.value.occupancyPercentage + '%'"></div>
-                                </div>
-                                <span class="text-xs">{{ item.value.occupancyPercentage }}%</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </mat-card>
-
-        <mat-card class="!shadow-lg !rounded-xl overflow-hidden" *ngIf="selectedReportType === 'MONTHLY'">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3">Date</th>
-                            <th class="px-6 py-3 text-center">Occupied Rooms</th>
-                            <th class="px-6 py-3 text-center">Occupancy %</th>
-                            <th class="px-6 py-3 text-right">Revenue</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let day of reportData.dailyOccupancy" class="bg-white border-b hover:bg-gray-50">
-                            <td class="px-6 py-4">{{ day.date | date:'mediumDate' }}</td>
-                            <td class="px-6 py-4 text-center">{{ day.occupiedRooms }}</td>
-                            <td class="px-6 py-4 text-center">{{ day.occupancyPercentage }}%</td>
-                            <td class="px-6 py-4 text-right">{{ day.revenue | currency }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </mat-card>
-
-        <mat-card class="!shadow-lg !rounded-xl overflow-hidden" 
-            *ngIf="['BOOKING_SOURCE', 'NATIONALITY', 'REVENUE_ROOM'].includes(selectedReportType)">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3">Category</th>
-                            <th class="px-6 py-3 text-center">Reservations</th>
-                            <th class="px-6 py-3 text-center" *ngIf="selectedReportType !== 'REVENUE_ROOM'">Percentage</th>
-                            <th class="px-6 py-3 text-right">Revenue</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let item of (reportData.bookingSources || reportData.nationalities || reportData.roomTypeRevenues)" class="bg-white border-b">
-                            <td class="px-6 py-4 font-bold">{{ item.bookingSource || item.country || item.roomType }}</td>
-                            <td class="px-6 py-4 text-center">{{ item.totalReservations }}</td>
-                            <td class="px-6 py-4 text-center" *ngIf="selectedReportType !== 'REVENUE_ROOM'">{{ item.percentage }}%</td>
-                            <td class="px-6 py-4 text-right">{{ item.totalRevenue | currency }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </mat-card>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" *ngIf="selectedReportType === 'ARRIVAL_DEPARTURE'">
-            <mat-card class="!shadow-lg !rounded-xl overflow-hidden">
-                <mat-card-header class="bg-green-50 p-3 border-b border-green-100">
-                    <mat-card-title class="text-green-800 text-base">Expected Arrivals</mat-card-title>
-                </mat-card-header>
-                <div class="p-4" *ngIf="reportData.arrivals.length === 0">No Arrivals</div>
-                <div class="overflow-x-auto" *ngIf="reportData.arrivals.length > 0">
-                    <table class="w-full text-xs">
-                         <tr *ngFor="let a of reportData.arrivals" class="border-b">
-                             <td class="py-2">{{a.guestName}}</td>
-                             <td class="py-2">Rm: {{a.roomNumbers}}</td>
-                         </tr>
-                    </table>
-                </div>
-            </mat-card>
-            <mat-card class="!shadow-lg !rounded-xl overflow-hidden">
-                <mat-card-header class="bg-red-50 p-3 border-b border-red-100">
-                    <mat-card-title class="text-red-800 text-base">Expected Departures</mat-card-title>
-                </mat-card-header>
-                <div class="p-4" *ngIf="reportData.departures.length === 0">No Departures</div>
-                </mat-card>
+      <!-- Content Area -->
+      <div class="p-4">
+        <!-- Error Message -->
+        <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          {{ error }}
         </div>
 
+        <!-- Loading State -->
+        <div *ngIf="loading" class="flex items-center justify-center p-8">
+          <div class="text-gray-600">Loading report data...</div>
+        </div>
+
+        <!-- Report Content -->
+        <div *ngIf="!loading && !error">
+          <!-- Arrival Report -->
+          <div *ngIf="activeTab === 'arrival'">
+            <h3 class="text-lg font-semibold mb-3">Arrival Report</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Guest Name</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room No</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room Type</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Arrival Time</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Special Requests</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let item of reportData">
+                  <td class="px-4 py-3 text-sm">{{ item.guestName }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.roomNo }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.roomType }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.arrivalTime }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.specialRequests }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Departure Report -->
+          <div *ngIf="activeTab === 'departure'">
+            <h3 class="text-lg font-semibold mb-3">Departure Report</h3>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Guest Name</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Room No</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Departure Time</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mode</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Balance</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                <tr *ngFor="let item of reportData">
+                  <td class="px-4 py-3 text-sm">{{ item.guestName }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.roomNo }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.departureTime }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.mode }}</td>
+                  <td class="px-4 py-3 text-sm">{{ item.balance }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Add similar sections for other reports -->
+          <div *ngIf="activeTab === 'daily'">
+            <h3 class="text-lg font-semibold mb-3">Daily Reservation Report</h3>
+            <p class="text-gray-600">Content for daily reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'source'">
+            <h3 class="text-lg font-semibold mb-3">Reservation by Source</h3>
+            <p class="text-gray-600">Content for source-based reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'date-range'">
+            <h3 class="text-lg font-semibold mb-3">Reservation by Date Range</h3>
+            <p class="text-gray-600">Content for date range reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'group'">
+            <h3 class="text-lg font-semibold mb-3">Group Reservation Report</h3>
+            <p class="text-gray-600">Content for group reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'long-stay'">
+            <h3 class="text-lg font-semibold mb-3">Long Stay Report</h3>
+            <p class="text-gray-600">Content for long stay guests...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'cancellation'">
+            <h3 class="text-lg font-semibold mb-3">Cancellation Report</h3>
+            <p class="text-gray-600">Content for cancelled reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'no-show'">
+            <h3 class="text-lg font-semibold mb-3">No-Show Report</h3>
+            <p class="text-gray-600">Content for no-show reservations...</p>
+          </div>
+
+          <div *ngIf="activeTab === 'status'">
+            <h3 class="text-lg font-semibold mb-3">Reservation by Status</h3>
+            <p class="text-gray-600">Content for status-based reservations...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="reportData.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="mt-4 text-gray-600">No data available for this report</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</div> -->
+</div>

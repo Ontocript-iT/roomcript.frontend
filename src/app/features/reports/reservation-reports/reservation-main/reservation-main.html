@@ -1,0 +1,62 @@
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-2 px-4 rounded-lg">
+  <div class="mx-auto">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">analytics</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Reservation Reports</h1>
+          <p class="text-gray-500 mt-1">Analyse the reservation details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-gray-100 min-h-screen">
+  <div class="pt-2">
+    <div class="w-full bg-white rounded-md shadow-sm border border-gray-200">
+      <!-- Main Category Tabs -->
+      <div class="border-b border-gray-200 bg-blue-50">
+        <nav class="flex text-sm overflow-x-auto">
+          <button
+            class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap"
+            [ngClass]="activeMainTab === 'operational' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-700 hover:text-gray-900'"
+            (click)="setActiveMainTab('operational')">
+            Operational Reports
+          </button>
+
+          <button
+            class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap"
+            [ngClass]="activeMainTab === 'performance' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-700 hover:text-gray-900'"
+            (click)="setActiveMainTab('performance')">
+            Performance & Occupancy
+          </button>
+
+          <button
+            class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap"
+            [ngClass]="activeMainTab === 'marketing' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-700 hover:text-gray-900'"
+            (click)="setActiveMainTab('marketing')">
+            Marketing Insights
+          </button>
+
+          <button
+            class="px-6 py-3 border-b-2 font-semibold whitespace-nowrap"
+            [ngClass]="activeMainTab === 'exception' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-700 hover:text-gray-900'"
+            (click)="setActiveMainTab('exception')">
+            Exception & Loss Tracking
+          </button>
+        </nav>
+      </div>
+
+      <!-- Content Area - Load Respective Components -->
+      <div class="p-4">
+        <app-operational-reports *ngIf="activeMainTab === 'operational'"></app-operational-reports>
+        <app-performance-reports *ngIf="activeMainTab === 'performance'"></app-performance-reports>
+        <app-marketing-reports *ngIf="activeMainTab === 'marketing'"></app-marketing-reports>
+        <app-exception-reports *ngIf="activeMainTab === 'exception'"></app-exception-reports>
+      </div>
+    </div>
+  </div>
+</div>
