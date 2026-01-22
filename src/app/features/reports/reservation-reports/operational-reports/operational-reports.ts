@@ -25,7 +25,7 @@ interface ReportFilters {
   styleUrls: ['./operational-reports.scss']
 })
 export class OperationalReports implements OnInit {
-  selectedReport: string = '';
+  selectedReport: string = 'arrival-departure';
   reportData: any[] = [];
   loading: boolean = false;
   error: string = '';
