@@ -1,239 +1,140 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
-
-// Material
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTableModule } from '@angular/material/table';
-
-import { ReservationReportService } from '../../../core/services/reservation-report.service';
-
-// PDF
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+interface ReportFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  status?: string;
+  roomType?: string;
+  source?: string;
+}
 
 @Component({
   selector: 'app-reservation-reports',
   standalone: true,
-  imports: [
-    CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule,
-    MatCardModule, MatFormFieldModule, MatSelectModule, MatInputModule,
-    MatButtonModule, MatIconModule, MatDatepickerModule, MatNativeDateModule,
-    MatProgressSpinnerModule, MatTableModule
-  ],
-  providers: [DatePipe],
+  imports: [CommonModule, FormsModule],
   templateUrl: './reservation-report.html',
+  styleUrls: ['./reservation-report.scss']
 })
 export class ReservationReportsComponent implements OnInit {
-  // Filter States
-  selectedReportType = 'DAILY';
-  startDate: Date = new Date();
-  endDate: Date = new Date();
-  singleDate: Date = new Date();
-  selectedYear: number = new Date().getFullYear();
-  selectedMonth: number = new Date().getMonth() + 1;
-  selectedStatus = 'CONFIRMED';
-  minNights = 7;
+  activeTab: string = 'arrival';
 
-  isLoading = false;
-  reportData: any = null;
+  // Filter properties
+  filters: ReportFilter = {
+    dateFrom: '',
+    dateTo: '',
+    status: '',
+    roomType: '',
+    source: ''
+  };
 
-  // Configuration for Report Types
-  reportTypes = [
-    { value: 'DAILY', label: 'Daily Reservation Report' },
-    { value: 'DATE_RANGE', label: 'Date Range Report' },
-    { value: 'ARRIVAL_DEPARTURE', label: 'Arrival & Departure' },
-    { value: 'OCCUPANCY', label: 'Occupancy Report' },
-    { value: 'BOOKING_SOURCE', label: 'Booking Source' },
-    { value: 'CANCELLATIONS', label: 'Cancellations' },
-    { value: 'REVENUE_ROOM', label: 'Revenue by Room Type' },
-    { value: 'NATIONALITY', label: 'Guest Nationality' },
-    { value: 'MONTHLY', label: 'Monthly Summary' },
-    { value: 'GROUP', label: 'Group Reservations' },
-    { value: 'LONG_STAY', label: 'Long Stays' },
-    { value: 'STATUS', label: 'Reservations by Status' },
+  // Dropdown options
+  statusOptions = [
+    'All',
+    'Temporary',
+    'Hold Till',
+    'Confirmed',
+    'Checked-In',
+    'Checked-Out'
   ];
 
-  constructor(
-    private reportService: ReservationReportService,
-    private datePipe: DatePipe
-  ) {}
+  roomTypeOptions = [
+    'All',
+    'Single',
+    'Double',
+    'Suite',
+    'Deluxe'
+  ];
 
-  ngOnInit(): void {}
+  sourceOptions = [
+    'All',
+    'Walk-In',
+    'Website',
+    'OTA',
+    'Travel Agent',
+    'Corporate'
+  ];
 
-  // --- Dynamic Input Visibility ---
-  get showSingleDate(): boolean {
-    return ['DAILY', 'ARRIVAL_DEPARTURE'].includes(this.selectedReportType);
+  // Report data - will be populated from API
+  reportData: any[] = [];
+  loading: boolean = false;
+  error: string = '';
+
+  ngOnInit(): void {
+    this.loadReportData();
   }
 
-  get showDateRange(): boolean {
-    return ['DATE_RANGE', 'OCCUPANCY', 'BOOKING_SOURCE', 'CANCELLATIONS', 'REVENUE_ROOM', 'NATIONALITY', 'GROUP', 'STATUS'].includes(this.selectedReportType);
+  setActiveTab(tab: string): void {
+    this.activeTab = tab;
+    this.resetFilters();
+    this.loadReportData();
   }
 
-  get showMonthYear(): boolean {
-    return this.selectedReportType === 'MONTHLY';
+  applyFilters(): void {
+    this.loadReportData();
   }
 
-  // --- Generation Logic ---
-  generateReport() {
-    this.isLoading = true;
-    this.reportData = null;
+  resetFilters(): void {
+    this.filters = {
+      dateFrom: '',
+      dateTo: '',
+      status: '',
+      roomType: '',
+      source: ''
+    };
+  }
 
-    const sDate = this.datePipe.transform(this.startDate, 'yyyy-MM-dd') || '';
-    const eDate = this.datePipe.transform(this.endDate, 'yyyy-MM-dd') || '';
-    const single = this.datePipe.transform(this.singleDate, 'yyyy-MM-dd') || '';
+  loadReportData(): void {
+    this.loading = true;
+    this.error = '';
 
-    let request$: any;
+    // Simulate API call - replace with actual service call
+    setTimeout(() => {
+      this.reportData = this.getMockData();
+      this.loading = false;
+    }, 500);
+  }
 
-    switch (this.selectedReportType) {
-      case 'DAILY': request$ = this.reportService.getDailyReport(single); break;
-      case 'DATE_RANGE': request$ = this.reportService.getDateRangeReport(sDate, eDate); break;
-      case 'ARRIVAL_DEPARTURE': request$ = this.reportService.getArrivalDepartureReport(single); break;
-      case 'OCCUPANCY': request$ = this.reportService.getOccupancyReport(sDate, eDate); break;
-      case 'BOOKING_SOURCE': request$ = this.reportService.getBookingSourceReport(sDate, eDate); break;
-      case 'CANCELLATIONS': request$ = this.reportService.getCancellationReport(sDate, eDate); break;
-      case 'REVENUE_ROOM': request$ = this.reportService.getRevenueByRoomType(sDate, eDate); break;
-      case 'NATIONALITY': request$ = this.reportService.getGuestNationalityReport(sDate, eDate); break;
-      case 'MONTHLY': request$ = this.reportService.getMonthlySummary(this.selectedYear, this.selectedMonth); break;
-      case 'GROUP': request$ = this.reportService.getGroupReservations(sDate, eDate); break;
-      case 'LONG_STAY': request$ = this.reportService.getLongStays(this.minNights); break;
-      case 'STATUS': request$ = this.reportService.getByStatus(this.selectedStatus, sDate, eDate); break;
-    }
+  exportReport(): void {
+    // Implement export functionality
+    console.log('Exporting report:', this.activeTab);
+  }
 
-    if (request$) {
-      request$.subscribe({
-        next: (res: any) => {
-          this.reportData = res.result;
-          this.isLoading = false;
-        },
-        error: (err: any) => {
-          console.error(err);
-          this.isLoading = false;
-        }
-      });
+  printReport(): void {
+    window.print();
+  }
+
+  // Mock data - replace with actual API service
+  private getMockData(): any[] {
+    switch(this.activeTab) {
+      case 'arrival':
+        return [
+          { guestName: 'John Doe', roomNo: '101', roomType: 'Deluxe', arrivalTime: '2:00 PM', specialRequests: 'Extra towels' },
+          { guestName: 'Jane Smith', roomNo: '205', roomType: 'Suite', arrivalTime: '3:30 PM', specialRequests: 'Late checkout' }
+        ];
+      case 'departure':
+        return [
+          { guestName: 'Mike Johnson', roomNo: '302', departureTime: '11:00 AM', mode: 'Car', balance: 0 }
+        ];
+      default:
+        return [];
     }
   }
 
-  // --- PDF Export Logic ---
-  downloadPDF() {
-    if (!this.reportData) return;
+  // Show/hide specific filters based on active tab
+  showDateRangeFilter(): boolean {
+    return ['arrival', 'departure', 'daily', 'date-range', 'cancellation'].includes(this.activeTab);
+  }
 
-    const doc = new jsPDF();
-    const title = this.reportTypes.find(t => t.value === this.selectedReportType)?.label || 'Report';
-    const generatedDate = new Date().toLocaleString();
+  showStatusFilter(): boolean {
+    return ['daily', 'status'].includes(this.activeTab);
+  }
 
-    // Header
-    doc.setFontSize(18);
-    doc.setTextColor(79, 70, 229); // Indigo color
-    doc.text(title, 14, 20);
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${generatedDate}`, 14, 28);
-    
-    // Add Summary Stats if available
-    let startY = 35;
-    if (this.reportData.totalRevenue !== undefined) {
-       doc.text(`Total Revenue: ${this.reportData.totalRevenue}`, 14, startY);
-       startY += 6;
-    }
-    if (this.reportData.totalReservations !== undefined) {
-        doc.text(`Total Reservations: ${this.reportData.totalReservations}`, 14, startY);
-        startY += 10;
-     }
+  showRoomTypeFilter(): boolean {
+    return ['arrival', 'departure', 'daily'].includes(this.activeTab);
+  }
 
-    // Define Columns and Rows based on Report Type
-    let columns: string[] = [];
-    let rows: any[] = [];
-
-    // CASE 1: Reservation Lists (Daily, Date Range, Cancellations, LongStay, Group, Status)
-    if (['DAILY', 'DATE_RANGE', 'CANCELLATIONS', 'LONG_STAY', 'GROUP', 'STATUS'].includes(this.selectedReportType)) {
-      columns = ['Res ID', 'Guest', 'Check-In', 'Check-Out', 'Rooms', 'Status', 'Amount'];
-      const list = this.reportData.reservations || this.reportData.cancellations || this.reportData.longStays || this.reportData.groupReservations || [];
-      
-      rows = list.map((r: any) => [
-        r.confirmationNumber,
-        r.guestName,
-        r.checkInDate,
-        r.checkOutDate,
-        r.roomNumbers,
-        r.status,
-        r.totalAmount
-      ]);
-    }
-    // CASE 2: Occupancy (Complex object in roomTypeOccupancy)
-    else if (this.selectedReportType === 'OCCUPANCY') {
-      columns = ['Room Type', 'Total', 'Occupied', 'Available', 'Occupancy %'];
-      const types = this.reportData.roomTypeOccupancy;
-      rows = Object.keys(types).map(key => [
-        types[key].roomType,
-        types[key].totalRooms,
-        types[key].occupiedRooms,
-        types[key].availableRooms,
-        types[key].occupancyPercentage + '%'
-      ]);
-    }
-    // CASE 3: Booking Source / Nationality
-    else if (this.selectedReportType === 'BOOKING_SOURCE' || this.selectedReportType === 'NATIONALITY') {
-      const isSource = this.selectedReportType === 'BOOKING_SOURCE';
-      columns = [isSource ? 'Source' : 'Country', 'Reservations', 'Percentage', 'Revenue'];
-      const list = this.reportData.bookingSources || this.reportData.nationalities || [];
-      rows = list.map((item: any) => [
-        isSource ? item.bookingSource : item.country,
-        item.totalReservations,
-        item.percentage + '%',
-        item.totalRevenue || 0
-      ]);
-    }
-    // CASE 4: Revenue By Room Type
-    else if (this.selectedReportType === 'REVENUE_ROOM') {
-      columns = ['Room Type', 'Res Count', 'Sold', 'Avg Rate', 'Revenue'];
-      rows = (this.reportData.roomTypeRevenues || []).map((r: any) => [
-        r.roomType,
-        r.totalReservations,
-        r.totalRoomsSold,
-        r.averageRate,
-        r.totalRevenue
-      ]);
-    }
-    // CASE 5: Arrival/Departure
-    else if (this.selectedReportType === 'ARRIVAL_DEPARTURE') {
-       // Two tables actually, but let's list Arrivals first
-       doc.text("Arrivals", 14, startY);
-       startY += 5;
-       
-       columns = ['Res #', 'Guest', 'Room', 'Stay Days'];
-       rows = (this.reportData.arrivals || []).map((a: any) => [
-         a.confirmationNumber, a.guestName, a.roomNumbers, a.nightsStayed
-       ]);
-       // Note: To do departures perfectly requires multiple autoTable calls, 
-       // for simplicity in this snippet we print Arrivals.
-    }
-    // CASE 6: Monthly
-    else if (this.selectedReportType === 'MONTHLY') {
-        columns = ['Date', 'Occupied', 'Occ %', 'Revenue'];
-        rows = (this.reportData.dailyOccupancy || []).map((d: any) => [
-            d.date, d.occupiedRooms, d.occupancyPercentage + '%', d.revenue
-        ]);
-    }
-
-    autoTable(doc, {
-      head: [columns],
-      body: rows,
-      startY: startY,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229] }, // Indigo
-    });
-
-    doc.save(`Report_${this.selectedReportType}.pdf`);
+  showSourceFilter(): boolean {
+    return ['source', 'daily'].includes(this.activeTab);
   }
 }

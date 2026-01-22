@@ -1,27 +1,109 @@
-/* reservation-reports.component.css */
-::ng-deep .success-snackbar {
-  background-color: #4caf50 !important;
-  color: white !important;
+/* Compact Material Form Fields */
+::ng-deep .compact-field {
+  font-size: 13px;
 }
 
-::ng-deep .error-snackbar {
-  background-color: #f44336 !important;
-  color: white !important;
+::ng-deep .compact-field .mat-mdc-text-field-wrapper {
+  height: 40px;
 }
 
-::ng-deep .warning-snackbar {
-  background-color: #ff9800 !important;
-  color: white !important;
+::ng-deep .compact-field .mat-mdc-form-field-flex {
+  height: 40px;
+  align-items: center;
 }
 
-.mat-mdc-form-field {
-  width: 100%;
+::ng-deep .compact-field .mat-mdc-form-field-infix {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  min-height: auto;
 }
 
-mat-card {
-  border-radius: 12px;
+::ng-deep .compact-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
 }
 
-.hover\:bg-gray-50:hover {
-  transition: background-color 0.2s ease;
+::ng-deep .compact-field .mdc-text-field {
+  padding: 0 12px;
+  height: 40px;
+}
+
+::ng-deep .compact-field .mat-mdc-form-field-icon-suffix {
+  padding: 0;
+}
+
+::ng-deep .compact-field .mdc-notched-outline__leading,
+::ng-deep .compact-field .mdc-notched-outline__notch,
+::ng-deep .compact-field .mdc-notched-outline__trailing {
+  border-color: #d1d5db;
+}
+
+::ng-deep .compact-field .mat-mdc-select {
+  padding-top: 0;
+}
+
+::ng-deep .compact-field .mat-mdc-select-trigger {
+  height: 24px;
+}
+
+::ng-deep .compact-field input {
+  height: 24px;
+}
+
+::ng-deep .compact-field .mat-datepicker-toggle {
+  width: 32px;
+  height: 32px;
+}
+
+::ng-deep .compact-field .mat-datepicker-toggle button {
+  width: 32px;
+  height: 32px;
+}
+
+::ng-deep .compact-field .mat-mdc-icon-button.mat-mdc-button-base {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+}
+
+::ng-deep .compact-field .mat-mdc-floating-label {
+  top: 20px;
+}
+
+::ng-deep .compact-field.mat-mdc-form-field-has-label .mat-mdc-floating-label.mdc-floating-label--float-above {
+  transform: translateY(-18px) scale(0.75);
+}
+
+/* Action Buttons - styled like image */
+::ng-deep .action-btn {
+  height: 36px;
+  min-width: auto;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  border-radius: 6px;
+  letter-spacing: normal;
+}
+
+::ng-deep .action-btn.mat-mdc-outlined-button {
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+::ng-deep .action-btn.mat-mdc-outlined-button:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+::ng-deep .action-btn.mat-mdc-unelevated-button {
+  background-color: #2563eb;
+  box-shadow: none;
+}
+
+::ng-deep .action-btn.mat-mdc-unelevated-button:hover {
+  background-color: #1d4ed8;
+}
+
+::ng-deep .action-btn .mat-mdc-button-touch-target {
+  height: 36px;
 }
