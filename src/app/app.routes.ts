@@ -23,7 +23,6 @@ import { InhouseGuestsComponent } from './features/guest-management/inhouse-gues
 import { CreateTask } from './features/housekeeping/create-task/create-task';
 import { ViewAllTask } from './features/housekeeping/view-all-task/view-all-task';
 import { ViewAllFoundItems } from './features/lost-and-found/view-all-found-items/view-all-found-items';
-import { ReservationReportsComponent } from './features/reports/reservation-report/reservation-report';
 import {MaintenanceRequests} from './features/maintenance/maintenance-requests/maintenance-requests';
 import {ReservationMain} from './features/reports/reservation-reports/reservation-main/reservation-main';
 
