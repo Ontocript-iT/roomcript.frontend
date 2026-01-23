@@ -31,7 +31,7 @@ export class PdfService {
   ): void {
     const doc = new jsPDF('p', 'mm', 'a4');
 
-    // Add header to all pages
+    // Add header to first page only
     this.addHeader(doc, reportTitle);
 
     // Add filter information
@@ -51,7 +51,7 @@ export class PdfService {
       });
     });
 
-    // Add table with autoTable - use the imported function directly
+    // Add table with autoTable
     autoTable(doc, {
       head: [columns],
       body: tableData,
@@ -70,9 +70,8 @@ export class PdfService {
       alternateRowStyles: {
         fillColor: [249, 250, 251]
       },
-      margin: { top: 60, bottom: 30, left: 10, right: 10 },
+      margin: { top: 20, bottom: 30, left: 10, right: 10 },
       didDrawPage: (data) => {
-        this.addHeader(doc, reportTitle);
         this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
       }
     });

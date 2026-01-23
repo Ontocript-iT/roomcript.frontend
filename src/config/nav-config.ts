@@ -188,6 +188,12 @@ export const NAV_ITEMS: NavItem[] = [
         roles: ['ADMIN', 'MANAGER']
       },
       {
+        title: 'Guest Analytics',
+        route: '/reports/guests',
+        icon: 'people',
+        roles: ['ADMIN', 'MANAGER']
+      },
+      {
         title: 'Revenue Reports',
         route: '/reports/revenue',
         icon: 'attach_money',

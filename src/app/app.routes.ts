@@ -25,6 +25,7 @@ import { ViewAllTask } from './features/housekeeping/view-all-task/view-all-task
 import { ViewAllFoundItems } from './features/lost-and-found/view-all-found-items/view-all-found-items';
 import {MaintenanceRequests} from './features/maintenance/maintenance-requests/maintenance-requests';
 import {ReservationMain} from './features/reports/reservation-reports/reservation-main/reservation-main';
+import {GuestMain} from './features/reports/guest-reports/guest-main/guest-main';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -137,6 +138,11 @@ export const routes: Routes = [
   {
     path: 'reports/reservations',
     component: ReservationMain,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reports/guests',
+    component: GuestMain,
     canActivate: [authGuard],
   },
 ];
