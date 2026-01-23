@@ -47,6 +47,13 @@
             (click)="setActiveMainTab('exception')">
             Exception & Loss Tracking
           </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeMainTab === 'unified' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveMainTab('unified')">
+            Unified Reports
+          </button>
         </nav>
       </div>
 
@@ -56,6 +63,7 @@
         <app-performance-reports *ngIf="activeMainTab === 'performance'"></app-performance-reports>
         <app-marketing-reports *ngIf="activeMainTab === 'marketing'"></app-marketing-reports>
         <app-exception-reports *ngIf="activeMainTab === 'exception'"></app-exception-reports>
+        <app-unified-reservation-report *ngIf="activeMainTab === 'unified'"></app-unified-reservation-report>
       </div>
     </div>
   </div>

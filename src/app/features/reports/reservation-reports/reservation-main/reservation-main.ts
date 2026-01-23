@@ -5,6 +5,7 @@ import {PerformanceReports} from '../performance-reports/performance-reports';
 import {MarketingReports} from '../marketing-reports/marketing-reports';
 import {ExceptionReports} from '../exception-reports/exception-reports';
 import {MatIcon} from '@angular/material/icon';
+import {UnifiedReservationReport} from '../unified-reservation-report/unified-reservation-report';
 
 @Component({
   selector: 'app-reservation-main',
@@ -15,6 +16,7 @@ import {MatIcon} from '@angular/material/icon';
     MarketingReports,
     ExceptionReports,
     MatIcon,
+    UnifiedReservationReport,
   ],
   templateUrl: './reservation-main.html',
   styleUrl: './reservation-main.scss'

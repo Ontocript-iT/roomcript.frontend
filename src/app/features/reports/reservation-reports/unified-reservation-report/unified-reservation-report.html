@@ -1,0 +1,194 @@
+<div>
+  <div class="bg-gray-50 border border-gray-200 rounded-md p-4 mb-4">
+    <div class="flex flex-wrap gap-3 items-end">
+
+      <!-- Date Range Filter -->
+      <div class="flex flex-col">
+        <label class="text-xs font-medium text-gray-600 mb-1">Start Date</label>
+        <input
+          type="date"
+          [(ngModel)]="filters.startDate"
+          class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex flex-col">
+        <label class="text-xs font-medium text-gray-600 mb-1">End Date</label>
+        <input
+          type="date"
+          [(ngModel)]="filters.endDate"
+          class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Sections Multi-Select -->
+      <div class="flex flex-col">
+        <label class="text-xs font-medium text-gray-600 mb-1">Sections</label>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleSectionsDropdown()"
+            class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px] text-left flex items-center justify-between bg-white">
+            <span class="text-gray-700">
+              {{ getSelectedSectionsLabel() }}
+            </span>
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div *ngIf="showSectionsDropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+            <label *ngFor="let section of sectionOptions" class="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                [checked]="filters.sections.includes(section.value)"
+                (change)="toggleSection(section.value)"
+                class="mr-2">
+              <span class="text-sm text-gray-700">{{ section.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Multi-Select -->
+      <div class="flex flex-col">
+        <label class="text-xs font-medium text-gray-600 mb-1">Status</label>
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleStatusDropdown()"
+            class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px] text-left flex items-center justify-between bg-white">
+            <span class="text-gray-700">
+              {{ getSelectedStatusLabel() }}
+            </span>
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div *ngIf="showStatusDropdown" class="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+            <label *ngFor="let status of statusOptions" class="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+              <input
+                type="checkbox"
+                [checked]="filters.statuses.includes(status.value)"
+                (change)="toggleStatus(status.value)"
+                class="mr-2">
+              <span class="text-sm text-gray-700">{{ status.label }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-2 ml-auto">
+        <button
+          type="button"
+          (click)="applyFilters()"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gradient-to-br from-indigo-600 to-purple-600 rounded-md hover:from-indigo-700 hover:to-purple-700 shadow-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span>Apply Filters</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="resetFilters()"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 shadow-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>Clear</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="exportReport()"
+          [disabled]="reportData.length === 0"
+          class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gradient-to-br from-indigo-600 to-purple-600 rounded-md hover:from-indigo-700 hover:to-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed shadow-sm transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span>Export PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+    {{ error }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center p-12">
+    <div class="flex flex-col items-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p class="mt-4 text-gray-600">Loading unified report...</p>
+    </div>
+  </div>
+
+  <!-- Cancellation Summary -->
+  <div *ngIf="!loading && !error && reportSummary" class="bg-white border border-gray-200 rounded-md p-4 mb-4">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+      Cancellation Summary
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-purple-50 border border-purple-200 rounded-md p-4">
+        <p class="text-xs font-medium text-purple-600 uppercase">Total Lost Revenue</p>
+        <p class="text-xl font-bold text-purple-700 mt-1">
+          ${{ reportSummary.totalLostRevenue?.toFixed(2) || '0.00' }}
+        </p>
+      </div>
+      <div class="bg-purple-50 border border-purple-200 rounded-md p-4">
+        <p class="text-xs font-medium text-purple-600 uppercase">Cancelled Count</p>
+        <p class="text-xl font-bold text-purple-700 mt-1">
+          {{ reportSummary.cancelledCount || 0 }}
+        </p>
+      </div>
+      <div class="bg-purple-50 border border-purple-200 rounded-md p-4">
+        <p class="text-xs font-medium text-purple-600 uppercase">No-Show Count</p>
+        <p class="text-xl font-bold text-purple-700 mt-1">
+          {{ reportSummary.noShowCount || 0 }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Data Table -->
+  <div *ngIf="!loading && !error && reportData.length > 0" class="bg-white border border-gray-200 rounded-md overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+        <tr>
+          <th *ngFor="let column of getColumnsForReport()"
+              class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            {{ column }}
+          </th>
+        </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+        <tr *ngFor="let row of reportData; let i = index"
+            [class.bg-gray-50]="i % 2 === 1">
+          <td *ngFor="let column of getColumnsForReport()"
+              class="px-4 py-3 text-xs text-gray-900">
+            {{ getColumnValue(row, column) }}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Report Summary -->
+    <div class="bg-gray-50 px-4 py-3 border-t border-gray-200">
+      <p class="text-sm text-gray-600">
+        <span class="font-medium">Total Records:</span> {{ reportData.length }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && reportData.length === 0"
+       class="text-center py-12 bg-gray-50 rounded-md border border-gray-200">
+    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    <p class="mt-4 text-lg font-medium text-gray-900">No data available</p>
+    <p class="mt-2 text-sm text-gray-600">Apply filters to generate the unified report</p>
+  </div>
+</div>
