@@ -570,6 +570,19 @@ export class ReservationReportService {
       );
   }
 
+
+// ================================ Unified report======================================
+
+  getUnifiedReport(filters: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/unified`, filters)
+      .pipe(
+        map(response => {
+          console.log('Unified Report API response:', response);
+          return response;
+        })
+      );
+  }
+
   setPropertyCode(code: string): void {
     this.propertyCode = code;
   }
