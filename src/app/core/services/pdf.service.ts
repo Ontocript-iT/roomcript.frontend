@@ -129,36 +129,22 @@ export class PdfService {
   private addFilterInfo(doc: jsPDF, filters: any, startY: number): number {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Applied Filters:', 10, startY);
+    doc.text('Report Summary & Filters:', 10, startY);
 
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     let y = startY + 5;
 
-    if (filters.reportDate) {
-      doc.text(`Report Date: ${filters.reportDate}`, 10, y);
-      y += 5;
-    }
+    Object.keys(filters).forEach(key => {
+      const value = filters[key];
+      if (value && value !== 'All') {
+        const label = key.replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
 
-    if (filters.dateFrom && filters.dateTo) {
-      doc.text(`Date Range: ${filters.dateFrom} to ${filters.dateTo}`, 10, y);
-      y += 5;
-    }
-
-    if (filters.status && filters.status !== 'All') {
-      doc.text(`Status: ${filters.status}`, 10, y);
-      y += 5;
-    }
-
-    if (filters.roomType && filters.roomType !== 'All') {
-      doc.text(`Room Type: ${filters.roomType}`, 10, y);
-      y += 5;
-    }
-
-    if (filters.source && filters.source !== 'All') {
-      doc.text(`Source: ${filters.source}`, 10, y);
-      y += 5;
-    }
+        doc.text(`${label}: ${value}`, 10, y);
+        y += 5;
+      }
+    });
 
     return y + 5;
   }
