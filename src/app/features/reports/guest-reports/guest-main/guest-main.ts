@@ -3,7 +3,7 @@ import {CommonModule} from "@angular/common";
 import {DemographicReports} from '../demographic-reports/demographic-reports';
 import {PerformanceAnalytics} from '../performance-analytics/performance-analytics';
 import {MarketingInsights} from '../marketing-insights/marketing-insights';
-import {UnifiedGuestReports} from '../unified-guest-reports/unified-guest-reports';
+import {UnifiedGuestReport} from '../unified-guest-reports/unified-guest-reports';
 import {MatIconModule} from '@angular/material/icon';
 
 @Component({
@@ -14,7 +14,7 @@ import {MatIconModule} from '@angular/material/icon';
     DemographicReports,
     PerformanceAnalytics,
     MarketingInsights,
-    UnifiedGuestReports,
+    UnifiedGuestReport
   ],
   templateUrl: './guest-main.html',
   styleUrl: './guest-main.scss'
