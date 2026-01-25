@@ -268,4 +268,22 @@ export class GuestReportService {
         })
       );
   }
+
+  getUnifiedGuestReport(filters: any): Observable<any> {
+    const payload = {
+      propertyCode: this.propertyCode,
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      guestTier: filters.guestTier || null,
+      sections: filters.sections,
+      topGuestsLimit: filters.topGuestsLimit
+    };
+
+    return this.http.post<any>(`${this.apiUrl}/unified-report`, payload)
+      .pipe(
+        map(response => {
+          return response;
+        })
+      );
+  }
 }
