@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.checkAdminRole();
-    
+
     if (this.isAdmin) {
       this.propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
       this.propertyName = localStorage.getItem('propertyName') || 'Beach Resort Hotel';
@@ -62,8 +62,8 @@ export class DashboardComponent implements OnInit {
 
   checkAdminRole(): void {
     const userRoles = this.authService.getUserRoles?.() || [];
-    this.isAdmin = userRoles.includes('ADMIN');
-    
+    this.isAdmin = userRoles.includes('ADMIN') || userRoles.includes('SUPER_ADMIN');
+
     if (!this.isAdmin) {
       this.showError('Access Denied: Admin privileges required');
     }
@@ -76,9 +76,9 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
 
     this.dashboardService.getAllDashboardData(this.propertyCode).subscribe({
-      next: (data: { 
-        guestCounts: GuestCount; 
-        dashboardStats: DashboardStats; 
+      next: (data: {
+        guestCounts: GuestCount;
+        dashboardStats: DashboardStats;
         revenueStats: RevenueStats;
         auditLogs: AuditLog[];
       }) => {
@@ -124,7 +124,7 @@ export class DashboardComponent implements OnInit {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
