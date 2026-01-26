@@ -1,0 +1,63 @@
+<div class="bg-gradient-to-br from-gray-50 to-gray-100 py-2 px-4 rounded-lg">
+  <div class="mx-auto">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+          <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">cleaning_services</mat-icon>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Housekeeping Reports</h1>
+          <p class="text-gray-500 mt-1">Analyse the housekeeping details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bg-gray-100 min-h-screen">
+  <div class="pt-2">
+    <div class="w-full bg-white rounded-md shadow-sm border border-gray-200">
+      <!-- Main Category Tabs -->
+      <div class="border-b border-gray-200">
+        <nav class="flex text-sm overflow-x-auto">
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeMainTab === 'periodic-housekeeping' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveMainTab('periodic-housekeeping')">
+            Periodic Reports
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeMainTab === 'realtime-overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveMainTab('realtime-overview')">
+            Realtime Overview
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeMainTab === 'housekeeping-performance' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveMainTab('housekeeping-performance')">
+            Performance Analytics
+          </button>
+
+          <button
+            class="px-4 py-3 border-b-2 font-medium whitespace-nowrap"
+            [ngClass]="activeMainTab === 'unified-housekeeping' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-600 hover:text-gray-800'"
+            (click)="setActiveMainTab('unified-housekeeping')">
+            Unified Reports
+          </button>
+
+        </nav>
+      </div>
+
+      <!-- Content Area - Load Respective Components -->
+      <div class="p-4">
+        <app-periodic-housekeeping-reports *ngIf="activeMainTab === 'periodic-housekeeping'"></app-periodic-housekeeping-reports>
+        <app-realtime-overview *ngIf="activeMainTab === 'realtime-overview'"></app-realtime-overview>
+        <app-housekeeping-performance-analytics *ngIf="activeMainTab === 'housekeeping-performance'"></app-housekeeping-performance-analytics>
+        <app-unified-housekeeping-reports *ngIf="activeMainTab === 'unified-housekeeping'"></app-unified-housekeeping-reports>
+      </div>
+    </div>
+  </div>
+</div>

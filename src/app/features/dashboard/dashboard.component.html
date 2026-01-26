@@ -1,6 +1,6 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
   <div class="max-w-7xl mx-auto">
-    
+
     <!-- Header Section -->
     <div class="mb-8">
       <div class="flex items-center justify-between flex-wrap gap-4">
@@ -9,7 +9,7 @@
             <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">dashboard</mat-icon>
           </div>
           <div>
-            <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
             <p class="text-sm text-gray-500 mt-0.5">Overview of {{ propertyName }}</p>
           </div>
         </div>
@@ -31,10 +31,10 @@
 
     <!-- Dashboard Content -->
     <div *ngIf="!isLoading && isAdmin" class="space-y-6">
-      
+
       <!-- Top Row: Guest Status Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        
+
         <!-- Checked-In Guests Card -->
         <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
           <mat-card-content class="!p-5">
@@ -109,7 +109,7 @@
 
       <!-- Second Row: Room Statistics -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        
+
         <!-- Total Rooms -->
         <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
           <mat-card-content class="!p-4">
@@ -169,7 +169,7 @@
 
       <!-- Third Row: Revenue Statistics -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        
+
         <!-- Today's Revenue -->
         <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
           <mat-card-content class="!p-5">
@@ -224,7 +224,7 @@
 
       <!-- ========== NEW: Fourth Row - Audit Logs & Quick Actions ========== -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        
+
         <!-- Left Side: Quick Actions (Takes 1 column) -->
         <div class="lg:col-span-1">
           <mat-card class="!shadow-lg !rounded-xl overflow-hidden !border !border-gray-100 h-full">
@@ -303,7 +303,7 @@
               <div class="space-y-3 max-h-96 overflow-y-auto pr-1">
                 <div *ngFor="let log of auditLogs; let i = index"
                      class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
-                  
+
                   <!-- Icon -->
                   <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
                     <mat-icon [class]="'!w-4 !h-4 !text-[16px] ' + getStatusColorClass(log.status)">
@@ -321,13 +321,13 @@
                       </div>
                       <span class="text-xs text-gray-500 whitespace-nowrap">{{ formatTimestamp(log.timestamp) }}</span>
                     </div>
-                    
+
                     <p class="text-sm text-gray-700 font-medium mb-1">
                       {{ log.entityType }} #{{ log.entityId }}
                     </p>
-                    
+
                     <p class="text-xs text-gray-600 truncate">{{ log.remarks }}</p>
-                    
+
                     <div class="flex items-center gap-3 mt-2 text-xs">
                       <span class="text-gray-500">
                         <span class="font-medium">From:</span> {{ log.oldValue }}
