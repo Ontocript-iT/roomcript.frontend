@@ -200,9 +200,9 @@ export const NAV_ITEMS: NavItem[] = [
         roles: ['ADMIN', 'MANAGER']
       },
       {
-        title: 'Front Office Reports',
-        route: '/reports/analytics',
-        icon: 'hotel',
+        title: 'Housekeeping Reports',
+        route: '/reports/housekeeping',
+        icon: 'cleaning_services',
         roles: ['ADMIN', 'MANAGER']
       },
       {
