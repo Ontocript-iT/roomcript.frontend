@@ -26,6 +26,7 @@ import { ViewAllFoundItems } from './features/lost-and-found/view-all-found-item
 import {MaintenanceRequests} from './features/maintenance/maintenance-requests/maintenance-requests';
 import {ReservationMain} from './features/reports/reservation-reports/reservation-main/reservation-main';
 import {GuestMain} from './features/reports/guest-reports/guest-main/guest-main';
+import {HousekeepingMain} from './features/reports/housekeeping-reports/housekeeping-main/housekeeping-main';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -143,6 +144,11 @@ export const routes: Routes = [
   {
     path: 'reports/guests',
     component: GuestMain,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reports/housekeeping',
+    component: HousekeepingMain,
     canActivate: [authGuard],
   },
 ];
