@@ -149,7 +149,7 @@ export class ReservationFormComponent implements OnInit {
     this.reservationForm = this.fb.group({
       checkIn: ['', Validators.required],
       checkOut: ['', Validators.required],
-      numberOfRooms: [{ value: 1, disabled: true }, [Validators.required, Validators.min(1)]],
+      numberOfRooms: [{ value: 0, disabled: true }, [Validators.required, Validators.min(1)]],
       reservationType: ['', Validators.required],
       bookingSource: ['', Validators.required],
       discount: [0, [Validators.min(0)]],
@@ -784,12 +784,12 @@ export class ReservationFormComponent implements OnInit {
           }
 
           setTimeout(() => {
-            if (reservationId) {
-              this.router.navigate(['/reservations/all']);
-            }
+            this.router.navigate(['/stayView'], {
+            });
+            this.reservationForm.reset();
           }, 1500);
 
-          this.reservationForm.reset();
+
           this.initForm();
         },
         error: (error) => {

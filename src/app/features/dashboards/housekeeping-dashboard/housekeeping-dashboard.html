@@ -1,0 +1,180 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4">
+  <div class="max-w-7xl mx-auto">
+
+    <div class="mb-8">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-md">
+            <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">cleaning_services</mat-icon>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-gray-900">Housekeeping</h1>
+            <p class="text-sm text-gray-500 mt-0.5">Overview for {{ data?.propertyName || 'Loading...' }}</p>
+          </div>
+        </div>
+        <button
+          mat-raised-button
+          (click)="refreshData()"
+          [disabled]="isLoading"
+          class="!h-10 !px-4 !bg-gradient-to-r from-indigo-600 to-purple-600 !text-white hover:!from-pink-700 hover:!to-purple-700 !rounded-lg !font-medium !shadow-md hover:!shadow-lg !transition-all !duration-300 !text-sm">
+          <mat-icon class="!mr-1.5 !w-4 !h-4 !text-[16px]">refresh</mat-icon>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="flex items-center justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+
+    <div *ngIf="!isLoading && data" class="space-y-6">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Today's Progress</p>
+              <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded">{{ data.todayTaskSummary.taskCompletionRate }}%</span>
+            </div>
+            <div class="flex items-end gap-2 mb-3">
+              <h2 class="text-3xl font-bold text-gray-900 leading-none">{{ data.todayTaskSummary.completedTasks }}</h2>
+              <span class="text-sm text-gray-500 mb-1">/ {{ data.todayTaskSummary.totalTasks }} Tasks</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="data.todayTaskSummary.taskCompletionRate" class="!h-2 rounded-full !bg-gray-100"></mat-progress-bar>
+            <p class="text-xs text-gray-500 mt-2">
+              <span class="font-medium text-gray-700">{{ data.todayTaskSummary.pendingTasks }}</span> tasks remaining
+            </p>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                <mat-icon class="!text-blue-600 !w-6 !h-6 !text-[24px]">local_laundry_service</mat-icon>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">In Progress</p>
+                <h2 class="text-xl font-bold text-gray-900">{{ data.todayTaskSummary.inProgressTasks }}</h2>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div class="bg-gray-50 rounded p-2 text-center">
+                <span class="block text-xs text-gray-500">Checkout</span>
+                <span class="block text-sm font-bold text-gray-900">{{ data.todayTaskSummary.checkoutCleanings }}</span>
+              </div>
+              <div class="bg-gray-50 rounded p-2 text-center">
+                <span class="block text-xs text-gray-500">Stayover</span>
+                <span class="block text-sm font-bold text-gray-900">{{ data.todayTaskSummary.stayoverCleanings }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100 cursor-pointer" (click)="navigateToTasks()">
+          <mat-card-content class="!p-5">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-sm">
+                  <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">assignment_late</mat-icon>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Pending</p>
+                  <p class="text-lg font-bold text-gray-900 leading-tight">{{ data.pendingTasksCount }}</p>
+                </div>
+              </div>
+              <mat-icon class="text-gray-300">arrow_forward_ios</mat-icon>
+            </div>
+            <div class="flex items-center text-xs text-purple-600 font-medium bg-purple-50 p-2 rounded">
+              <mat-icon class="!w-4 !h-4 !text-[16px] mr-1">warning</mat-icon>
+              <span>Requires attention</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <div class="lg:col-span-1">
+          <mat-card class="!shadow-lg !rounded-xl overflow-hidden !border !border-gray-100 h-full">
+            <mat-card-header class="!p-5 !pb-0">
+              <mat-card-title class="!text-base !font-bold !text-gray-900">Room Status</mat-card-title>
+            </mat-card-header>
+            <mat-card-content class="!p-5">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 rounded-lg border border-green-100 bg-green-50/50">
+                  <div class="flex items-center gap-3">
+                    <mat-icon class="text-green-600">check_circle</mat-icon>
+                    <span class="text-sm font-medium text-gray-700">Available</span>
+                  </div>
+                  <span class="text-lg font-bold text-green-700">{{ data.roomStatusSummary.availableRooms }}</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg border border-blue-100 bg-blue-50/50">
+                  <div class="flex items-center gap-3">
+                    <mat-icon class="text-blue-600">cleaning_services</mat-icon>
+                    <span class="text-sm font-medium text-gray-700">Cleaning</span>
+                  </div>
+                  <span class="text-lg font-bold text-blue-700">{{ data.roomStatusSummary.cleaningRooms }}</span>
+                </div>
+
+                <div class="flex items-center justify-between p-3 rounded-lg border border-red-100 bg-red-50/50">
+                  <div class="flex items-center gap-3">
+                    <mat-icon class="text-red-600">engineering</mat-icon>
+                    <span class="text-sm font-medium text-gray-700">Maintenance</span>
+                  </div>
+                  <span class="text-lg font-bold text-red-700">{{ data.roomStatusSummary.maintenanceRooms }}</span>
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <div class="lg:col-span-2">
+          <mat-card class="!shadow-lg !rounded-xl overflow-hidden !border !border-gray-100 h-full">
+            <mat-card-content class="!p-5">
+              <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-gray-400">meeting_room</mat-icon>
+                  <h3 class="text-base font-bold text-gray-900">Room Activity</h3>
+                </div>
+                <div class="text-xs text-gray-500">
+                  Total: {{ data.roomStatusSummary.totalRooms }} Rooms
+                </div>
+              </div>
+
+              <div class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                <div *ngFor="let room of data.roomStatusSummary.roomDetails"
+                     class="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+
+                  <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200">
+                      <span class="text-sm font-bold text-gray-700">{{ room.roomNumber }}</span>
+                    </div>
+
+                    <div>
+                      <p class="text-xs text-gray-500 mb-0.5">{{ room.roomType }}</p>
+                      <div class="flex items-center gap-1 text-xs text-gray-400">
+                        <mat-icon class="!w-3 !h-3 !text-[12px]">schedule</mat-icon>
+                        <span>{{ formatTimeAgo(room.lastStatusChange) }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div [class]="'flex items-center gap-1.5 px-3 py-1.5 rounded-full border ' + getRoomStatusColor(room.currentStatus)">
+                    <mat-icon class="!w-4 !h-4 !text-[16px]">{{ getRoomStatusIcon(room.currentStatus) }}</mat-icon>
+                    <span class="text-xs font-bold uppercase tracking-wide">{{ room.currentStatus }}</span>
+                  </div>
+
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
