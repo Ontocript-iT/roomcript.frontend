@@ -27,6 +27,10 @@ import {ReservationMain} from './features/reports/reservation-reports/reservatio
 import {GuestMain} from './features/reports/guest-reports/guest-main/guest-main';
 import {HousekeepingMain} from './features/reports/housekeeping-reports/housekeeping-main/housekeeping-main';
 import {AdminDashboard} from './features/dashboards/admin-dashboard/admin-dashboard';
+import {SuperadminDashboard} from './features/dashboards/superadmin-dashboard/superadmin-dashboard';
+import {HousekeepingDashboard} from './features/dashboards/housekeeping-dashboard/housekeeping-dashboard';
+import {AuthService} from './core/services/auth.service';
+import {inject} from '@angular/core';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -38,8 +42,23 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   {
     path: 'dashboard',
-    component: AdminDashboard,
-    canActivate: [authGuard],
+    canActivate: [authGuard], 
+    children: [
+      {
+        path: '',
+        canMatch: [() => inject(AuthService).getUserRoles().includes('SUPER_ADMIN')],
+        component: SuperadminDashboard
+      },
+      {
+        path: '',
+        canMatch: [() => inject(AuthService).getUserRoles().includes('HOUSEKEEPING')],
+        component: HousekeepingDashboard
+      },
+      {
+        path: '',
+        component: AdminDashboard
+      }
+    ]
   },
   {
     path: 'reservations/all',
