@@ -3,7 +3,6 @@ import { Routes } from '@angular/router';
 import { authGuard, noAuthGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { RegisterComponent } from './features/auth/register/register.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { ReservationListComponent } from './features/reservations/reservation-list/reservation-list.component';
 import { PropertyAddComponent } from './features/property-management/create-property/property-add';
 import { UserAddComponent } from './features/user-management/user-add/user-add';
@@ -27,6 +26,7 @@ import {MaintenanceRequests} from './features/maintenance/maintenance-requests/m
 import {ReservationMain} from './features/reports/reservation-reports/reservation-main/reservation-main';
 import {GuestMain} from './features/reports/guest-reports/guest-main/guest-main';
 import {HousekeepingMain} from './features/reports/housekeeping-reports/housekeeping-main/housekeeping-main';
+import {AdminDashboard} from './features/dashboards/admin-dashboard/admin-dashboard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -38,7 +38,7 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   {
     path: 'dashboard',
-    component: DashboardComponent,
+    component: AdminDashboard,
     canActivate: [authGuard],
   },
   {
