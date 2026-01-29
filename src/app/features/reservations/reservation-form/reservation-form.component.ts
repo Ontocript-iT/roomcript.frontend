@@ -756,13 +756,12 @@ export class ReservationFormComponent implements OnInit {
 
   onSubmit(): void {
     if (this.reservationForm.valid) {
-      this.isLoading = true;
+      this.isLoading = true; // This activates the overlay
 
-      const payload = this.transformFormData(this.reservationForm.value);
+      const payload = this.transformFormData(this.reservationForm.getRawValue());
 
       this.reservationService.createGroupReservation(this.propertyCode, payload).subscribe({
         next: (response) => {
-          this.isLoading = false;
 
           const reservationId = response.reservationId || response.id;
           const folioId = response.folioId;
@@ -784,16 +783,11 @@ export class ReservationFormComponent implements OnInit {
           }
 
           setTimeout(() => {
-            this.router.navigate(['/stayView'], {
-            });
-            this.reservationForm.reset();
+            this.router.navigate(['/stayView']);
           }, 1500);
-
-
-          this.initForm();
         },
         error: (error) => {
-          this.isLoading = false;
+          this.isLoading = false; // Only turn off loading on error so user can fix it
           this.handleError(error);
         }
       });
