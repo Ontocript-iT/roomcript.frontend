@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 export class IdleService {
   private idle$ = new Subject<boolean>();
   private timer?: Subscription;
-  private timeoutMilliseconds = 1 * 60 * 1000; // 30 Minutes
+  private timeoutMilliseconds = 30 * 60 * 1000; // 30 Minutes
   private idleSubscription?: Subscription;
   private readonly STORAGE_KEY = 'lastActivityTime';
 
