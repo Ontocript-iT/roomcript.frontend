@@ -4,6 +4,8 @@ import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { HousekeepingDashboardResponse, HousekeepingData } from '../models/dashboard.model';
+import {PropertyResponse, Property} from '../models/dashboard.model';
 
 export interface GuestCountResponse {
   headers: any;
@@ -80,7 +82,7 @@ export class DashboardService {
    */
   getGuestCounts(propertyCode: string): Observable<GuestCount> {
     const params = new HttpParams().set('propertyCode', propertyCode);
-    
+
     return this.http.get<GuestCountResponse>(
       `${environment.apiUrl}/properties/getCheckedInCheckedOutGuestsCount`,
       {
@@ -132,7 +134,7 @@ export class DashboardService {
    */
   getLatestAuditLogs(propertyCode: string): Observable<AuditLog[]> {
     const params = new HttpParams().set('propertyCode', propertyCode);
-    
+
     return this.http.get<AuditLogResponse>(
       `${environment.apiUrl}/audit/getLatestAuditsByPropertyCode`,
       {
@@ -164,5 +166,30 @@ export class DashboardService {
       revenueStats: this.getRevenueStats(propertyCode),
       auditLogs: this.getLatestAuditLogs(propertyCode)
     });
+  }
+
+  getAllProperties(): Observable<PropertyResponse> {
+    // FIXED HERE: Changed `${this.apiUrl}` to `${environment.apiUrl}`
+    return this.http.get<PropertyResponse>(`${environment.apiUrl}/properties/getAllProperties`, {
+      headers: this.getHeaders() // Added headers for authentication
+    });
+  }
+
+  getHousekeepingDashboard(propertyCode: string): Observable<HousekeepingData> {
+    const params = new HttpParams().set('propertyCode', propertyCode);
+
+    return this.http.get<HousekeepingDashboardResponse>(
+      `${environment.apiUrl}/housekeeping/reports/dashboard`,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      map(response => response.result),
+      catchError(error => {
+        console.error('Error fetching housekeeping dashboard:', error);
+        throw error;
+      })
+    );
   }
 }

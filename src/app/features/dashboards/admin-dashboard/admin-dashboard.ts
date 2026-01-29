@@ -11,11 +11,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 
-import { DashboardService, GuestCount, DashboardStats, RevenueStats, AuditLog } from '../../core/services/dashboard.service';
-import { AuthService } from '../../core/services/auth.service';
+import { DashboardService, GuestCount, DashboardStats, RevenueStats, AuditLog} from '../../../core/services/dashboard.service';
+import { AuthService} from '../../../core/services/auth.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
     CommonModule,
@@ -28,10 +28,10 @@ import { AuthService } from '../../core/services/auth.service';
     MatDividerModule,
     MatBadgeModule
   ],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  templateUrl: './admin-dashboard.html',
+  styleUrl: './admin-dashboard.scss'
 })
-export class DashboardComponent implements OnInit {
+export class AdminDashboard implements OnInit {
   isLoading = false;
   isAdmin = false;
   propertyCode = '';
