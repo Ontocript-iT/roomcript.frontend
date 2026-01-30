@@ -527,7 +527,19 @@
                   <!-- Country -->
                   <mat-form-field appearance="fill">
                     <mat-label>Country</mat-label>
-                    <input matInput formControlName="country" placeholder="Country">
+                    <input type="text"
+                           placeholder="Select Country"
+                           matInput
+                           formControlName="country"
+                           [matAutocomplete]="autoCountry">
+                    <mat-autocomplete #autoCountry="matAutocomplete">
+                      <mat-option *ngFor="let country of filteredCountries$ | async" [value]="country.name">
+                        {{ country.name }}
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-error *ngIf="reservationForm.get('country')?.hasError('required')">
+                      Country is required
+                    </mat-error>
                   </mat-form-field>
 
                   <!-- State -->
