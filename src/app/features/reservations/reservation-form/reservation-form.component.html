@@ -527,7 +527,19 @@
                   <!-- Country -->
                   <mat-form-field appearance="fill">
                     <mat-label>Country</mat-label>
-                    <input matInput formControlName="country" placeholder="Country">
+                    <input type="text"
+                           placeholder="Select Country"
+                           matInput
+                           formControlName="country"
+                           [matAutocomplete]="autoCountry">
+                    <mat-autocomplete #autoCountry="matAutocomplete">
+                      <mat-option *ngFor="let country of filteredCountries$ | async" [value]="country.name">
+                        {{ country.name }}
+                      </mat-option>
+                    </mat-autocomplete>
+                    <mat-error *ngIf="reservationForm.get('country')?.hasError('required')">
+                      Country is required
+                    </mat-error>
                   </mat-form-field>
 
                   <!-- State -->
@@ -802,4 +814,13 @@
       </div>
     </div>
   </div>
+</div>
+
+<div *ngIf="isLoading"
+            class="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex flex-col items-center justify-center">
+  <mat-spinner diameter="60" color="primary"></mat-spinner>
+  <h2 class="mt-6 text-xl font-semibold text-gray-800 animate-pulse">
+    Finalizing Reservation...
+  </h2>
+  <p class="text-gray-500 mt-2">Redirecting to Stay View</p>
 </div>

@@ -400,33 +400,39 @@ export class CalendarView implements OnInit, OnDestroy {
   getReservationPosition(res: Reservation): { startIndex: number; span: number } | null {
     if (!this.displayDates.length) return null;
 
+    const cellOffset = 0.2;
+
     const windowStart = new Date(this.displayDates[0].fullDate);
     const windowEnd = new Date(this.displayDates[this.displayDates.length - 1].fullDate);
     windowStart.setHours(0, 0, 0, 0);
     windowEnd.setHours(0, 0, 0, 0);
     windowEnd.setDate(windowEnd.getDate() + 1);
 
-    let start = new Date(res.checkInDate);
-    let end = new Date(res.checkOutDate);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
+    const checkIn = new Date(res.checkInDate);
+    const checkOut = new Date(res.checkOutDate);
+    checkIn.setHours(0, 0, 0, 0);
+    checkOut.setHours(0, 0, 0, 0);
 
-    if (end <= windowStart || start >= windowEnd) {
+    if (checkOut <= windowStart || checkIn >= windowEnd) {
       return null;
     }
 
-    if (start < windowStart) start = new Date(windowStart);
-    if (end > windowEnd) end = new Date(windowEnd);
+    const oneDayMs = 86400000;
 
-    const startIndex = this.getDateIndex(start);
-    if (startIndex === -1) return null;
+    const rawStartIndex = (checkIn.getTime() - windowStart.getTime()) / oneDayMs;
+    const rawEndIndex = (checkOut.getTime() - windowStart.getTime()) / oneDayMs;
 
-    const span = Math.max(
-      1,
-      Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    );
+    const visualStart = rawStartIndex + cellOffset;
+    const visualEnd = rawEndIndex + (1 - cellOffset);
 
-    return { startIndex, span };
+    const clampedStart = Math.max(0, visualStart);
+    const clampedEnd = Math.min(this.visibleDaysCount, visualEnd);
+
+    const span = clampedEnd - clampedStart;
+
+    if (span <= 0) return null;
+
+    return { startIndex: clampedStart, span };
   }
 
   getMaintenanceForRoom(roomType: string, roomNumber: string): any[] {
@@ -442,14 +448,16 @@ export class CalendarView implements OnInit, OnDestroy {
   getMaintenancePosition(maintenance: any): { startIndex: number; span: number } | null {
     if (!this.displayDates.length) return null;
 
+    const cellOffset = 0.2; // Match the reservation offset
+
     const windowStart = new Date(this.displayDates[0].fullDate);
     const windowEnd = new Date(this.displayDates[this.displayDates.length - 1].fullDate);
     windowStart.setHours(0, 0, 0, 0);
     windowEnd.setHours(0, 0, 0, 0);
     windowEnd.setDate(windowEnd.getDate() + 1);
 
-    let start = new Date(maintenance.startDate);
-    let end = new Date(maintenance.endDate);
+    const start = new Date(maintenance.startDate);
+    const end = new Date(maintenance.endDate);
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
 
@@ -457,18 +465,21 @@ export class CalendarView implements OnInit, OnDestroy {
       return null;
     }
 
-    if (start < windowStart) start = new Date(windowStart);
-    if (end > windowEnd) end = new Date(windowEnd);
+    const oneDayMs = 86400000;
+    const rawStartIndex = (start.getTime() - windowStart.getTime()) / oneDayMs;
+    const rawEndIndex = (end.getTime() - windowStart.getTime()) / oneDayMs;
 
-    const startIndex = this.getDateIndex(start);
-    if (startIndex === -1) return null;
+    const visualStart = rawStartIndex + cellOffset;
+    const visualEnd = rawEndIndex + (1 - cellOffset);
 
-    const span = Math.max(
-      1,
-      Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    );
+    const clampedStart = Math.max(0, visualStart);
+    const clampedEnd = Math.min(this.visibleDaysCount, visualEnd);
 
-    return { startIndex, span };
+    const span = clampedEnd - clampedStart;
+
+    if (span <= 0) return null;
+
+    return { startIndex: clampedStart, span };
   }
 
   bookingSourceColorClasses: Record<string, string> = {
