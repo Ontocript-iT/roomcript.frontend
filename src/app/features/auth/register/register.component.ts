@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { AuthService } from '../../../core/services/auth.service';
+import {IdleService} from '../../../core/services/idle.service';
 
 @Component({
   selector: 'app-register',
@@ -37,7 +38,8 @@ export class RegisterComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private idleService: IdleService
   ) {
     this.registerForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -51,7 +53,15 @@ export class RegisterComponent {
     if (this.registerForm.valid) {
       this.authService.register(this.registerForm.value).subscribe({
         next: () => {
-          this.router.navigate(['/dashboard']);
+          this.idleService.startWatching();
+
+          const roles = this.authService.getUserRoles();
+
+          if (roles.includes('ADMIN')) {
+            this.router.navigate(['/stay-view']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: (err) => {
           this.errorMessage = 'Registration failed';

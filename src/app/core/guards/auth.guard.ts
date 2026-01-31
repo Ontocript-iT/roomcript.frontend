@@ -19,7 +19,14 @@ export const noAuthGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (authService.isAuthenticated()) {
-    router.navigate(['/dashboard']);
+    const roles = authService.getUserRoles(); // Get current user roles
+
+    if (roles.includes('ADMIN')) {
+      router.navigate(['/stayView']);
+    }
+    else {
+      router.navigate(['/dashboard']);
+    }
     return false;
   }
 

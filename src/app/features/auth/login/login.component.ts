@@ -9,6 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { NgxTurnstileModule } from 'ngx-turnstile';
+
 import { AuthService } from '../../../core/services/auth.service';
 import { IdleService } from '../../../core/services/idle.service';
 
@@ -26,7 +28,8 @@ import { IdleService } from '../../../core/services/idle.service';
     MatIconModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
-    NgOptimizedImage
+    NgOptimizedImage,
+    NgxTurnstileModule
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -36,6 +39,7 @@ export class LoginComponent implements OnInit {
   hidePassword = true;
   errorMessage = '';
   isLoading = false;
+  siteKey = '3x00000000000000000000FF';
 
   constructor(
     private fb: FormBuilder,
@@ -47,8 +51,18 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
     this.loginForm = this.fb.group({
       usernameOrEmail: ['', [Validators.required]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      turnstileToken: ['', Validators.required]
     });
+  }
+
+  onTurnstileResolved(token: string | null): void {
+    if (token) {
+      this.loginForm.patchValue({ turnstileToken: token });
+      this.loginForm.get('turnstileToken')?.updateValueAndValidity();
+    } else {
+      this.loginForm.patchValue({ turnstileToken: null });
+    }
   }
 
   onSubmit(): void {
@@ -60,11 +74,19 @@ export class LoginComponent implements OnInit {
         next: (response) => {
           this.isLoading = false;
           this.idleService.startWatching();
-          this.router.navigate(['/dashboard']);
+          const roles = this.authService.getUserRoles();
+
+          if (roles.includes('ADMIN')) {
+            this.router.navigate(['/stayView']);
+            console.log("correct navigation");
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: (error) => {
           this.isLoading = false;
           this.errorMessage = error.error?.message || 'Invalid username or password';
+          this.loginForm.get('turnstileToken')?.reset();
         }
       });
     }
