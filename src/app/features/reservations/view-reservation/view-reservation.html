@@ -29,19 +29,28 @@
     <!-- LEFT COLUMN - Reservation Details -->
     <div class="lg:col-span-1 lg:border-r lg:border-gray-200 lg:pr-6">
       <!-- Top Actions (Edit + Print) -->
-      <div class="flex flex-wrap !items-end gap-3 mb-4">
-        <button mat-raised-button
-                (click)="editReservation()"
-                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
-          <mat-icon class="!mr-2 !text-[20px]">edit</mat-icon>
-          Edit Reservation
-        </button>
+      <div class="flex items-center justify-between mb-4">
 
-        <button mat-raised-button
+        <div class="flex items-center gap-3">
+          <button mat-raised-button
+                  (click)="editReservation()"
+                  class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
+            <mat-icon class="!mr-2 !text-[20px]">edit</mat-icon>
+            Edit Reservation
+          </button>
+
+          <button mat-raised-button
+                  class="!px-5 !py-2 !bg-gradient-to-r !from-green-600 !to-teal-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
+            <mat-icon class="!mr-2 !text-[20px]">login</mat-icon>
+            Check In
+          </button>
+        </div>
+
+        <button mat-icon-button
+                matTooltip="Print Reservation"
                 (click)="printReservation()"
-                class="!px-5 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
-          <mat-icon class="!mr-2 !text-[20px]">print</mat-icon>
-          Print
+                class="!text-gray-500 hover:!text-indigo-600 hover:!bg-indigo-50 transition-colors">
+          <mat-icon>print</mat-icon>
         </button>
       </div>
 
