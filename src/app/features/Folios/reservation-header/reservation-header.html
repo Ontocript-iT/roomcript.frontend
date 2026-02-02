@@ -109,7 +109,11 @@
           <button
             *ngIf="getRoomStatus() !== 'CHECK_IN' && getRoomStatus() !== 'CHECK_OUT'"
             (click)="onCheckIn()"
-            class="px-3 py-1 text-xs font-medium rounded !bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white transition-colors">
+            [disabled]="!canCheckIn()"
+            [ngClass]="canCheckIn()
+            ? '!bg-gradient-to-r !from-indigo-600 !to-purple-600 text-white'
+            : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
+            class="px-3 py-1 text-xs font-medium rounded transition-colors">
             Check In
           </button>
 

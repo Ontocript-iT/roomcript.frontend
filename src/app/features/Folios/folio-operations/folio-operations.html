@@ -167,7 +167,7 @@
 
     <!-- Folio Details View -->
     <div *ngIf="selectedFolio && !loading && !showChargeForm && !showPaymentForm" class="h-full flex flex-col bg-white shadow-sm border border-gray-200">
-      <!-- Info Header -->
+
       <div class="px-6 py-2.5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
         <div class="flex items-center justify-between">
           <div>
@@ -203,44 +203,6 @@
         </div>
       </div>
 
-      <!-- Summary Bar -->
-      <div class="px-6 py-2 border-b border-gray-200 bg-white">
-        <div class="flex items-center justify-end gap-3">
-          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-lg border border-blue-100">
-            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-            <div class="text-xs">
-              <span class="text-gray-600">Charges</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalCharges()) }}</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-lg border border-green-100">
-            <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-            <div class="text-xs">
-              <span class="text-gray-600">Payments</span>
-              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalPayments()) }}</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
-               [class.bg-red-50]="getRealBalance() > 0"
-               [class.border-red-100]="getRealBalance() > 0"
-               [class.bg-emerald-50]="getRealBalance() <= 0"
-               [class.border-emerald-100]="getRealBalance() <= 0">
-            <div class="w-1.5 h-1.5 rounded-full"
-                 [class.bg-red-500]="getRealBalance() > 0"
-                 [class.bg-emerald-500]="getRealBalance() <= 0"></div>
-            <div class="text-xs">
-              <span class="text-gray-600">Balance</span>
-              <span class="font-bold ml-1"
-                    [class.text-red-700]="getRealBalance() > 0"
-                    [class.text-emerald-700]="getRealBalance() <= 0">
-                {{ formatCurrency(getRealBalance()) }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Table -->
       <div class="flex-1 overflow-auto">
         <table class="min-w-full text-xs">
           <thead class="sticky top-0 bg-gray-50 z-10">
@@ -271,7 +233,6 @@
             [cdkDragData]="charge"
             class="hover:bg-gray-50 transition-colors draggable-row">
 
-            <!-- ✅ Drag Preview -->
             <ng-container *cdkDragPreview>
               <div class="bg-white shadow-lg rounded-lg p-4 border-2 border-indigo-500 opacity-95 min-w-[400px]">
                 <div class="text-sm font-semibold text-gray-800 mb-1">{{ charge.description }}</div>
@@ -282,7 +243,6 @@
               </div>
             </ng-container>
 
-            <!-- ✅ Drag Placeholder -->
             <ng-container *cdkDragPlaceholder>
               <tr class="drag-placeholder">
                 <td colspan="9" class="px-4 py-4 text-center text-gray-400">
@@ -330,6 +290,42 @@
           </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="px-6 py-2 border-t border-gray-200 bg-gray-50">
+        <div class="flex items-center justify-end gap-3">
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 rounded-lg border border-blue-100">
+            <div class="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Charges</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalCharges()) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-lg border border-green-100">
+            <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Payments</span>
+              <span class="font-bold text-gray-800 ml-1">{{ formatCurrency(getRealTotalPayments()) }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border"
+               [class.bg-red-50]="getRealBalance() > 0"
+               [class.border-red-100]="getRealBalance() > 0"
+               [class.bg-emerald-50]="getRealBalance() <= 0"
+               [class.border-emerald-100]="getRealBalance() <= 0">
+            <div class="w-1.5 h-1.5 rounded-full"
+                 [class.bg-red-500]="getRealBalance() > 0"
+                 [class.bg-emerald-500]="getRealBalance() <= 0"></div>
+            <div class="text-xs">
+              <span class="text-gray-600">Balance</span>
+              <span class="font-bold ml-1"
+                    [class.text-red-700]="getRealBalance() > 0"
+                    [class.text-emerald-700]="getRealBalance() <= 0">
+            {{ formatCurrency(getRealBalance()) }}
+          </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
