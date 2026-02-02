@@ -12,9 +12,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { UpdateTask} from '../update-task/update-task';
 
 import { HousekeepingService, HousekeepingTask, TaskResponse } from '../../../core/services/housekeeping.service';
 import Swal from 'sweetalert2';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-housekeeping-list',
@@ -30,7 +33,8 @@ import Swal from 'sweetalert2';
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatSelectModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatDialogModule,
   ],
   templateUrl: './view-all-task.html',
   styleUrls: ['./view-all-task.scss']
@@ -57,7 +61,11 @@ export class ViewAllTask implements OnInit {
     { value: 'CANCELLED', label: 'Cancelled' }
   ];
 
-  constructor(private housekeepingService: HousekeepingService) {}
+  constructor(
+    private housekeepingService: HousekeepingService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadTasks();
@@ -236,6 +244,42 @@ export class ViewAllTask implements OnInit {
     });
   }
 
-  editTask(task: HousekeepingTask) { console.log('Edit', task); }
-  deleteTask(task: HousekeepingTask) { console.log('Delete', task); }
+  editTask(task: any): void {
+    this.openUpdateTaskDialog(task);
+  }
+
+  openUpdateTaskDialog(task: any): void {
+    const dialogRef = this.dialog.open(UpdateTask, {
+      width: '800px',
+      maxWidth: '95vw',
+      data: { task: task },
+      disableClose: true,
+      panelClass: 'swal-style-dialog',
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.loadTasks(); // Refresh your table
+        this.showSuccess('Task updated successfully!');
+      }
+    });
+  }
+
+  private showSuccess(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['success-snackbar']
+    });
+  }
+
+  private showError(message: string): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      panelClass: ['error-snackbar']
+    });
+  }
 }
