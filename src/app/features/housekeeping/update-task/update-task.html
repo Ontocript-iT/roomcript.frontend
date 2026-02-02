@@ -1,0 +1,117 @@
+<div class="max-w-7xl m-5">
+  <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg">
+        <mat-icon class="!text-white !w-6 !h-6 !text-[24px]">cleaning_services</mat-icon>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">Update Task</h2>
+        <p class="text-sm text-gray-500">Modify housekeeping task details</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="onCancel()" class="!text-gray-500 hover:!text-gray-700">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div *ngIf="isLoadingTask" class="flex justify-center items-center py-20">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <div *ngIf="!isLoadingTask" class="max-h-[70vh] overflow-y-auto pr-2">
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+
+      <div class="mb-6 pb-4">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-2 mb-4">
+          <mat-form-field appearance="fill">
+            <mat-label>Task Number</mat-label>
+            <input matInput formControlName="taskNumber" [readonly]="true">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Room Number</mat-label>
+            <input matInput formControlName="roomNumber" [readonly]="true">
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Task Type</mat-label>
+            <input matInput formControlName="taskType" [readonly]="true">
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="mb-6 pb-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <mat-form-field appearance="fill">
+            <mat-label>Priority</mat-label>
+            <mat-select formControlName="priority">
+              <mat-option value="LOW">LOW</mat-option>
+              <mat-option value="MEDIUM">MEDIUM</mat-option>
+              <mat-option value="HIGH">HIGH</mat-option>
+            </mat-select>
+            <mat-error *ngIf="taskForm.get('priority')?.hasError('required')">
+              Priority is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Scheduled Time</mat-label>
+            <input matInput type="datetime-local" formControlName="scheduledTime">
+            <mat-error *ngIf="taskForm.get('scheduledTime')?.hasError('required')">
+              Time is required
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="fill">
+            <mat-label>Duration (Minutes)</mat-label>
+            <input matInput type="number" formControlName="estimatedDuration" placeholder="60">
+            <mat-error *ngIf="taskForm.get('estimatedDuration')?.hasError('required')">
+              Duration is required
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="grid grid-cols-1 gap-2">
+          <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Notes & Instructions</mat-label>
+            <textarea
+              matInput
+              formControlName="notes"
+              rows="4"
+              placeholder="Enter any specific instructions..."></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="flex items-center justify-center gap-3 pt-4 border-t border-gray-200">
+    <button
+      mat-raised-button
+      type="submit"
+      (click)="onSubmit()"
+      [disabled]="taskForm.invalid || isLoading"
+      class="!px-6 !py-2 !bg-gradient-to-r !from-indigo-600 !to-purple-600 !text-white">
+      <mat-spinner
+        *ngIf="isLoading"
+        diameter="20"
+        class="!inline-block !mr-2"></mat-spinner>
+      <mat-icon *ngIf="!isLoading" class="!mr-2">check_circle</mat-icon>
+      {{ isLoading ? 'Updating Task...' : 'Update Task' }}
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="onCancel()"
+      [disabled]="isLoading"
+      class="!px-6 !py-2">
+      <mat-icon class="!mr-2">close</mat-icon>
+      Cancel
+    </button>
+  </div>
+</div>

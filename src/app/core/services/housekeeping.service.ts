@@ -116,6 +116,12 @@ export class HousekeepingService {
     });
   }
 
+  updateTask(taskId: number, taskData: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/housekeeping/tasks/${taskId}`, taskData, {
+      headers: this.getHeaders()
+    });
+  }
+
   getAllTasks(propertyCode: string): Observable<TaskResponse> {
     const params = new HttpParams().set('propertyCode', propertyCode);
     return this.http.get<TaskResponse>(`${this.apiUrl}/housekeeping/tasks`, { params });
@@ -142,9 +148,6 @@ export class HousekeepingService {
     return this.http.get<LostFoundResponse>(`${this.apiUrl}/housekeeping/lost-and-found/unclaimed`, { params });
   }
 
-  // Dispose Item
-  // Assuming DELETE method based on standard practices for removal, 
-  // but if your API uses POST/PUT, change the method below accordingly.
   disposeItem(id: number, reason: string): Observable<any> {
     const params = new HttpParams().set('reason', reason);
     return this.http.delete<any>(`${this.apiUrl}/housekeeping/lost-and-found/${id}`, { params });
