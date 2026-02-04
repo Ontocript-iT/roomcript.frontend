@@ -168,20 +168,16 @@
                     <button
                       mat-icon-button
                       matTooltip="View Details"
+                      (click)="viewTask(task)"
                       class="!transition-all !duration-200">
                       <mat-icon class="action-icon">visibility</mat-icon>
                     </button>
                     <button
                       mat-icon-button
                       matTooltip="Edit Task"
+                      (click)="editTask(task)"
                       class="!transition-all !duration-200">
                       <mat-icon class="action-icon">edit</mat-icon>
-                    </button>
-                    <button
-                      mat-icon-button
-                      matTooltip="Delete Task"
-                      class="!transition-all !duration-200">
-                      <mat-icon class="action-icon">delete</mat-icon>
                     </button>
                   </div>
                 </td>

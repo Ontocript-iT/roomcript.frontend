@@ -116,6 +116,14 @@
           <a href="#" class="text-indigo-600 hover:text-indigo-700 font-medium">Forgot password?</a>
         </div>
 
+        <div class="flex justify-center w-full py-4">
+          <ngx-turnstile
+            [siteKey]="siteKey"
+            appearance="interaction-only"
+            (resolved)="onTurnstileResolved($event)">
+          </ngx-turnstile>
+        </div>
+
         <!-- Error Message -->
         <div
           *ngIf="errorMessage"

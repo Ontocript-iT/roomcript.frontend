@@ -93,30 +93,22 @@
 
         <!-- Individual Room Rows -->
         <ng-container *ngIf="roomType.isExpanded">
-          <div class="flex border-b border-gray-200 hover:bg-blue-50 transition-colors group"
+          <div class="flex border-b border-gray-200 transition-colors group"
                *ngFor="let room of roomType.rooms">
 
-            <!-- Room Name Cell - FIXED -->
-            <div class="bg-white border-r border-gray-300 flex items-center gap-2 w-[200px] flex-shrink-0 px-4 py-2 group-hover:bg-blue-50">
+            <div class="bg-white border-r border-gray-300 flex items-center gap-2 w-[200px] flex-shrink-0 px-4 py-2">
               <mat-icon class="!text-base text-indigo-600">bed</mat-icon>
               <span class="font-medium text-sm text-gray-900">{{ room.number }}</span>
-<!--              <span *ngIf="room.reservationCount > 0"-->
-<!--                    class="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-semibold text-white bg-indigo-600 rounded-full">-->
-<!--                {{ room.reservationCount }}-->
-<!--              </span>-->
             </div>
 
-            <!-- Left Navigation Cell - FIXED -->
-            <div class="flex-shrink-0 border-r border-gray-200 w-[60px] group-hover:bg-blue-50"></div>
+            <div class="flex-shrink-0 border-r border-gray-200 w-[60px]"></div>
 
-            <!-- Date Cells Container - Equal width distribution WITH SINGLE BARS -->
             <div class="relative flex-1"
                  [style.user-select]="'none'"
                  [style.-webkit-user-select]="'none'">
-              <!-- Background day cells -->
               <div class="flex">
                 <div *ngFor="let dateCell of displayDates; let idx = index"
-                     class="border-r border-gray-200 h-[35px] cursor-pointer transition-colors"
+                     class="border-r border-gray-200 h-[35px] cursor-pointer transition-colors hover:bg-blue-100"
                      [class.bg-yellow-50]="dateCell.isToday && !isCellSelected(roomType.name, room.number, idx)"
                      [class.bg-gray-50]="dateCell.isWeekend && !dateCell.isToday && !isCellSelected(roomType.name, room.number, idx)"
                      [class.bg-blue-200]="isCellSelected(roomType.name, room.number, idx)"
@@ -127,7 +119,6 @@
                 </div>
               </div>
 
-              <!-- Maintenance blocks -->
               <ng-container *ngFor="let maintenance of getMaintenanceForRoom(roomType.name, room.number); trackBy: trackByMaintenanceId">
                 <ng-container *ngIf="getMaintenancePosition(maintenance) as pos">
                   <div class="absolute inset-y-1 pointer-events-auto group"
@@ -137,18 +128,13 @@
                     <div class="w-full h-full rounded-md border-2 border-orange-500 bg-orange-50
                   flex items-center justify-between px-2 relative overflow-hidden
                   shadow-sm hover:shadow-md transition-shadow">
-                      <!-- Diagonal stripe pattern -->
                       <div class="absolute inset-0 maintenance-stripes"></div>
-
-                      <!-- Content -->
                       <div class="flex items-center z-10 flex-1 min-w-0">
                         <mat-icon class="!text-orange-600 !text-sm flex-shrink-0">build</mat-icon>
                         <span class="text-[10px] font-semibold text-orange-700 ml-1 truncate">
             {{ maintenance.reason || 'Maintenance' }}
           </span>
                       </div>
-
-                      <!-- Delete button (visible on hover) -->
                       <button
                         type="button"
                         (click)="deleteMaintenance($event, maintenance)"
@@ -164,7 +150,6 @@
                 </ng-container>
               </ng-container>
 
-              <!-- Reservation bars -->
               <ng-container *ngFor="let res of room.reservations">
                 <ng-container *ngIf="getReservationPosition(res) as pos">
                   <div class="absolute inset-y-1 flex items-center pointer-events-auto"
@@ -178,13 +163,9 @@
                          transform scale-95 hover:scale-100 transition-transform duration-150
                          shadow-sm hover:shadow-md cursor-pointer overflow-hidden"
                       [ngClass]="getBookingSourceClasses(res)">
-
-                      <!-- Booking Source Logo -->
                       <span class="flex-shrink-0 w-4 h-4 flex items-center justify-center bg-white rounded-sm p-0.5"
                             [innerHTML]="getBookingSourceLogo(res.bookingSource)">
                       </span>
-
-                      <!-- Guest Name -->
                       <span class="font-medium truncate flex-1">{{ res.name }}</span>
                     </button>
                   </div>
@@ -192,8 +173,7 @@
               </ng-container>
             </div>
 
-            <!-- Right Navigation Cell - FIXED -->
-            <div class="flex-shrink-0 border-l border-gray-200 w-[60px] group-hover:bg-blue-50"></div>
+            <div class="flex-shrink-0 border-l border-gray-200 w-[60px]"></div>
           </div>
         </ng-container>
 

@@ -24,6 +24,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Observable } from 'rxjs';
 import { map, startWith, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { GuestService } from '../../../core/services/guest.service';
+import { getData } from 'country-list';
 
 interface Guest {
   id: number;
@@ -33,6 +34,10 @@ interface Guest {
   address: string;
 }
 
+interface Country {
+  code: string;
+  name: string;
+}
 @Component({
   selector: 'app-reservation-form',
   standalone: true,
@@ -72,6 +77,9 @@ export class ReservationFormComponent implements OnInit {
   allGuests: Guest[] = [];
   isLoadingGuests = false;
   discountType: 'percentage' | 'amount' = 'percentage';
+
+  filteredCountries$!: Observable<{ code: string; name: string }[]>;
+  countries: Country[] = getData().sort((a: Country, b: Country) => a.name.localeCompare(b.name));
 
   availableReservationTypes = [
     { value: 'CONFIRMED', label: 'Confirm Booking'},
@@ -143,6 +151,11 @@ export class ReservationFormComponent implements OnInit {
     this.loadGuestData();
     this.setupGuestAutocomplete();
     this.prefillDates();
+
+    this.filteredCountries$ = this.reservationForm.get('country')!.valueChanges.pipe(
+      startWith(''),
+      map(value => this._filterCountries(value || ''))
+    );
   }
 
   initForm(): void {
@@ -756,13 +769,12 @@ export class ReservationFormComponent implements OnInit {
 
   onSubmit(): void {
     if (this.reservationForm.valid) {
-      this.isLoading = true;
+      this.isLoading = true; // This activates the overlay
 
-      const payload = this.transformFormData(this.reservationForm.value);
+      const payload = this.transformFormData(this.reservationForm.getRawValue());
 
       this.reservationService.createGroupReservation(this.propertyCode, payload).subscribe({
         next: (response) => {
-          this.isLoading = false;
 
           const reservationId = response.reservationId || response.id;
           const folioId = response.folioId;
@@ -784,16 +796,11 @@ export class ReservationFormComponent implements OnInit {
           }
 
           setTimeout(() => {
-            this.router.navigate(['/stayView'], {
-            });
-            this.reservationForm.reset();
+            this.router.navigate(['/stayView']);
           }, 1500);
-
-
-          this.initForm();
         },
         error: (error) => {
-          this.isLoading = false;
+          this.isLoading = false; // Only turn off loading on error so user can fix it
           this.handleError(error);
         }
       });
@@ -953,5 +960,12 @@ export class ReservationFormComponent implements OnInit {
     const room = this.rooms.at(index);
     const rate = parseFloat(room.get('rate')?.value) || 0;
     return rate * this.billingSummary.numberOfNights;
+  }
+
+  private _filterCountries(value: string): Country[] {
+    const filterValue = value.toLowerCase();
+    return this.countries.filter((country: Country) =>
+      country.name.toLowerCase().includes(filterValue)
+    );
   }
 }

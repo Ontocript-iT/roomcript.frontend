@@ -62,6 +62,19 @@ export class ReservationHeader {
     return currentRoom?.checkInCheckOutStatus || null;
   }
 
+  canCheckIn(): boolean {
+    if (!this.reservationDetails?.checkInDate) return false;
+
+    const today = new Date();
+    const checkIn = new Date(this.reservationDetails.checkInDate);
+
+    return (
+      today.getDate() === checkIn.getDate() &&
+      today.getMonth() === checkIn.getMonth() &&
+      today.getFullYear() === checkIn.getFullYear()
+    );
+  }
+
   onCheckIn(): void {
     const currentRoom = this.getCurrentRoom();
     if (!currentRoom?.confirmationNumber) return;
