@@ -392,4 +392,37 @@ export class FolioService {
       })
     );
   }
+
+  transferOrCutCharges(
+    sourceFolioId: number,
+    targetFolioId: number,
+    chargeIds: number[],
+    createdBy: string
+  ): Observable<any> {
+    const url = `${environment.apiUrl}/folios/${sourceFolioId}/transferOrCutCharges/${targetFolioId}`;
+    const headers = this.getHeaders();
+
+    // The API expects parameters in the query string
+    const params = new HttpParams()
+      .set('chargeIds', chargeIds.join(','))
+      .set('createdBy', createdBy);
+
+    return this.http.post<any>(url, null, {
+      headers: headers,
+      params: params
+    }).pipe(
+      map(response => {
+        if (response && response.body) {
+          return response.body;
+        } else if (response && response.data) {
+          return response.data;
+        }
+        return response;
+      }),
+      catchError(error => {
+        console.error('Error transferring charges (transferOrCutCharges):', error);
+        throw error;
+      })
+    );
+  }
 }
