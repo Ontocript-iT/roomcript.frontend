@@ -101,7 +101,6 @@ export class ViewReservation implements OnInit, OnDestroy {
     this.dialogRef.backdropClick()
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        console.log('🖱️ Backdrop clicked, closing with changes flag:', this.hasChanges);
         this.dialogRef.close({ refreshCalendar: this.hasChanges });
       });
   }
@@ -128,7 +127,7 @@ export class ViewReservation implements OnInit, OnDestroy {
   }
 
   onRoomMoved(response: any): void {
-    console.log('✅ Room moved successfully:', response);
+    console.log('Room moved successfully:', response);
 
     // Update the room details directly from the response
     if (this.selectedRoomIndex >= 0 && response && response.roomDetails) {
@@ -162,13 +161,8 @@ export class ViewReservation implements OnInit, OnDestroy {
     this.selectedRoomForMove = null;
     this.selectedRoomIndex = -1;
 
-    // Reload available room counts
     this.loadAvailableRoomCounts();
-
-    // Show success message
     this.showErrorMessage('Room moved successfully!', true);
-
-    // Mark that changes were made
     this.hasChanges = true;
   }
 
@@ -244,9 +238,85 @@ export class ViewReservation implements OnInit, OnDestroy {
     this.showAssignRoomForm = false;
     this.loadAvailableRoomCounts();
     this.showErrorMessage('Room assigned successfully!', true);
-
-    // Mark that changes were made
     this.hasChanges = true;
+  }
+
+  onCheckIn(): void {
+    if (!this.data.reservation.id) return;
+
+    this.reservationService.updateReservationStatus(this.data.reservation.id, 'CHECK_IN')
+      .subscribe({
+        next: (response) => {
+          // 1. Update main status
+          this.data.reservation.status = 'CHECK_IN';
+
+          // 2. CRITICAL: Update the room-level status so the button changes
+          if (this.data.reservation.roomDetails) {
+            this.data.reservation.roomDetails.forEach((room: any) => {
+              room.checkInCheckOutStatus = 'CHECK_IN';
+            });
+          }
+
+          this.showErrorMessage('Guest Checked In Successfully!', true);
+          this.hasChanges = true;
+        },
+        error: (error) => {
+          console.error('Check-in failed', error);
+          this.showErrorMessage('Failed to Check In. Please try again.', false);
+        }
+      });
+  }
+
+  onCheckOut(): void {
+    if (!this.data.reservation.id) return;
+
+    this.reservationService.updateReservationStatus(this.data.reservation.id, 'CHECK_OUT')
+      .subscribe({
+        next: (response) => {
+          // 1. Update main status
+          this.data.reservation.status = 'CHECK_OUT';
+
+          // 2. CRITICAL: Update the room-level status so the button changes
+          if (this.data.reservation.roomDetails) {
+            this.data.reservation.roomDetails.forEach((room: any) => {
+              room.checkInCheckOutStatus = 'CHECK_OUT';
+            });
+          }
+
+          this.showErrorMessage('Guest Checked Out Successfully!', true);
+          this.hasChanges = true;
+        },
+        error: (error) => {
+          console.error('Check-out failed', error);
+          this.showErrorMessage('Failed to Check Out. Please try again.', false);
+        }
+      });
+  }
+
+  get currentRoomStatus(): string {
+    const rooms = this.data.reservation.roomDetails;
+    if (rooms && rooms.length > 0) {
+      return (rooms[0] as any).checkInCheckOutStatus || '';
+    }
+    return '';
+  }
+
+  get isCheckInDateToday(): boolean {
+    if (!this.data.reservation.checkInDate) return false;
+    const today = new Date();
+    const checkIn = new Date(this.data.reservation.checkInDate);
+    return today.toDateString() === checkIn.toDateString();
+  }
+
+  get isCheckoutPassed(): boolean {
+    if (!this.data.reservation.checkOutDate) return false;
+    const today = new Date();
+    const checkOut = new Date(this.data.reservation.checkOutDate);
+
+    today.setHours(0, 0, 0, 0);
+    checkOut.setHours(0, 0, 0, 0);
+
+    return today > checkOut;
   }
 
   removeRoom(room: any, index: number): void {
