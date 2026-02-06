@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, DatePipe} from '@angular/common';
 import { Router } from '@angular/router';
 
 import { MatCardModule } from '@angular/material/card';
@@ -13,10 +13,12 @@ import { MatBadgeModule } from '@angular/material/badge';
 
 import { DashboardService, GuestCount, DashboardStats, RevenueStats, AuditLog} from '../../../core/services/dashboard.service';
 import { AuthService} from '../../../core/services/auth.service';
+import { FinancialArrData } from '../../../core/models/dashboard.model';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
+  providers: [DatePipe],
   imports: [
     CommonModule,
     MatCardModule,
@@ -43,19 +45,23 @@ export class AdminDashboard implements OnInit {
   revenueStats: RevenueStats | null = null;
   auditLogs: AuditLog[] = [];
 
+  overallArr: number = 0;
+  todayDailyRevenue: number = 0;
+
   constructor(
     private dashboardService: DashboardService,
     private authService: AuthService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private datePipe: DatePipe
   ) {}
 
   ngOnInit(): void {
     this.checkAdminRole();
 
     if (this.isAdmin) {
-      this.propertyCode = localStorage.getItem('propertyCode') || 'PROP0005';
-      this.propertyName = localStorage.getItem('propertyName') || 'Beach Resort Hotel';
+      this.propertyCode = localStorage.getItem('propertyCode') || '';
+      this.propertyName = localStorage.getItem('propertyName') || '';
       this.loadDashboardData();
     }
   }
@@ -86,6 +92,7 @@ export class AdminDashboard implements OnInit {
         this.dashboardStats = data.dashboardStats;
         this.revenueStats = data.revenueStats;
         this.auditLogs = data.auditLogs;
+        this.loadFinancialData();
         this.isLoading = false;
       },
       error: (error: any) => {
@@ -94,6 +101,53 @@ export class AdminDashboard implements OnInit {
         console.error('Dashboard data loading error:', error);
       }
     });
+  }
+
+  loadFinancialData(): void {
+    const date = new Date();
+
+    // Get First Day of Month
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const startDate = this.datePipe.transform(firstDay, 'yyyy-MM-dd') || '';
+
+    // Get Last Day of Month
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    const endDate = this.datePipe.transform(lastDay, 'yyyy-MM-dd') || '';
+
+    // Get Today's Date string
+    const todayStr = this.datePipe.transform(date, 'yyyy-MM-dd');
+
+    this.dashboardService.getFinancialArr(this.propertyCode, startDate, endDate)
+      .subscribe({
+        next: (data: FinancialArrData) => {
+          // NOTE: 'data' is already the result object because the service mapped it.
+          // We removed 'response.result' access.
+
+          if (data) {
+            // 1. Set Overall ARR
+            this.overallArr = data.overallArr || 0;
+
+            // 2. Find Today's Revenue
+            if (data.dailyStats && Array.isArray(data.dailyStats)) {
+              const todayStat = data.dailyStats.find(
+                (stat) => stat.date === todayStr
+              );
+
+              if (todayStat) {
+                this.todayDailyRevenue = todayStat.dailyRevenue;
+              } else {
+                this.todayDailyRevenue = 0;
+              }
+            }
+          }
+          // Stop loading only after everything is done
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('Error loading financial stats:', err);
+          this.isLoading = false;
+        }
+      });
   }
 
   refreshData(): void {
