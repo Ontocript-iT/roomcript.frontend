@@ -170,7 +170,7 @@
       <!-- Third Row: Revenue Statistics -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
 
-        <!-- Today's Revenue -->
+        <!-- ADR -->
         <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
           <mat-card-content class="!p-5">
             <div class="flex items-center gap-2.5 mb-3">
@@ -179,7 +179,7 @@
               </div>
               <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Today's Revenue</p>
             </div>
-            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.todayRevenue || 0) }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(todayDailyRevenue || 0) }}</p>
             <div class="flex items-center text-xs text-green-600 font-medium mt-2">
               <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">arrow_upward</mat-icon>
               <span>Daily earnings</span>
@@ -187,19 +187,19 @@
           </mat-card-content>
         </mat-card>
 
-        <!-- Monthly Revenue -->
+        <!-- ARR -->
         <mat-card class="!shadow-lg !rounded-xl overflow-hidden hover:!shadow-xl !transition-all !duration-300 !border !border-gray-100">
           <mat-card-content class="!p-5">
             <div class="flex items-center gap-2.5 mb-3">
               <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-sm">
-                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">calendar_month</mat-icon>
+                <mat-icon class="!text-white !w-5 !h-5 !text-[20px]">price_check</mat-icon>
               </div>
-              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Monthly Revenue</p>
+              <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Average Room Rate</p>
             </div>
-            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(revenueStats?.monthRevenue || 0) }}</p>
+            <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(overallArr || 0) }}</p>
             <div class="flex items-center text-xs text-indigo-600 font-medium mt-2">
               <mat-icon class="!w-3.5 !h-3.5 !text-[14px] mr-1">trending_up</mat-icon>
-              <span>This month</span>
+              <span>This month's ARR</span>
             </div>
           </mat-card-content>
         </mat-card>

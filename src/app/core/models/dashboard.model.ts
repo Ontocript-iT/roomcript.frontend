@@ -68,3 +68,35 @@ export interface HousekeepingDashboardResponse {
   message: string;
   status: number;
 }
+
+// ========== FINANCIAL ARR REPORT INTERFACES ========== //
+export interface DailyStat {
+  date: string;
+  dailyRevenue: number;
+  roomsSold: number;
+  arr: number;
+}
+
+export interface RoomTypeStat {
+  roomType: string;
+  totalRevenue: number;
+  roomNightsSold: number;
+  arr: number;
+}
+
+export interface FinancialArrData {
+  propertyCode: string;
+  startDate: string;
+  endDate: string;
+  overallArr: number;
+  totalRoomRevenue: number;
+  totalRoomNightsSold: number;
+  dailyStats: DailyStat[];
+  roomTypeStats: RoomTypeStat[];
+}
+
+export interface FinancialArrResponse {
+  result: FinancialArrData;
+  message: string;
+  status: number;
+}

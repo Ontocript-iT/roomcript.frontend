@@ -152,6 +152,20 @@ export class ReservationService {
     );
   }
 
+  updateReservationStatus(id: number, status: string): Observable<any> {
+    const url = `${this.apiUrl}/bulk-update-status/${id}`;
+    const params = new HttpParams().set('status', status);
+
+    return this.http.put<any>(url, {}, {
+      headers: this.getHeaders(),
+      params: params
+    }).pipe(
+      catchError(error => {
+        return throwError(() => error);
+      })
+    );
+  }
+
   cancelReservation(reservationId: number, reason: string): Observable<any> {
     const url = `${this.apiUrl}/${reservationId}/cancel`;
 

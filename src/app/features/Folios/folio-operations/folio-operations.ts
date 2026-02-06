@@ -38,6 +38,8 @@ export class FolioOperations implements OnInit, OnChanges {
   loading: boolean = false;
   propertyCode: string = 'PROP0005';
 
+  selectedChargeIds: Set<number> = new Set<number>();
+
   showChargeForm: boolean = false;
   showPaymentForm: boolean = false;
 
@@ -82,6 +84,7 @@ export class FolioOperations implements OnInit, OnChanges {
 
   loadFolioDetails(folioId: number): void {
     this.loading = true;
+    this.selectedChargeIds.clear();
 
     this.folioService.getFolioById(folioId, this.propertyCode)
       .subscribe({
@@ -626,6 +629,152 @@ export class FolioOperations implements OnInit, OnChanges {
               }
             }
           });
+        });
+      }
+    });
+  }
+
+  toggleAllSelection(event: any): void {
+    const isChecked = event.target.checked;
+    this.selectedChargeIds.clear();
+
+    if (isChecked) {
+      const activeCharges = this.getActiveCharges();
+      activeCharges.forEach(charge => {
+        if (charge.id) this.selectedChargeIds.add(charge.id);
+      });
+    }
+  }
+
+  toggleChargeSelection(chargeId: number): void {
+    if (this.selectedChargeIds.has(chargeId)) {
+      this.selectedChargeIds.delete(chargeId);
+    } else {
+      this.selectedChargeIds.add(chargeId);
+    }
+  }
+
+  isChargeSelected(chargeId: number): boolean {
+    return this.selectedChargeIds.has(chargeId);
+  }
+
+  areAllChargesSelected(): boolean {
+    const activeCharges = this.getActiveCharges();
+    if (activeCharges.length === 0) return false;
+    return activeCharges.every(charge => charge.id && this.selectedChargeIds.has(charge.id));
+  }
+
+  openShiftSelectedChargesDialog(): void {
+    if (this.selectedChargeIds.size === 0 || !this.selectedFolio) return;
+    const targetFolios = this.folios.filter(f => f.id !== this.selectedFolio!.id);
+
+    if (targetFolios.length === 0) {
+      this.showError('No other folios available to shift charges to.');
+      return;
+    }
+
+    const folioOptionsHtml = targetFolios
+      .map((f) => `
+      <option value="${f.id}">
+        ${f.folioNumber} - ${f.guestName} ${f.isMasterFolio ? '(Master)' : ''}
+      </option>
+    `)
+      .join('');
+
+    const chargesCount = this.selectedChargeIds.size;
+    const currentFolioNum = this.selectedFolio.folioNumber;
+    const currentGuest = this.selectedFolio.guestName;
+
+    Swal.fire({
+      title: 'Shift Charges',
+      html: `
+      <div class="text-left space-y-2" style="font-size: 14px;">
+        <div class="grid grid-cols-2 gap-x-4 gap-y-3 mb-4 text-sm">
+          <div class="flex items-center">
+            <span class="font-semibold text-gray-600 w-24">Guest Name:</span>
+            <span class="text-gray-800 truncate" title="${currentGuest}">${currentGuest}</span>
+          </div>
+          <div class="flex items-center">
+            <span class="font-semibold text-gray-600 w-28">Items Selected:</span>
+            <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200">${chargesCount}</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-1">
+          <div class="flex items-center">
+            <span class="font-semibold text-gray-600 w-24">Source Folio:</span>
+            <span class="text-gray-800">${currentFolioNum}</span>
+          </div>
+        </div>
+
+        <div class="text-left border-t border-gray-100 pt-4">
+          <div class="w-full mb-3">
+            <label for="targetFolioSelect" class="block mb-2 font-medium text-gray-700">Select Target Folio</label>
+            <select id="targetFolioSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+              <option value="" disabled selected>Select a folio...</option>
+              ${folioOptionsHtml}
+            </select>
+            <p class="text-xs text-center text-gray-500 mt-2">Charges will be moved to this folio immediately.</p>
+          </div>
+        </div>
+      </div>
+    `,
+      icon: 'info',
+      iconColor: '#3b82f6',
+      showCancelButton: true,
+      confirmButtonText: 'Shift Charges',
+      cancelButtonText: 'Cancel',
+      width: '600px',
+      padding: '1.5rem',
+      buttonsStyling: false,
+      customClass: {
+        popup: 'swal-small-popup',
+        title: 'swal-small-title',
+        htmlContainer: 'swal-small-text',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+        actions: 'swal-actions'
+      },
+      preConfirm: () => {
+        const targetFolioId = (document.getElementById('targetFolioSelect') as HTMLSelectElement).value;
+
+        if (!targetFolioId) {
+          Swal.showValidationMessage('Please select a target folio');
+          return false;
+        }
+
+        return { targetFolioId: parseInt(targetFolioId) };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const { targetFolioId } = result.value;
+        const sourceFolioId = this.selectedFolio!.id;
+        const chargeIdsArray = Array.from(this.selectedChargeIds);
+        const createdBy = localStorage.getItem('username') || 'SYSTEM';
+        const targetFolioName = targetFolios.find(f => f.id === targetFolioId)?.folioNumber;
+
+        this.loading = true;
+
+        this.folioService.transferOrCutCharges(
+          sourceFolioId,
+          targetFolioId,
+          chargeIdsArray,
+          createdBy
+        ).subscribe({
+          next: () => {
+            this.loading = false;
+            this.showSuccess(`Successfully shifted ${chargesCount} charges to folio ${targetFolioName}`);
+            this.selectedChargeIds.clear();
+
+            this.refreshFolioInSidebar(sourceFolioId);
+            this.refreshFolioInSidebar(targetFolioId);
+            this.refreshSelectedFolio(); // Refreshes current view
+          },
+          error: (error) => {
+            this.loading = false;
+            console.error('Error shifting charges:', error);
+            const errorMsg = error.error?.message || error.error?.body || 'Failed to shift charges';
+            this.showError(errorMsg);
+          }
         });
       }
     });

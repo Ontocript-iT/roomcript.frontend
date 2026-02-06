@@ -176,6 +176,14 @@
           </div>
           <div class="flex items-center">
             <button
+              *ngIf="selectedChargeIds.size > 0"
+              mat-icon-button
+              matTooltip="Shift Selected Charges"
+              (click)="openShiftSelectedChargesDialog()"
+              class="!text-purple-600 hover:!bg-purple-50 !transition-all !duration-200 animate-fade-in">
+              <mat-icon>swap_horiz</mat-icon>
+            </button>
+            <button
               *ngIf="getRealTotalPayments() > 0"
               mat-icon-button
               [matTooltip]="'Refund Payment'"
@@ -208,7 +216,10 @@
           <thead class="sticky top-0 bg-gray-50 z-10">
           <tr class="border-b border-gray-200">
             <th class="w-8 px-4 py-2.5 text-left">
-              <input type="checkbox" class="h-3.5 w-3.5 rounded border-gray-300">
+              <input type="checkbox"
+                     (change)="toggleAllSelection($event)"
+                     [checked]="areAllChargesSelected()"
+                     class="h-3.5 w-3.5 rounded border-gray-300 cursor-pointer">
             </th>
             <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Date</th>
             <th class="px-4 py-2.5 text-left font-semibold text-gray-700">Ref No.</th>
@@ -257,7 +268,10 @@
             </ng-container>
 
             <td class="px-4 py-2.5">
-              <input type="checkbox" class="h-3.5 w-3.5 rounded border-gray-300">
+              <input type="checkbox"
+                     (change)="toggleChargeSelection(charge.id)"
+                     [checked]="isChargeSelected(charge.id)"
+                     class="h-3.5 w-3.5 rounded border-gray-300 cursor-pointer">
             </td>
             <td class="px-4 text-gray-700">{{ formatDate(charge.chargeDate) }}</td>
             <td class="px-4 text-gray-700">{{ charge.id || '-' }}</td>

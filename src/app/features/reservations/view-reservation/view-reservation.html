@@ -39,11 +39,26 @@
             Edit Reservation
           </button>
 
-          <button mat-raised-button
-                  class="!px-5 !py-2 !bg-gradient-to-r !from-green-600 !to-teal-600 !text-white !shadow-md hover:!shadow-lg !transition-all">
-            <mat-icon class="!mr-2 !text-[20px]">login</mat-icon>
-            Check In
-          </button>
+          <ng-container *ngIf="!isCheckoutPassed && currentRoomStatus !== 'CHECK_OUT'">
+
+            <button mat-raised-button
+                    *ngIf="currentRoomStatus !== 'CHECK_IN'"
+                    [disabled]="!isCheckInDateToday"
+                    (click)="onCheckIn()"
+                    class="!px-5 !py-2 !bg-gradient-to-r !from-green-600 !to-teal-600 !text-white !shadow-md hover:!shadow-lg !transition-all disabled:!opacity-50 disabled:!cursor-not-allowed">
+              <mat-icon class="!mr-2 !text-[20px]">login</mat-icon>
+              Check In
+            </button>
+
+            <button mat-raised-button
+                    *ngIf="currentRoomStatus === 'CHECK_IN'"
+                    (click)="onCheckOut()"
+                    class="!px-5 !py-2 !bg-gradient-to-r !from-orange-500 !to-red-500 !text-white !shadow-md hover:!shadow-lg !transition-all">
+              <mat-icon class="!mr-2 !text-[20px]">logout</mat-icon>
+              Check Out
+            </button>
+
+          </ng-container>
         </div>
 
         <button mat-icon-button
