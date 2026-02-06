@@ -52,3 +52,39 @@ export interface ArrReportResponse {
   message: string;
   status: number;
 }
+
+// --- Unified Financial Report Interfaces ---
+
+export interface UnifiedFinancialRequest {
+  propertyCode: string;
+  startDate: string;
+  endDate: string;
+  includeYearToDate: boolean;
+  includeBudget: boolean;
+  sections: string[];
+}
+
+export interface FlashReportData {
+  arr: number;
+  revPar: string | number;
+  totalCollections: number;
+  totalRevenue: number;
+}
+
+export interface TaxReportData {
+  breakdownByType: { [key: string]: number };
+  totalTaxCollected: number;
+}
+
+export interface UnifiedFinancialData {
+  flashReport?: FlashReportData;
+  revenueLedger?: any[];
+  paymentSummary?: any[];
+  taxReport?: TaxReportData;
+}
+
+export interface UnifiedFinancialResponse {
+  status: number;
+  filters: UnifiedFinancialRequest;
+  data: UnifiedFinancialData;
+}
