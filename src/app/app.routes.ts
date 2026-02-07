@@ -31,6 +31,7 @@ import {SuperadminDashboard} from './features/dashboards/superadmin-dashboard/su
 import {HousekeepingDashboard} from './features/dashboards/housekeeping-dashboard/housekeeping-dashboard';
 import {AuthService} from './core/services/auth.service';
 import {inject} from '@angular/core';
+import {RevenueMain} from './features/reports/revenue-reports/revenue-main/revenue-main';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -168,6 +169,11 @@ export const routes: Routes = [
   {
     path: 'reports/housekeeping',
     component: HousekeepingMain,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'reports/revenue',
+    component: RevenueMain,
     canActivate: [authGuard],
   },
 ];

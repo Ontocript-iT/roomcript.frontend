@@ -4,7 +4,7 @@ import { Observable, of, forkJoin } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
-import { HousekeepingDashboardResponse, HousekeepingData } from '../models/dashboard.model';
+import { HousekeepingDashboardResponse, HousekeepingData, FinancialArrResponse, FinancialArrData } from '../models/dashboard.model';
 import {PropertyResponse, Property} from '../models/dashboard.model';
 
 export interface GuestCountResponse {
@@ -189,6 +189,37 @@ export class DashboardService {
       catchError(error => {
         console.error('Error fetching housekeeping dashboard:', error);
         throw error;
+      })
+    );
+  }
+
+  getFinancialArr(propertyCode: string, startDate: string, endDate: string): Observable<FinancialArrData> {
+    const params = new HttpParams()
+      .set('propertyCode', propertyCode)
+      .set('startDate', startDate)
+      .set('endDate', endDate);
+
+    return this.http.get<FinancialArrResponse>(
+      `${environment.apiUrl}/reports/financial/arr`,
+      {
+        headers: this.getHeaders(),
+        params: params
+      }
+    ).pipe(
+      map(response => response.result),
+      catchError(error => {
+        console.error('Error fetching ARR report:', error);
+        // Return a safe default object so the UI doesn't crash
+        return of({
+          propertyCode,
+          startDate,
+          endDate,
+          overallArr: 0,
+          totalRoomRevenue: 0,
+          totalRoomNightsSold: 0,
+          dailyStats: [],
+          roomTypeStats: []
+        } as FinancialArrData);
       })
     );
   }
