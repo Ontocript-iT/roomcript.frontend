@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 import { PdfService } from '../../../../core/services/pdf.service';
 
@@ -24,6 +25,9 @@ export class MarketingReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  // Property 1: Store the safe URL for the iframe
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: MarketingFilters = {
     startDate: '',
     endDate: ''
@@ -37,7 +41,8 @@ export class MarketingReports implements OnInit {
 
   constructor(
     private reportService: ReservationReportService,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +62,7 @@ export class MarketingReports implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null; // Clear preview on report change
   }
 
   getReportTitle(): string {
@@ -84,6 +90,7 @@ export class MarketingReports implements OnInit {
     this.error = '';
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null; // Clear previous preview
 
     this.reportService.getMarketingReport(this.selectedReport, this.filters)
       .subscribe({
@@ -95,6 +102,9 @@ export class MarketingReports implements OnInit {
 
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
+          } else if (this.reportData.length > 0) {
+            // Logic Update: Generate preview immediately if we have data
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -108,10 +118,68 @@ export class MarketingReports implements OnInit {
       });
   }
 
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const s = this.reportSummary;
+    const formatted: any = {};
+
+    if (s.totalBookings !== undefined) formatted['Total Bookings'] = s.totalBookings;
+
+    if (s.totalRevenue !== undefined) {
+      const label = this.selectedReport === 'advance-bookings' ? 'Expected Revenue' : 'Total Revenue';
+      formatted[label] = `${s.totalRevenue.toFixed(2)}`;
+    }
+
+    if (s.averageBookingValue !== undefined) {
+      formatted['Average Booking Value'] = `${s.averageBookingValue.toFixed(2)}`;
+    }
+
+    if (this.selectedReport === 'booking-source' && s.topSource) {
+      formatted['Top Source'] = s.topSource;
+    }
+
+    if (this.selectedReport === 'guest-nationality') {
+      if (s.topNationality) formatted['Top Nationality'] = s.topNationality;
+      if (s.totalGuests !== undefined) formatted['Total Guests'] = s.totalGuests;
+    }
+
+    if (this.selectedReport === 'advance-bookings') {
+      if (s.averageDaysInAdvance !== undefined) {
+        formatted['Avg Days in Advance'] = s.averageDaysInAdvance.toFixed(1);
+      }
+      if (s.lookAheadPeriod) {
+        formatted['Look Ahead Period'] = s.lookAheadPeriod;
+      }
+    }
+
+    return formatted;
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
@@ -123,12 +191,14 @@ export class MarketingReports implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       this.reportData,
-      this.filters
+      this.filters,
+      summaryData
     );
   }
 
@@ -153,7 +223,7 @@ export class MarketingReports implements OnInit {
     const value = row[key];
 
     if (column.includes('Revenue') || column.includes('Value') || column.includes('Amount')) {
-      return value !== undefined && value !== null ? `$${parseFloat(value).toFixed(2)}` : '-';
+      return value !== undefined && value !== null ? `${parseFloat(value).toFixed(2)}` : '-';
     }
 
     if (column.includes('Percentage')) {

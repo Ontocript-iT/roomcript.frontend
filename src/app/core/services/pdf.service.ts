@@ -23,63 +23,63 @@ export class PdfService {
 
   constructor() {}
 
-  generateReport(
-    reportTitle: string,
-    columns: string[],
-    data: any[],
-    filters?: any
-  ): void {
-    const doc = new jsPDF('p', 'mm', 'a4');
-
-    // Add header to first page only
-    this.addHeader(doc, reportTitle);
-
-    // Add filter information
-    let startY = 60;
-    if (filters) {
-      startY = this.addFilterInfo(doc, filters, startY);
-    }
-
-    // Prepare table data
-    const tableData = data.map(row => {
-      return columns.map(col => {
-        // Convert "Guest Name" to "guestName" (camelCase)
-        const key = col
-          .toLowerCase()
-          .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
-        return row[key] || '-';
-      });
-    });
-
-    // Add table with autoTable
-    autoTable(doc, {
-      head: [columns],
-      body: tableData,
-      startY: startY,
-      theme: 'grid',
-      styles: {
-        fontSize: 9,
-        cellPadding: 3
-      },
-      headStyles: {
-        fillColor: [59, 130, 246],
-        textColor: 255,
-        fontStyle: 'bold',
-        halign: 'left'
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251]
-      },
-      margin: { top: 20, bottom: 30, left: 10, right: 10 },
-      didDrawPage: (data) => {
-        this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
-      }
-    });
-
-    // Save the PDF
-    const fileName = `${reportTitle.replace(/\s/g, '_')}_${this.getFormattedDate()}.pdf`;
-    doc.save(fileName);
-  }
+  // generateReport(
+  //   reportTitle: string,
+  //   columns: string[],
+  //   data: any[],
+  //   filters?: any
+  // ): void {
+  //   const doc = new jsPDF('p', 'mm', 'a4');
+  //
+  //   // Add header to first page only
+  //   this.addHeader(doc, reportTitle);
+  //
+  //   // Add filter information
+  //   let startY = 60;
+  //   if (filters) {
+  //     startY = this.addFilterInfo(doc, filters, startY);
+  //   }
+  //
+  //   // Prepare table data
+  //   const tableData = data.map(row => {
+  //     return columns.map(col => {
+  //       // Convert "Guest Name" to "guestName" (camelCase)
+  //       const key = col
+  //         .toLowerCase()
+  //         .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
+  //       return row[key] || '-';
+  //     });
+  //   });
+  //
+  //   // Add table with autoTable
+  //   autoTable(doc, {
+  //     head: [columns],
+  //     body: tableData,
+  //     startY: startY,
+  //     theme: 'grid',
+  //     styles: {
+  //       fontSize: 9,
+  //       cellPadding: 3
+  //     },
+  //     headStyles: {
+  //       fillColor: [59, 130, 246],
+  //       textColor: 255,
+  //       fontStyle: 'bold',
+  //       halign: 'left'
+  //     },
+  //     alternateRowStyles: {
+  //       fillColor: [249, 250, 251]
+  //     },
+  //     margin: { top: 20, bottom: 30, left: 10, right: 10 },
+  //     didDrawPage: (data) => {
+  //       this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
+  //     }
+  //   });
+  //
+  //   // Save the PDF
+  //   const fileName = `${reportTitle.replace(/\s/g, '_')}_${this.getFormattedDate()}.pdf`;
+  //   doc.save(fileName);
+  // }
 
   private addHeader(doc: jsPDF, reportTitle: string): void {
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -191,7 +191,77 @@ export class PdfService {
     });
   }
 
-  setHotelInfo(info: HotelInfo): void {
-    this.hotelInfo = { ...this.hotelInfo, ...info };
+  private constructPdfDocument(reportTitle: string, columns: string[], data: any[], filters?: any, summary?: any): jsPDF {
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    this.addHeader(doc, reportTitle);
+
+    let startY = 60;
+
+    // Render Filters
+    if (filters) {
+      startY = this.addFilterInfo(doc, filters, startY);
+    }
+
+    // 2. NEW: Render Summary Section if it exists
+    if (summary) {
+      startY = this.addSummarySection(doc, summary, startY);
+    }
+
+    const tableData = data.map(row => {
+      return columns.map(col => {
+        const key = col.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
+        return row[key] || '-';
+      });
+    });
+
+    autoTable(doc, {
+      head: [columns],
+      body: tableData,
+      startY: startY, // Table starts after summary
+      theme: 'grid',
+      styles: { fontSize: 9, cellPadding: 3 },
+      headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold', halign: 'left' },
+      alternateRowStyles: { fillColor: [249, 250, 251] },
+      margin: { top: 20, bottom: 30, left: 10, right: 10 },
+      didDrawPage: (data) => {
+        this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
+      }
+    });
+
+    return doc;
+  }
+
+  private addSummarySection(doc: jsPDF, summary: any, startY: number): number {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Key Metrics:', 10, startY);
+    startY += 6;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(50, 50, 50);
+
+    Object.entries(summary).forEach(([key, value]) => {
+      const displayValue = value !== null && value !== undefined ? value.toString() : '-';
+      doc.text(`${key}: ${displayValue}`, 10, startY);
+      startY += 5;
+    });
+
+    return startY + 5;
+  }
+
+  getReportPreviewUrl(reportTitle: string, columns: string[], data: any[], filters?: any, summary?: any): string {
+    const doc = this.constructPdfDocument(reportTitle, columns, data, filters, summary);
+    return doc.output('bloburl').toString();
+  }
+
+  generateReport(reportTitle: string, columns: string[], data: any[], filters?: any, summary?: any): void {
+    const doc = this.constructPdfDocument(reportTitle, columns, data, filters, summary);
+    const dateStr = new Date().toISOString().split('T')[0];
+    const cleanTitle = reportTitle.replace(/\s+/g, '_');
+    const fileName = `${cleanTitle}_${dateStr}.pdf`;
+    doc.save(fileName);
   }
 }

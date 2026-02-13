@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService} from '../../../../core/services/pdf.service';
 import { ReservationReportService} from '../../../../core/services/reservation-report.service';
 import {FormsModule} from '@angular/forms';
@@ -29,6 +30,7 @@ export class OperationalReports implements OnInit {
   reportData: any[] = [];
   loading: boolean = false;
   error: string = '';
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: ReportFilters = {
     reportDate: '',
@@ -53,7 +55,8 @@ export class OperationalReports implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: ReservationReportService
+    private reportService: ReservationReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -77,6 +80,7 @@ export class OperationalReports implements OnInit {
   onReportChange(): void {
     this.reportData = [];
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -125,6 +129,7 @@ export class OperationalReports implements OnInit {
 
     this.loading = true;
     this.error = '';
+    this.pdfPreviewUrl = null;
 
     console.log('Applying filters:', this.filters);
     console.log('Selected report:', this.selectedReport);
@@ -132,15 +137,14 @@ export class OperationalReports implements OnInit {
     this.reportService.getOperationalReport(this.selectedReport, this.filters)
       .subscribe({
         next: (data) => {
-          console.log('Data received:', data);
-
           if (!data || data.length === 0) {
             this.error = 'No data found for the selected filters';
             this.reportData = [];
           } else {
             this.reportData = data;
-          }
 
+            this.generatePreview();
+          }
           this.loading = false;
         },
         error: (err) => {
@@ -151,6 +155,22 @@ export class OperationalReports implements OnInit {
       });
   }
 
+  generatePreview(): void {
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.filters.status = 'All';
@@ -158,6 +178,7 @@ export class OperationalReports implements OnInit {
     this.filters.source = 'All';
     this.filters.minNights = 7;
     this.reportData = [];
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 

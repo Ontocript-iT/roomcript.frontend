@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
 import { PdfService } from '../../../../core/services/pdf.service';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 
@@ -27,9 +28,12 @@ interface UnifiedReportFilters {
 export class UnifiedReservationReport implements OnInit {
 
   reportData: any[] = [];
-  reportSummary: any = null;
+  reportSummary: any = null; // This holds summary sections like Cancellations, Revenue, etc.
   loading: boolean = false;
   error: string = '';
+
+  // Property 1: Store the safe URL for the iframe
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: UnifiedReportFilters = {
     propertyCode: 'PROP0005',
@@ -67,7 +71,8 @@ export class UnifiedReservationReport implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: ReservationReportService
+    private reportService: ReservationReportService,
+    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
   ) {}
 
   ngOnInit(): void {
@@ -163,17 +168,30 @@ export class UnifiedReservationReport implements OnInit {
     this.error = '';
     this.reportSummary = null;
     this.reportData = [];
+    this.pdfPreviewUrl = null; // Clear previous preview
 
     this.reportService.getUnifiedReport(this.filters)
       .subscribe({
         next: (response: any) => {
           console.log('Data received:', response);
 
+          // Map the details list for the table
           this.reportData = response.data?.reservationDetails || [];
-          this.reportSummary = response.data?.cancellations || null;
 
-          if (this.reportData.length === 0 && !this.reportSummary) {
+          // Store other sections as summary data
+          // We combine cancellations, occupancy, etc., into one object if they exist
+          this.reportSummary = {
+            cancellations: response.data?.cancellations,
+            occupancy: response.data?.occupancy,
+            revenue: response.data?.revenueBreakdown,
+            general: response.data?.summary
+          };
+
+          if (this.reportData.length === 0 && !this.isSummaryAvailable()) {
             this.error = 'No data found for the selected filters';
+          } else {
+            // Logic Update: Generate preview immediately
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -187,6 +205,68 @@ export class UnifiedReservationReport implements OnInit {
       });
   }
 
+  // Helper to check if any summary data exists
+  private isSummaryAvailable(): boolean {
+    if (!this.reportSummary) return false;
+    return !!(this.reportSummary.cancellations || this.reportSummary.occupancy || this.reportSummary.revenue || this.reportSummary.general);
+  }
+
+  // Method 1: Helper to format summary for PDF
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const formatted: any = {};
+    const s = this.reportSummary;
+
+    // 1. General Summary
+    if (s.general) {
+      if (s.general.totalReservations !== undefined) formatted['Total Reservations'] = s.general.totalReservations;
+      if (s.general.totalRevenue !== undefined) formatted['Total Revenue'] = `$${s.general.totalRevenue.toFixed(2)}`;
+    }
+
+    // 2. Cancellation Data
+    if (s.cancellations) {
+      if (s.cancellations.totalCancellations !== undefined) formatted['Total Cancellations'] = s.cancellations.totalCancellations;
+      if (s.cancellations.totalLostRevenue !== undefined) formatted['Lost Revenue (Cancellations)'] = `$${s.cancellations.totalLostRevenue.toFixed(2)}`;
+    }
+
+    // 3. Occupancy Data
+    if (s.occupancy) {
+      if (s.occupancy.occupancyPercentage !== undefined) formatted['Occupancy Rate'] = `${s.occupancy.occupancyPercentage}%`;
+      if (s.occupancy.averageDailyRate !== undefined) formatted['ADR'] = `$${s.occupancy.averageDailyRate.toFixed(2)}`;
+      if (s.occupancy.revPAR !== undefined) formatted['RevPAR'] = `$${s.occupancy.revPAR.toFixed(2)}`;
+    }
+
+    // 4. Revenue Data
+    if (s.revenue) {
+      if (s.revenue.roomRevenue !== undefined) formatted['Room Revenue'] = `$${s.revenue.roomRevenue.toFixed(2)}`;
+      if (s.revenue.serviceRevenue !== undefined) formatted['Service Revenue'] = `$${s.revenue.serviceRevenue.toFixed(2)}`;
+    }
+
+    return Object.keys(formatted).length > 0 ? formatted : null;
+  }
+
+  // Method 2: Generate Preview
+  generatePreview(): void {
+    // For unified reports, we might have summary data even if reportData (table rows) is empty
+    if (this.reportData.length === 0 && !this.isSummaryAvailable()) return;
+
+    const reportTitle = 'Unified Reservation Report';
+    const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters,
+      summaryData // Pass summary
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.filters.propertyCode = 'PROP0005';
@@ -194,23 +274,26 @@ export class UnifiedReservationReport implements OnInit {
     this.filters.statuses = ['CANCELLED', 'NO_SHOW'];
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
   exportReport(): void {
-    if (this.reportData.length === 0) {
+    if (this.reportData.length === 0 && !this.isSummaryAvailable()) {
       alert('No data available to export');
       return;
     }
 
     const reportTitle = 'Unified Reservation Report';
     const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       this.reportData,
-      this.filters
+      this.filters,
+      summaryData // Pass summary
     );
   }
 
