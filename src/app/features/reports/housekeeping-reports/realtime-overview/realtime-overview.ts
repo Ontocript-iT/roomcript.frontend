@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
 
@@ -26,6 +27,9 @@ export class RealtimeOverview implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  // Store the safe URL for the iframe
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: ReportFilters = {
     dateFrom: '',
     dateTo: ''
@@ -38,7 +42,8 @@ export class RealtimeOverview implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: HousekeepingReportService
+    private reportService: HousekeepingReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +52,6 @@ export class RealtimeOverview implements OnInit {
 
   setDefaultDates(): void {
     const today = new Date();
-    // Default to last 7 days for lost and found context
     const lastWeek = new Date();
     lastWeek.setDate(today.getDate() - 7);
 
@@ -59,6 +63,7 @@ export class RealtimeOverview implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -76,7 +81,6 @@ export class RealtimeOverview implements OnInit {
       return;
     }
 
-    // Validation for date range if it is visible
     if (this.showDateRangeFilter() && (!this.filters.dateFrom || !this.filters.dateTo)) {
       this.error = 'Please select a valid date range';
       return;
@@ -84,6 +88,7 @@ export class RealtimeOverview implements OnInit {
 
     this.loading = true;
     this.error = '';
+    this.pdfPreviewUrl = null;
 
     console.log('Applying filters:', this.filters);
 
@@ -97,8 +102,11 @@ export class RealtimeOverview implements OnInit {
             this.reportData = [];
             this.reportSummary = null;
           } else {
-            this.reportData = response.data;
-            this.reportSummary = response.summary;
+            this.reportData = response.data || [];
+            this.reportSummary = response.summary || null;
+
+            // Generate preview immediately
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -115,9 +123,97 @@ export class RealtimeOverview implements OnInit {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
+  // Helper 1: Extract Summary Data for PDF Header (Key Metrics)
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const summary: any = {};
+    const s = this.reportSummary;
+
+    if (this.selectedReport === 'room-status') {
+      if (s.totalRooms !== undefined) summary['Total Rooms'] = s.totalRooms;
+      if (s.occupiedRooms !== undefined) summary['Occupied'] = s.occupiedRooms;
+      if (s.availableRooms !== undefined) summary['Available'] = s.availableRooms;
+      if (s.dirtyRooms !== undefined) summary['Dirty'] = s.dirtyRooms;
+      if (s.outOfOrderRooms !== undefined) summary['Out of Order'] = s.outOfOrderRooms;
+    }
+    else if (this.selectedReport === 'lost-and-found') {
+      if (s.totalItems !== undefined) summary['Total Items'] = s.totalItems;
+      if (s.claimedItems !== undefined) summary['Claimed'] = s.claimedItems;
+      if (s.unclaimedItems !== undefined) summary['Unclaimed'] = s.unclaimedItems;
+    }
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  // Helper 2: Prepare formatted table data
+  preparePdfData(): any[] {
+    if (!this.reportData || this.reportData.length === 0) return [];
+
+    return this.reportData.map(row => {
+      if (this.selectedReport === 'room-status') {
+        return {
+          roomNumber: row.roomNumber,
+          roomType: row.roomType,
+          currentStatus: row.currentStatus,
+          lastStatusChange: row.lastStatusChange ? new Date(row.lastStatusChange).toLocaleString() : '-'
+        };
+      }
+      else if (this.selectedReport === 'lost-and-found') {
+        return {
+          category: row.category,
+          count: row.count,
+          claimed: row.claimed,
+          unclaimed: row.unclaimed
+        };
+      }
+      return row;
+    });
+  }
+
+  // Helper 3: Get only relevant filters
+  getRelevantFilters(): any {
+    // 1. For Room Status, we return NULL to hide the "Report Summary & Filters" section entirely
+    if (this.selectedReport === 'room-status') {
+      return null;
+    }
+
+    // 2. For Lost & Found, we return the Date Range
+    const cleanFilters: any = {};
+    if (this.showDateRangeFilter()) {
+      cleanFilters['From'] = this.filters.dateFrom;
+      cleanFilters['To'] = this.filters.dateTo;
+    }
+    return cleanFilters;
+  }
+
+  // Method 1: Generate Preview
+  generatePreview(): void {
+    if (this.reportData.length === 0 && !this.reportSummary) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters(); // <--- This now returns null for room-status
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      pdfData,
+      cleanFilters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
+  // Method 2: Export Report
   exportReport(): void {
     if (this.reportData.length === 0 && !this.reportSummary) {
       alert('No data available to export');
@@ -126,12 +222,16 @@ export class RealtimeOverview implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters(); // <--- Uses the same logic
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
-      this.reportData,
-      { ...this.filters, ...this.reportSummary }
+      pdfData,
+      cleanFilters,
+      summaryData
     );
   }
 
@@ -146,7 +246,7 @@ export class RealtimeOverview implements OnInit {
     }
   }
 
-  // Helper to get raw key for coloring logic
+  // Helper for internal coloring logic (optional)
   getColumnKey(column: string): string {
     return column.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
   }
@@ -161,7 +261,6 @@ export class RealtimeOverview implements OnInit {
     return row[key] !== undefined && row[key] !== null ? row[key] : '-';
   }
 
-  // Helper for UI badges in the table
   getStatusColor(status: string): string {
     if (!status) return 'bg-gray-100 text-gray-800';
 

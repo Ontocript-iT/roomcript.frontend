@@ -1,9 +1,9 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { PdfService } from '../../../../core/services/pdf.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import Sanitizer
+import { PdfService, PdfTableSection } from '../../../../core/services/pdf.service'; // Import Interface
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
-
 
 interface UnifiedReportFilters {
   propertyCode: string;
@@ -34,6 +34,9 @@ export class UnifiedHousekeepingReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  // Preview URL
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: UnifiedReportFilters = {
     propertyCode: 'PROP0005',
     startDate: '',
@@ -46,11 +49,8 @@ export class UnifiedHousekeepingReports implements OnInit {
     { value: 'TASK_SUMMARY', label: 'Task Summary' },
     { value: 'STAFF_PERFORMANCE', label: 'Staff Performance' },
     { value: 'TASK_DETAILS', label: 'Task Details' },
-    { value: 'INSPECTION_RESULTS', label: 'Inspection Results' },
-    { value: 'MAINTENANCE_LOGS', label: 'Maintenance Logs' }
   ];
 
-  // Task Type Options
   taskTypeOptions = [
     { value: 'CHECKOUT_CLEANING', label: 'Checkout Cleaning' },
     { value: 'STAYOVER_CLEANING', label: 'Stayover Cleaning' },
@@ -59,13 +59,13 @@ export class UnifiedHousekeepingReports implements OnInit {
     { value: 'MAINTENANCE_REQUEST', label: 'Maintenance Request' }
   ];
 
-  // Dropdown States
   showSectionsDropdown = false;
   showTaskTypesDropdown = false;
 
   constructor(
     private pdfService: PdfService,
-    private reportService: HousekeepingReportService
+    private reportService: HousekeepingReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -75,7 +75,6 @@ export class UnifiedHousekeepingReports implements OnInit {
   setDefaultDates(): void {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
     this.filters.startDate = firstDay.toISOString().split('T')[0];
     this.filters.endDate = today.toISOString().split('T')[0];
   }
@@ -119,20 +118,12 @@ export class UnifiedHousekeepingReports implements OnInit {
 
   getSelectedSectionsLabel(): string {
     if (this.filters.sections.length === 0) return 'Select sections...';
-    if (this.filters.sections.length === 1) {
-      const s = this.sectionOptions.find(opt => opt.value === this.filters.sections[0]);
-      return s ? s.label : '1 section selected';
-    }
-    return `${this.filters.sections.length} sections selected`;
+    return this.filters.sections.length === 1 ? '1 section selected' : `${this.filters.sections.length} sections selected`;
   }
 
   getSelectedTaskTypesLabel(): string {
     if (this.filters.taskTypes.length === 0) return 'Select task types...';
-    if (this.filters.taskTypes.length === 1) {
-      const t = this.taskTypeOptions.find(opt => opt.value === this.filters.taskTypes[0]);
-      return t ? t.label : '1 type selected';
-    }
-    return `${this.filters.taskTypes.length} types selected`;
+    return this.filters.taskTypes.length === 1 ? '1 type selected' : `${this.filters.taskTypes.length} types selected`;
   }
 
   applyFilters(): void {
@@ -140,7 +131,6 @@ export class UnifiedHousekeepingReports implements OnInit {
       this.error = 'Please select date range';
       return;
     }
-
     if (this.filters.sections.length === 0) {
       this.error = 'Please select at least one section';
       return;
@@ -148,17 +138,15 @@ export class UnifiedHousekeepingReports implements OnInit {
 
     this.loading = true;
     this.error = '';
-
-    // Reset data
     this.taskSummary = null;
     this.staffPerformanceList = [];
     this.tasksList = [];
+    this.pdfPreviewUrl = null;
 
     this.reportService.getUnifiedReport(this.filters)
       .subscribe({
         next: (response: any) => {
           console.log('Unified Report Data:', response);
-
           if (response && response.data) {
             this.taskSummary = response.data.taskSummary || null;
             this.staffPerformanceList = response.data.staffPerformance || [];
@@ -167,8 +155,9 @@ export class UnifiedHousekeepingReports implements OnInit {
 
           if (!this.hasData()) {
             this.error = 'No data found for the selected filters';
+          } else {
+            this.generatePreview();
           }
-
           this.loading = false;
         },
         error: (err) => {
@@ -185,11 +174,99 @@ export class UnifiedHousekeepingReports implements OnInit {
   resetFilters(): void {
     this.setDefaultDates();
     this.filters.sections = ['TASK_SUMMARY', 'STAFF_PERFORMANCE', 'TASK_DETAILS'];
-    this.filters.taskTypes = ['CHECKOUT_CLEANING', 'STAYOVER_CLEANING'];
     this.taskSummary = null;
     this.staffPerformanceList = [];
     this.tasksList = [];
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  // --- Helpers for PDF Generation ---
+
+  getFormattedSummary(): any {
+    if (!this.taskSummary) return null;
+
+    // Map API response summary to readable keys
+    const s = this.taskSummary;
+    const summary: any = {};
+
+    if (s.totalTasks !== undefined) summary['Total Tasks'] = s.totalTasks;
+    if (s.completionRate !== undefined) summary['Completion Rate'] = `${s.completionRate}%`;
+    if (s.averageCompletionTimeMinutes !== undefined) summary['Avg Time'] = `${s.averageCompletionTimeMinutes} min`;
+    if (s.statusBreakdown?.ASSIGNED !== undefined) summary['Assigned Tasks'] = s.statusBreakdown.ASSIGNED;
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  getRelevantFilters(): any {
+    return {
+      'From': this.filters.startDate,
+      'To': this.filters.endDate,
+      'Sections': this.filters.sections.join(', ')
+    };
+  }
+
+  prepareMainTableData(): any[] {
+    // Map Task List for the main table
+    return this.tasksList.map(task => ({
+      taskNumber: task.taskNumber || task.id,
+      type: task.type || task.taskType?.replace(/_/g, ' ') || '-',
+      room: task.room || task.roomNumber,
+      assignedTo: task.assignedTo || task.staffName || 'Unassigned',
+      status: task.status
+    }));
+  }
+
+  prepareExtraTables(): PdfTableSection[] {
+    const extraTables: PdfTableSection[] = [];
+
+    // If "Staff Performance" is selected and has data, add it as a second table
+    if (this.filters.sections.includes('STAFF_PERFORMANCE') && this.staffPerformanceList.length > 0) {
+      extraTables.push({
+        title: 'Staff Performance Breakdown',
+        columns: ['Staff Name', 'Tasks Assigned', 'Tasks Completed', 'Completion Rate', 'Rating'],
+        data: this.staffPerformanceList.map(s => ({
+          staffName: s.staffName,
+          tasksAssigned: s.tasksAssigned,
+          tasksCompleted: s.tasksCompleted,
+          completionRate: s.completionRate ? `${s.completionRate}%` : '-',
+          rating: s.rating
+        }))
+      });
+    }
+
+    return extraTables;
+  }
+
+  // --- Actions ---
+
+  generatePreview(): void {
+    if (!this.hasData()) return;
+
+    const reportTitle = 'Unified Housekeeping Report';
+
+    // Main Table Config (Tasks)
+    const mainColumns = ['Task Number', 'Type', 'Room', 'Assigned To', 'Status'];
+    const mainData = this.prepareMainTableData();
+
+    // Extra Tables
+    const extraTables = this.prepareExtraTables();
+
+    // Summary & Filters
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      mainColumns,
+      mainData,
+      cleanFilters,
+      summaryData,
+      extraTables // <--- Pass extra tables here
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -199,25 +276,19 @@ export class UnifiedHousekeepingReports implements OnInit {
     }
 
     const reportTitle = 'Unified Housekeeping Report';
-    const columns = [
-      'Task Number',
-      'Type',
-      'Room',
-      'Assigned To',
-      'Status'
-    ];
-
-    const exportPayload = {
-      summary: this.taskSummary,
-      staff: this.staffPerformanceList,
-      tasks: this.tasksList
-    };
+    const mainColumns = ['Task Number', 'Type', 'Room', 'Assigned To', 'Status'];
+    const mainData = this.prepareMainTableData();
+    const extraTables = this.prepareExtraTables();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
-      columns,
-      this.tasksList,
-      this.filters
+      mainColumns,
+      mainData,
+      cleanFilters,
+      summaryData,
+      extraTables
     );
   }
 

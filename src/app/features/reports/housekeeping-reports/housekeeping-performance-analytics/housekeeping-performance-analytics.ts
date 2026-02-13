@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
 
@@ -20,11 +21,14 @@ interface ReportFilters {
   styleUrls: ['./housekeeping-performance-analytics.scss']
 })
 export class HousekeepingPerformanceAnalytics implements OnInit {
-  selectedReport: string = 'staff-performance';
+  selectedReport: string = 'task-completion'; // Default to one with cards for demo
   reportData: any[] = [];
   reportSummary: any = null;
   loading: boolean = false;
   error: string = '';
+
+  // Property to store the safe URL for the iframe
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: ReportFilters = {
     dateFrom: '',
@@ -39,7 +43,8 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: HousekeepingReportService
+    private reportService: HousekeepingReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -59,6 +64,7 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -79,23 +85,25 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
 
     this.loading = true;
     this.error = '';
+    this.pdfPreviewUrl = null;
 
     console.log('Applying filters:', this.filters);
 
-    // FIX: Call getPerformanceAnalyticsReport instead of getHousekeepingReport
     this.reportService.getPerformanceAnalyticsReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response) => {
           console.log('Data received:', response);
 
-          // Check if both data and summary are empty/null
-          if (!response || (!response.data.length && !response.summary)) {
+          if (!response || (!response.data?.length && !response.summary)) {
             this.error = 'No data found for the selected filters';
             this.reportData = [];
             this.reportSummary = null;
           } else {
-            this.reportData = response.data;
-            this.reportSummary = response.summary;
+            this.reportData = response.data || [];
+            this.reportSummary = response.summary || null;
+
+            // Generate preview immediately
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -112,7 +120,111 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  // --- UPDATED: Extract Summary Data Matching HTML ---
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const summary: any = {};
+    const s = this.reportSummary;
+
+    // 1. Task Completion Report (Matches HTML Cards)
+    if (this.selectedReport === 'task-completion') {
+      if (s.totalTasks !== undefined) summary['Total Tasks'] = s.totalTasks;
+
+      if (s.completedTasks !== undefined) {
+        summary['Completed'] = `${s.completedTasks} (Rate: ${s.taskCompletionRate || 0}%)`;
+      }
+
+      const pending = (s.pendingTasks || 0) + (s.inProgressTasks || 0);
+      if (pending > 0) summary['Pending/In Progress'] = pending;
+
+      if (s.averageCompletionTime !== undefined) summary['Avg Completion Time'] = `${s.averageCompletionTime}m`;
+    }
+    // 2. Maintenance Analytics (Matches HTML Cards)
+    else if (this.selectedReport === 'maintenance-analytics') {
+      if (s.totalRequests !== undefined) summary['Total Requests'] = s.totalRequests;
+
+      const active = (s.inProgressRequests || 0) + (s.reportedRequests || 0);
+      summary['Active Requests'] = `${active} (${s.criticalRequests || 0} Critical)`;
+
+      if (s.roomsOutOfService !== undefined) summary['Rooms Out of Service'] = s.roomsOutOfService;
+      if (s.totalActualCost !== undefined) summary['Total Actual Cost'] = `$${s.totalActualCost}`;
+    }
+    // 3. Staff Performance (Fallback/Standard)
+    else if (this.selectedReport === 'staff-performance') {
+      if (s.totalTasksCompleted !== undefined) summary['Total Tasks'] = s.totalTasksCompleted;
+      if (s.averageRating !== undefined) summary['Avg Rating'] = `${s.averageRating}/5`;
+      if (s.topPerformer) summary['Top Performer'] = s.topPerformer;
+    }
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  preparePdfData(): any[] {
+    if (!this.reportData || this.reportData.length === 0) return [];
+
+    return this.reportData.map(row => {
+      if (this.selectedReport === 'staff-performance') {
+        return {
+          staffName: row.staffName,
+          role: row.role,
+          tasksCompleted: row.tasksCompleted,
+          avgTime: row.averageTime ? `${row.averageTime} min` : '-',
+          rating: row.rating ? `${row.rating}/5` : '-'
+        };
+      }
+      else if (this.selectedReport === 'task-completion') {
+        return {
+          date: new Date(row.date).toLocaleDateString(),
+          tasksCompleted: row.tasksCompleted,
+          roomsCleaned: row.roomsCleaned,
+          maintenanceCompleted: row.maintenanceCompleted,
+          lostItemsFound: row.lostItemsFound,
+          avgTaskTime: row.averageTaskTime ? `${row.averageTaskTime.toFixed(1)} min` : '-'
+        };
+      }
+      else if (this.selectedReport === 'maintenance-analytics') {
+        return {
+          maintenanceType: row.maintenanceType || '-',
+          count: row.count,
+          completed: row.completed ? `${row.completed}` : '-',
+          averageCost: row.averageCost ? `$${row.averageCost}` : '-'
+        };
+      }
+      return row;
+    });
+  }
+
+  getRelevantFilters(): any {
+    return {
+      'From': this.filters.dateFrom,
+      'To': this.filters.dateTo
+    };
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0 && !this.reportSummary) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary(); // <--- Correctly mapped summary
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      pdfData,
+      cleanFilters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -123,12 +235,16 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
-      this.reportData,
-      { ...this.filters, ...this.reportSummary }
+      pdfData,
+      cleanFilters,
+      summaryData
     );
   }
 
@@ -139,7 +255,7 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
       case 'task-completion':
         return ['Date', 'Tasks Completed', 'Rooms Cleaned', 'Maintenance Completed', 'Lost Items Found', 'Avg Task Time'];
       case 'maintenance-analytics':
-        return ['Issue Type', 'Count', 'Avg Resolution Time', 'Est. Cost', 'Actual Cost'];
+        return ['Maintenance Type', 'Count', 'Completed', 'Average Cost'];
       default:
         return [];
     }
@@ -150,22 +266,19 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
   }
 
   getColumnValue(row: any, column: string): string {
-    // Map Staff Performance keys
+    // HTML Table Display Logic
     if (this.selectedReport === 'staff-performance') {
       if (column === 'Avg Time (min)') return row.averageTime || '-';
     }
 
-    // Map Task Completion keys
     if (this.selectedReport === 'task-completion') {
       if (column === 'Avg Task Time') return row.averageTaskTime ? row.averageTaskTime.toFixed(1) : '0';
     }
 
-    // Map Maintenance Analytics keys
     if (this.selectedReport === 'maintenance-analytics') {
-      if (column === 'Issue Type') return row.type || row.category || '-';
-      if (column === 'Avg Resolution Time') return row.averageResolutionTime || '-';
-      if (column === 'Est. Cost') return row.estimatedCost ? `$${row.estimatedCost}` : '-';
-      if (column === 'Actual Cost') return row.actualCost ? `$${row.actualCost}` : '-';
+      if (column === 'Maintenance Type') return row.maintenanceType || '-';
+      if (column === 'Completed') return row.completed || '-';
+      if (column === 'Average Cost') return row.averageCost ? `$${row.averageCost}` : '-';
     }
 
     const key = this.getColumnKey(column);
