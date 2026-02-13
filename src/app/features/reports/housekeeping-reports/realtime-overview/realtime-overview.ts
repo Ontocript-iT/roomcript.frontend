@@ -27,7 +27,6 @@ export class RealtimeOverview implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: ReportFilters = {
@@ -90,12 +89,9 @@ export class RealtimeOverview implements OnInit {
     this.error = '';
     this.pdfPreviewUrl = null;
 
-    console.log('Applying filters:', this.filters);
-
     this.reportService.getHousekeepingReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response) => {
-          console.log('Data received:', response);
 
           if (!response || (!response.data.length && !response.summary)) {
             this.error = 'No data found for the selected filters';
@@ -105,14 +101,12 @@ export class RealtimeOverview implements OnInit {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
 
-            // Generate preview immediately
             this.generatePreview();
           }
 
           this.loading = false;
         },
         error: (err) => {
-          console.error('API Error:', err);
           this.error = 'Failed to load report data: ' + (err.error?.message || err.message);
           this.loading = false;
         }
@@ -127,7 +121,6 @@ export class RealtimeOverview implements OnInit {
     this.error = '';
   }
 
-  // Helper 1: Extract Summary Data for PDF Header (Key Metrics)
   getFormattedSummary(): any {
     if (!this.reportSummary) return null;
 
@@ -150,7 +143,6 @@ export class RealtimeOverview implements OnInit {
     return Object.keys(summary).length > 0 ? summary : null;
   }
 
-  // Helper 2: Prepare formatted table data
   preparePdfData(): any[] {
     if (!this.reportData || this.reportData.length === 0) return [];
 
@@ -175,14 +167,11 @@ export class RealtimeOverview implements OnInit {
     });
   }
 
-  // Helper 3: Get only relevant filters
   getRelevantFilters(): any {
-    // 1. For Room Status, we return NULL to hide the "Report Summary & Filters" section entirely
     if (this.selectedReport === 'room-status') {
       return null;
     }
 
-    // 2. For Lost & Found, we return the Date Range
     const cleanFilters: any = {};
     if (this.showDateRangeFilter()) {
       cleanFilters['From'] = this.filters.dateFrom;
@@ -191,7 +180,6 @@ export class RealtimeOverview implements OnInit {
     return cleanFilters;
   }
 
-  // Method 1: Generate Preview
   generatePreview(): void {
     if (this.reportData.length === 0 && !this.reportSummary) return;
 
@@ -199,7 +187,7 @@ export class RealtimeOverview implements OnInit {
     const columns = this.getColumnsForReport();
     const pdfData = this.preparePdfData();
     const summaryData = this.getFormattedSummary();
-    const cleanFilters = this.getRelevantFilters(); // <--- This now returns null for room-status
+    const cleanFilters = this.getRelevantFilters();
 
     const url = this.pdfService.getReportPreviewUrl(
       reportTitle,
@@ -213,7 +201,6 @@ export class RealtimeOverview implements OnInit {
     this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
-  // Method 2: Export Report
   exportReport(): void {
     if (this.reportData.length === 0 && !this.reportSummary) {
       alert('No data available to export');
@@ -224,7 +211,7 @@ export class RealtimeOverview implements OnInit {
     const columns = this.getColumnsForReport();
     const pdfData = this.preparePdfData();
     const summaryData = this.getFormattedSummary();
-    const cleanFilters = this.getRelevantFilters(); // <--- Uses the same logic
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
@@ -246,7 +233,6 @@ export class RealtimeOverview implements OnInit {
     }
   }
 
-  // Helper for internal coloring logic (optional)
   getColumnKey(column: string): string {
     return column.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
   }
@@ -261,17 +247,4 @@ export class RealtimeOverview implements OnInit {
     return row[key] !== undefined && row[key] !== null ? row[key] : '-';
   }
 
-  getStatusColor(status: string): string {
-    if (!status) return 'bg-gray-100 text-gray-800';
-
-    switch (status.toUpperCase()) {
-      case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'OCCUPIED': return 'bg-blue-100 text-blue-800';
-      case 'CLEANING': return 'bg-yellow-100 text-yellow-800';
-      case 'MAINTENANCE':
-      case 'OUT_OF_ORDER': return 'bg-red-100 text-red-800';
-      case 'RESERVED': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  }
 }

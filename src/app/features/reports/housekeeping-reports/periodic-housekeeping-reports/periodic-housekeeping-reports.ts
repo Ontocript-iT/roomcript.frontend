@@ -111,8 +111,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     return report ? report.label : '';
   }
 
-  // --- Filter Visibility Logic ---
-
   showReportDateFilter(): boolean {
     return this.selectedReport === 'daily-summary';
   }
@@ -212,7 +210,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     });
   }
 
-  // --- NEW: Helper to get only relevant filters ---
   getRelevantFilters(): any {
     const cleanFilters: any = {};
 
@@ -226,7 +223,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     }
 
     if (this.showMonthFilter()) {
-      // Map numeric month to string name
       const monthName = this.months[this.filters.month - 1] || this.filters.month;
       cleanFilters['Month'] = `${monthName} ${this.filters.year}`;
     }
@@ -241,13 +237,13 @@ export class PeriodicHousekeepingReports implements OnInit {
     const columns = this.getColumnsForReport();
     const pdfData = this.preparePdfData();
     const summaryData = this.getFormattedSummary();
-    const cleanFilters = this.getRelevantFilters(); // <--- Use clean filters
+    const cleanFilters = this.getRelevantFilters();
 
     const url = this.pdfService.getReportPreviewUrl(
       reportTitle,
       columns,
       pdfData,
-      cleanFilters, // Pass clean filters
+      cleanFilters,
       summaryData
     );
 
@@ -265,13 +261,13 @@ export class PeriodicHousekeepingReports implements OnInit {
     const columns = this.getColumnsForReport();
     const pdfData = this.preparePdfData();
     const summaryData = this.getFormattedSummary();
-    const cleanFilters = this.getRelevantFilters(); // <--- Use clean filters
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       pdfData,
-      cleanFilters, // Pass clean filters
+      cleanFilters,
       summaryData
     );
   }

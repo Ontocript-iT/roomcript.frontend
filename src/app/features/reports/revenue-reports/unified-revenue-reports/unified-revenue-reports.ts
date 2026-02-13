@@ -1,12 +1,10 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { PdfService} from '../../../../core/services/pdf.service';
-import { RevenueReportService} from '../../../../core/services/revenue-report.service';
-import { UnifiedFinancialRequest, FlashReportData, TaxReportData} from '../../../../core/models/report.models';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfService, PdfTableSection } from '../../../../core/services/pdf.service';
+import { RevenueReportService } from '../../../../core/services/revenue-report.service';
+import { UnifiedFinancialRequest, FlashReportData, TaxReportData } from '../../../../core/models/report.models';
 
 @Component({
   selector: 'app-unified-revenue-reports',
@@ -28,6 +26,8 @@ export class UnifiedRevenueReports implements OnInit {
 
   loading: boolean = false;
   error: string = '';
+
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: UnifiedFinancialRequest = {
     propertyCode: '',
@@ -51,11 +51,11 @@ export class UnifiedRevenueReports implements OnInit {
     private pdfService: PdfService,
     private revenueService: RevenueReportService,
     private datePipe: DatePipe,
-    private currencyPipe: CurrencyPipe
+    private currencyPipe: CurrencyPipe,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
-    // Load Property Code from LocalStorage
     const storedProp = localStorage.getItem('propertyCode');
     if (storedProp) {
       this.filters.propertyCode = storedProp;
@@ -68,7 +68,6 @@ export class UnifiedRevenueReports implements OnInit {
 
   setDefaultDates(): void {
     const today = new Date();
-    // Default to first day of current month
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
     this.filters.startDate = firstDay.toISOString().split('T')[0];
@@ -121,6 +120,7 @@ export class UnifiedRevenueReports implements OnInit {
 
     this.loading = true;
     this.error = '';
+    this.pdfPreviewUrl = null;
 
     // Reset Data
     this.flashReport = null;
@@ -131,7 +131,6 @@ export class UnifiedRevenueReports implements OnInit {
     this.revenueService.getUnifiedFinancialReport(this.filters)
       .subscribe({
         next: (response) => {
-          console.log('Unified Report Data:', response);
           if (response.status === 200 && response.data) {
             this.flashReport = response.data.flashReport || null;
             this.revenueLedger = response.data.revenueLedger || [];
@@ -143,11 +142,13 @@ export class UnifiedRevenueReports implements OnInit {
 
           if (!this.hasData()) {
             this.error = 'No records found for the selected criteria.';
+          } else {
+            // Logic Update: Generate preview immediately
+            this.generatePreview();
           }
           this.loading = false;
         },
         error: (err) => {
-          console.error(err);
           this.error = 'Failed to load report data.';
           this.loading = false;
         }
@@ -171,6 +172,7 @@ export class UnifiedRevenueReports implements OnInit {
     this.revenueLedger = [];
     this.paymentSummary = [];
     this.taxReport = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
@@ -180,8 +182,99 @@ export class UnifiedRevenueReports implements OnInit {
       : [];
   }
 
-  isNumber(val: any): boolean {
-    return typeof val === 'number';
+  getFormattedSummary(): any {
+    if (!this.flashReport) return null;
+
+    const summary: any = {};
+
+    const safeCurrency = (value: any) => {
+      if (value === undefined || value === null) return '-';
+      if (isNaN(Number(value))) return value;
+      return this.currencyPipe.transform(value, 'USD') || '0';
+    };
+
+    summary['Total Revenue'] = safeCurrency(this.flashReport.totalRevenue);
+    summary['Total Collections'] = safeCurrency(this.flashReport.totalCollections);
+    summary['RevPAR'] = safeCurrency(this.flashReport.revPar);
+    summary['Overall ARR'] = safeCurrency(this.flashReport.arr);
+
+    return summary;
+  }
+
+  prepareMainTableData(): any[] {
+    if (!this.revenueLedger || this.revenueLedger.length === 0) return [];
+
+    return this.revenueLedger.map(row => ({
+      department: row.department || '-',
+      revenue: this.currencyPipe.transform(row.revenue, 'USD') || '0.00'
+    }));
+  }
+
+  prepareExtraTables(): PdfTableSection[] {
+    const extraTables: PdfTableSection[] = [];
+    if (this.taxReport && this.getTaxKeys().length > 0) {
+      const taxData = this.getTaxKeys().map(key => ({
+        taxType: key,
+        amount: this.currencyPipe.transform(this.taxReport!.breakdownByType[key], 'USD') || '0.00'
+      }));
+
+      taxData.push({
+        taxType: 'TOTAL COLLECTED',
+        amount: this.currencyPipe.transform(this.taxReport.totalTaxCollected, 'USD') || '0.00'
+      });
+
+      extraTables.push({
+        title: 'Tax Report',
+        columns: ['Tax Type', 'Amount'],
+        data: taxData
+      });
+    }
+
+    if (this.paymentSummary && this.paymentSummary.length > 0) {
+      const paymentData = this.paymentSummary.map(row => ({
+        method: row.method || '-',
+        amount: this.currencyPipe.transform(row.amount, 'USD') || '0.00'
+      }));
+
+      extraTables.push({
+        title: 'Payment Summary',
+        columns: ['Method', 'Amount'],
+        data: paymentData
+      });
+    }
+
+    return extraTables;
+  }
+
+  getRelevantFilters(): any {
+    return {
+      'From': this.filters.startDate,
+      'To': this.filters.endDate
+    };
+  }
+
+  generatePreview(): void {
+    if (!this.hasData()) return;
+
+    const reportTitle = 'Unified Financial Report';
+    const mainColumns = ['Department', 'Revenue'];
+    const mainData = this.prepareMainTableData();
+
+    const extraTables = this.prepareExtraTables();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      mainColumns,
+      mainData,
+      cleanFilters,
+      summaryData,
+      extraTables
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -190,125 +283,20 @@ export class UnifiedRevenueReports implements OnInit {
       return;
     }
 
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let currentY = 15;
+    const reportTitle = 'Unified Financial Report';
+    const mainColumns = ['Department', 'Revenue'];
+    const mainData = this.prepareMainTableData();
+    const extraTables = this.prepareExtraTables();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
-    // --- 1. Header ---
-    doc.setFontSize(16);
-    doc.text('Unified Financial Report', pageWidth / 2, currentY, { align: 'center' });
-    currentY += 7;
-
-    doc.setFontSize(10);
-    doc.text(`Period: ${this.filters.startDate} to ${this.filters.endDate}`, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 5;
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 10;
-
-    // --- 2. Manager's Flash Report (Table 1) ---
-    if (this.flashReport) {
-      doc.setFontSize(12);
-      doc.text("Manager's Flash Report", 14, currentY);
-      currentY += 2;
-
-      const flashData = [
-        ['Total Revenue', this.currencyPipe.transform(this.flashReport.totalRevenue, 'USD') || '0'],
-        ['Total Collections', this.currencyPipe.transform(this.flashReport.totalCollections, 'USD') || '0'],
-        ['RevPAR', this.flashReport.revPar.toString()],
-        ['Overall ARR', this.currencyPipe.transform(this.flashReport.arr, 'USD') || '0']
-      ];
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [['Metric', 'Value']],
-        body: flashData,
-        theme: 'grid',
-        headStyles: { fillColor: [63, 81, 181] }, // Indigo color
-        margin: { left: 14, right: 14 }
-      });
-
-      // Update Y position for next table
-      currentY = (doc as any).lastAutoTable.finalY + 10;
-    }
-
-    // --- 3. Revenue Ledger (Table 2) ---
-    if (this.revenueLedger && this.revenueLedger.length > 0) {
-      // Check for page break space
-      if (currentY > 250) { doc.addPage(); currentY = 20; }
-
-      doc.setFontSize(12);
-      doc.text("Revenue Ledger", 14, currentY);
-      currentY += 2;
-
-      const ledgerData = this.revenueLedger.map(row => [
-        row.department || '-',
-        this.currencyPipe.transform(row.revenue, 'USD') || '0.00'
-      ]);
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [['Department', 'Revenue']],
-        body: ledgerData,
-        theme: 'grid',
-        headStyles: { fillColor: [63, 81, 181] },
-        margin: { left: 14, right: 14 }
-      });
-
-      currentY = (doc as any).lastAutoTable.finalY + 10;
-    }
-
-    // --- 4. Payment Summary (Table 3) ---
-    if (this.paymentSummary && this.paymentSummary.length > 0) {
-      if (currentY > 250) { doc.addPage(); currentY = 20; }
-
-      doc.setFontSize(12);
-      doc.text("Payment Summary", 14, currentY);
-      currentY += 2;
-
-      const paymentData = this.paymentSummary.map(row => [
-        row.method || '-',
-        this.currencyPipe.transform(row.amount, 'USD') || '0.00'
-      ]);
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [['Payment Method', 'Amount']],
-        body: paymentData,
-        theme: 'grid',
-        headStyles: { fillColor: [63, 81, 181] },
-        margin: { left: 14, right: 14 }
-      });
-
-      currentY = (doc as any).lastAutoTable.finalY + 10;
-    }
-
-    // --- 5. Tax Report (Table 4) ---
-    if (this.taxReport && this.taxReport.breakdownByType) {
-      if (currentY > 250) { doc.addPage(); currentY = 20; }
-
-      doc.setFontSize(12);
-      doc.text("Tax Report", 14, currentY);
-      currentY += 2;
-
-      const taxData = Object.keys(this.taxReport.breakdownByType).map(key => [
-        key,
-        this.currencyPipe.transform(this.taxReport!.breakdownByType[key], 'USD') || '0.00'
-      ]);
-
-      // Add Total Row
-      taxData.push(['TOTAL COLLECTED', this.currencyPipe.transform(this.taxReport.totalTaxCollected, 'USD') || '0.00']);
-
-      autoTable(doc, {
-        startY: currentY,
-        head: [['Tax Type', 'Amount Collected']],
-        body: taxData,
-        theme: 'grid',
-        headStyles: { fillColor: [63, 81, 181] },
-        margin: { left: 14, right: 14 }
-      });
-    }
-
-    // Save
-    doc.save(`Unified_Financial_Report_${this.filters.endDate}.pdf`);
+    this.pdfService.generateReport(
+      reportTitle,
+      mainColumns,
+      mainData,
+      cleanFilters,
+      summaryData,
+      extraTables
+    );
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
 
@@ -29,11 +29,10 @@ export class UnifiedGuestReport implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: UnifiedGuestFilters = {
-    propertyCode: 'PROP0005',
+    propertyCode: '',
     startDate: '',
     endDate: '',
     guestTier: '',
@@ -57,10 +56,17 @@ export class UnifiedGuestReport implements OnInit {
   constructor(
     private pdfService: PdfService,
     private reportService: GuestReportService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
+    const storedProp = localStorage.getItem('propertyCode');
+    if (storedProp) {
+      this.filters.propertyCode = storedProp;
+    } else {
+      this.error = 'No Property Code found. Please login again.';
+    }
+
     this.setDefaultDates();
   }
 
@@ -73,7 +79,6 @@ export class UnifiedGuestReport implements OnInit {
     this.filters.endDate = endOfYear.toISOString().split('T')[0];
   }
 
-  // Close dropdown when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -118,18 +123,16 @@ export class UnifiedGuestReport implements OnInit {
     this.loading = true;
     this.error = '';
     this.reportData = null;
-    this.pdfPreviewUrl = null; // Clear previous preview
+    this.pdfPreviewUrl = null;
 
     this.reportService.getUnifiedGuestReport(this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Unified Data received:', response);
           this.reportData = response.data || null;
 
           if (!this.reportData) {
             this.error = 'No data found for the selected filters';
           } else {
-            // Logic Update: Generate preview immediately
             this.generatePreview();
           }
           this.loading = false;
@@ -151,13 +154,11 @@ export class UnifiedGuestReport implements OnInit {
     this.error = '';
   }
 
-  // Helper 1: Extract Summary Data for PDF Header
   getFormattedSummary(): any {
     if (!this.reportData) return null;
 
     const summary: any = {};
 
-    // 1. Overview Section
     if (this.reportData.overview) {
       if (this.reportData.overview.totalGuests !== undefined) summary['Total Guests'] = this.reportData.overview.totalGuests;
       if (this.reportData.overview.newGuests !== undefined) summary['New Guests'] = this.reportData.overview.newGuests;
@@ -165,14 +166,12 @@ export class UnifiedGuestReport implements OnInit {
       if (this.reportData.overview.returnRate !== undefined) summary['Return Rate'] = `${this.reportData.overview.returnRate}%`;
     }
 
-    // 2. Revenue Section
     if (this.reportData.revenueAnalysis) {
       const r = this.reportData.revenueAnalysis;
       if (r.totalRevenue !== undefined) summary['Total Revenue'] = `$${r.totalRevenue.toLocaleString()}`;
       if (r.averageRevenuePerGuest !== undefined) summary['Avg Revenue/Guest'] = `$${r.averageRevenuePerGuest.toFixed(2)}`;
     }
 
-    // 3. Behavior Section
     if (this.reportData.behavior) {
       const b = this.reportData.behavior;
       if (b.averageLeadTimeDays !== undefined) summary['Avg Lead Time'] = `${b.averageLeadTimeDays.toFixed(1)} days`;
@@ -182,7 +181,6 @@ export class UnifiedGuestReport implements OnInit {
     return Object.keys(summary).length > 0 ? summary : null;
   }
 
-  // Helper 2: Prepare Table Data
   prepareTableData(): any[] {
     if (!this.reportData || !Array.isArray(this.reportData.topGuests)) return [];
 
@@ -194,7 +192,6 @@ export class UnifiedGuestReport implements OnInit {
     }));
   }
 
-  // Method 1: Generate Preview
   generatePreview(): void {
     if (!this.reportData) return;
 
@@ -208,14 +205,13 @@ export class UnifiedGuestReport implements OnInit {
       columns,
       tableData,
       this.filters,
-      summaryData // Pass summary
+      summaryData
     );
 
     const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
     this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
-  // Method 2: Export Report
   exportReport(): void {
     if (!this.reportData) {
       alert('No data available to export');
@@ -232,7 +228,7 @@ export class UnifiedGuestReport implements OnInit {
       columns,
       tableData,
       this.filters,
-      summaryData // Pass summary
+      summaryData
     );
   }
 }

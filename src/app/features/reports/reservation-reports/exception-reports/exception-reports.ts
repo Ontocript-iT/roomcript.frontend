@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 import { PdfService } from '../../../../core/services/pdf.service';
 
@@ -24,7 +24,6 @@ export class ExceptionReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: ExceptionFilters = {
@@ -41,7 +40,7 @@ export class ExceptionReports implements OnInit {
   constructor(
     private reportService: ReservationReportService,
     private pdfService: PdfService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -98,12 +97,11 @@ export class ExceptionReports implements OnInit {
     this.error = '';
     this.reportData = [];
     this.reportSummary = null;
-    this.pdfPreviewUrl = null; // Clear previous preview
+    this.pdfPreviewUrl = null;
 
     this.reportService.getExceptionReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Exception report response:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;
@@ -111,7 +109,6 @@ export class ExceptionReports implements OnInit {
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
           } else if (this.reportData.length > 0) {
-            // Logic Update: Generate preview immediately if we have data
             this.generatePreview();
           }
 
@@ -126,7 +123,6 @@ export class ExceptionReports implements OnInit {
       });
   }
 
-  // Method 1: Helper to format summary for PDF
   getFormattedSummary(): any {
     if (!this.reportSummary) return null;
 
@@ -138,7 +134,6 @@ export class ExceptionReports implements OnInit {
       if (s.totalRefundedAmount !== undefined) formatted['Total Refunded'] = `$${s.totalRefundedAmount.toFixed(2)}`;
       if (s.totalLostRevenue !== undefined) formatted['Lost Revenue'] = `$${s.totalLostRevenue.toFixed(2)}`;
 
-      // Optional: Add breakdown if available
       if (s.cancellationsByGuest !== undefined) formatted['Cancelled by Guest'] = s.cancellationsByGuest;
       if (s.cancellationsByHotel !== undefined) formatted['Cancelled by Hotel'] = s.cancellationsByHotel;
     }
@@ -151,7 +146,6 @@ export class ExceptionReports implements OnInit {
     return formatted;
   }
 
-  // Method 2: Generate Preview
   generatePreview(): void {
     if (this.reportData.length === 0) return;
 
@@ -164,7 +158,7 @@ export class ExceptionReports implements OnInit {
       columns,
       this.reportData,
       this.filters,
-      summaryData // Pass summary
+      summaryData
     );
 
     const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
@@ -187,14 +181,14 @@ export class ExceptionReports implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
-    const summaryData = this.getFormattedSummary(); // Get summary
+    const summaryData = this.getFormattedSummary();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       this.reportData,
       this.filters,
-      summaryData // Pass summary
+      summaryData
     );
   }
 

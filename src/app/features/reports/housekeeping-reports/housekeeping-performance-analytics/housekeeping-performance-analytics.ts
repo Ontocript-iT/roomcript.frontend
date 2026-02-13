@@ -87,12 +87,9 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
     this.error = '';
     this.pdfPreviewUrl = null;
 
-    console.log('Applying filters:', this.filters);
-
     this.reportService.getPerformanceAnalyticsReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response) => {
-          console.log('Data received:', response);
 
           if (!response || (!response.data?.length && !response.summary)) {
             this.error = 'No data found for the selected filters';
@@ -102,14 +99,12 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
 
-            // Generate preview immediately
             this.generatePreview();
           }
 
           this.loading = false;
         },
         error: (err) => {
-          console.error('API Error:', err);
           this.error = 'Failed to load report data: ' + (err.error?.message || err.message);
           this.loading = false;
         }
@@ -124,14 +119,12 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
     this.error = '';
   }
 
-  // --- UPDATED: Extract Summary Data Matching HTML ---
   getFormattedSummary(): any {
     if (!this.reportSummary) return null;
 
     const summary: any = {};
     const s = this.reportSummary;
 
-    // 1. Task Completion Report (Matches HTML Cards)
     if (this.selectedReport === 'task-completion') {
       if (s.totalTasks !== undefined) summary['Total Tasks'] = s.totalTasks;
 
@@ -144,7 +137,7 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
 
       if (s.averageCompletionTime !== undefined) summary['Avg Completion Time'] = `${s.averageCompletionTime}m`;
     }
-    // 2. Maintenance Analytics (Matches HTML Cards)
+
     else if (this.selectedReport === 'maintenance-analytics') {
       if (s.totalRequests !== undefined) summary['Total Requests'] = s.totalRequests;
 
@@ -154,7 +147,6 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
       if (s.roomsOutOfService !== undefined) summary['Rooms Out of Service'] = s.roomsOutOfService;
       if (s.totalActualCost !== undefined) summary['Total Actual Cost'] = `$${s.totalActualCost}`;
     }
-    // 3. Staff Performance (Fallback/Standard)
     else if (this.selectedReport === 'staff-performance') {
       if (s.totalTasksCompleted !== undefined) summary['Total Tasks'] = s.totalTasksCompleted;
       if (s.averageRating !== undefined) summary['Avg Rating'] = `${s.averageRating}/5`;
@@ -212,7 +204,7 @@ export class HousekeepingPerformanceAnalytics implements OnInit {
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
     const pdfData = this.preparePdfData();
-    const summaryData = this.getFormattedSummary(); // <--- Correctly mapped summary
+    const summaryData = this.getFormattedSummary();
     const cleanFilters = this.getRelevantFilters();
 
     const url = this.pdfService.getReportPreviewUrl(

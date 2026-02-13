@@ -29,64 +29,6 @@ export class PdfService {
 
   constructor() {}
 
-  // generateReport(
-  //   reportTitle: string,
-  //   columns: string[],
-  //   data: any[],
-  //   filters?: any
-  // ): void {
-  //   const doc = new jsPDF('p', 'mm', 'a4');
-  //
-  //   // Add header to first page only
-  //   this.addHeader(doc, reportTitle);
-  //
-  //   // Add filter information
-  //   let startY = 60;
-  //   if (filters) {
-  //     startY = this.addFilterInfo(doc, filters, startY);
-  //   }
-  //
-  //   // Prepare table data
-  //   const tableData = data.map(row => {
-  //     return columns.map(col => {
-  //       // Convert "Guest Name" to "guestName" (camelCase)
-  //       const key = col
-  //         .toLowerCase()
-  //         .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
-  //       return row[key] || '-';
-  //     });
-  //   });
-  //
-  //   // Add table with autoTable
-  //   autoTable(doc, {
-  //     head: [columns],
-  //     body: tableData,
-  //     startY: startY,
-  //     theme: 'grid',
-  //     styles: {
-  //       fontSize: 9,
-  //       cellPadding: 3
-  //     },
-  //     headStyles: {
-  //       fillColor: [59, 130, 246],
-  //       textColor: 255,
-  //       fontStyle: 'bold',
-  //       halign: 'left'
-  //     },
-  //     alternateRowStyles: {
-  //       fillColor: [249, 250, 251]
-  //     },
-  //     margin: { top: 20, bottom: 30, left: 10, right: 10 },
-  //     didDrawPage: (data) => {
-  //       this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
-  //     }
-  //   });
-  //
-  //   // Save the PDF
-  //   const fileName = `${reportTitle.replace(/\s/g, '_')}_${this.getFormattedDate()}.pdf`;
-  //   doc.save(fileName);
-  // }
-
   private addHeader(doc: jsPDF, reportTitle: string): void {
     const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -108,7 +50,6 @@ export class PdfService {
       { align: 'center' }
     );
 
-    // Line separator
     doc.setLineWidth(0.5);
     doc.line(10, 30, pageWidth - 10, 30);
 
@@ -127,7 +68,6 @@ export class PdfService {
       { align: 'center' }
     );
 
-    // Line separator
     doc.setLineWidth(0.3);
     doc.line(10, 48, pageWidth - 10, 48);
   }
@@ -223,8 +163,6 @@ export class PdfService {
 
     // MAIN TABLE
     if (data && data.length > 0) {
-      // If we have additional tables, add a title for the main one if desired,
-      // or just render it. Let's assume the main data is the primary list.
       if (additionalTables && additionalTables.length > 0) {
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
@@ -247,11 +185,10 @@ export class PdfService {
         didDrawPage: (data) => this.addFooter(doc, data.pageNumber, doc.getNumberOfPages())
       });
 
-      // Update startY for next tables
       startY = (doc as any).lastAutoTable.finalY + 10;
     }
 
-    // 2. NEW LOGIC: Render Additional Tables
+    // Additional Tables
     if (additionalTables && additionalTables.length > 0) {
       additionalTables.forEach(table => {
         // Check if we need a new page

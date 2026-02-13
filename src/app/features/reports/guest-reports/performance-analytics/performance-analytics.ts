@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +27,6 @@ export class PerformanceAnalytics implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: AnalyticsFilters = {
@@ -44,7 +43,7 @@ export class PerformanceAnalytics implements OnInit {
   constructor(
     private pdfService: PdfService,
     private reportService: GuestReportService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -93,16 +92,12 @@ export class PerformanceAnalytics implements OnInit {
     this.reportSummary = null;
     this.reportData = [];
     this.singleRecordData = null;
-    this.pdfPreviewUrl = null; // Clear previous preview
-
-    console.log('Applying filters:', this.filters);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getPerformanceAnalytics(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
-          // Handle different structure per report
           if (this.selectedReport === 'repeat-guest-analysis') {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
@@ -113,7 +108,6 @@ export class PerformanceAnalytics implements OnInit {
           if ((!this.reportData.length && !this.singleRecordData)) {
             this.error = 'No data found for the selected filters';
           } else {
-            // Logic Update: Generate preview immediately
             this.generatePreview();
           }
 
@@ -136,7 +130,6 @@ export class PerformanceAnalytics implements OnInit {
     this.error = '';
   }
 
-  // Helper: Standardize data for PDF (Preview & Export)
   private preparePdfData(): { title: string, columns: string[], data: any[] } | null {
     if (!this.reportData.length && !this.singleRecordData) {
       return null;
@@ -179,7 +172,7 @@ export class PerformanceAnalytics implements OnInit {
         {
           segment: 'Lapsed',
           count: s.lapsedGuests?.count || 0,
-          revenue: '-' // Usually lapsed guests don't have current revenue
+          revenue: '-'
         }
       ];
     }
@@ -187,7 +180,6 @@ export class PerformanceAnalytics implements OnInit {
     return { title, columns, data };
   }
 
-  // Method 1: Generate Preview
   generatePreview(): void {
     const pdfConfig = this.preparePdfData();
     if (!pdfConfig) return;

@@ -1,8 +1,8 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import Sanitizer
-import { PdfService, PdfTableSection } from '../../../../core/services/pdf.service'; // Import Interface
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfService, PdfTableSection } from '../../../../core/services/pdf.service';
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
 
 interface UnifiedReportFilters {
@@ -26,7 +26,6 @@ interface UnifiedReportFilters {
 })
 export class UnifiedHousekeepingReports implements OnInit {
 
-  // Data Containers
   taskSummary: any = null;
   staffPerformanceList: any[] = [];
   tasksList: any[] = [];
@@ -34,11 +33,10 @@ export class UnifiedHousekeepingReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Preview URL
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: UnifiedReportFilters = {
-    propertyCode: 'PROP0005',
+    propertyCode: '',
     startDate: '',
     endDate: '',
     sections: ['TASK_SUMMARY', 'STAFF_PERFORMANCE', 'TASK_DETAILS'],
@@ -69,6 +67,13 @@ export class UnifiedHousekeepingReports implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const storedProp = localStorage.getItem('propertyCode');
+    if (storedProp) {
+      this.filters.propertyCode = storedProp;
+    } else {
+      this.error = 'No Property Code found. Please login again.';
+    }
+
     this.setDefaultDates();
   }
 
@@ -146,7 +151,6 @@ export class UnifiedHousekeepingReports implements OnInit {
     this.reportService.getUnifiedReport(this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Unified Report Data:', response);
           if (response && response.data) {
             this.taskSummary = response.data.taskSummary || null;
             this.staffPerformanceList = response.data.staffPerformance || [];
@@ -181,12 +185,9 @@ export class UnifiedHousekeepingReports implements OnInit {
     this.error = '';
   }
 
-  // --- Helpers for PDF Generation ---
-
   getFormattedSummary(): any {
     if (!this.taskSummary) return null;
 
-    // Map API response summary to readable keys
     const s = this.taskSummary;
     const summary: any = {};
 
@@ -207,7 +208,6 @@ export class UnifiedHousekeepingReports implements OnInit {
   }
 
   prepareMainTableData(): any[] {
-    // Map Task List for the main table
     return this.tasksList.map(task => ({
       taskNumber: task.taskNumber || task.id,
       type: task.type || task.taskType?.replace(/_/g, ' ') || '-',
@@ -220,7 +220,6 @@ export class UnifiedHousekeepingReports implements OnInit {
   prepareExtraTables(): PdfTableSection[] {
     const extraTables: PdfTableSection[] = [];
 
-    // If "Staff Performance" is selected and has data, add it as a second table
     if (this.filters.sections.includes('STAFF_PERFORMANCE') && this.staffPerformanceList.length > 0) {
       extraTables.push({
         title: 'Staff Performance Breakdown',
@@ -238,21 +237,16 @@ export class UnifiedHousekeepingReports implements OnInit {
     return extraTables;
   }
 
-  // --- Actions ---
-
   generatePreview(): void {
     if (!this.hasData()) return;
 
     const reportTitle = 'Unified Housekeeping Report';
-
-    // Main Table Config (Tasks)
     const mainColumns = ['Task Number', 'Type', 'Room', 'Assigned To', 'Status'];
     const mainData = this.prepareMainTableData();
 
-    // Extra Tables
+
     const extraTables = this.prepareExtraTables();
 
-    // Summary & Filters
     const summaryData = this.getFormattedSummary();
     const cleanFilters = this.getRelevantFilters();
 
@@ -262,7 +256,7 @@ export class UnifiedHousekeepingReports implements OnInit {
       mainData,
       cleanFilters,
       summaryData,
-      extraTables // <--- Pass extra tables here
+      extraTables
     );
 
     const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
@@ -290,15 +284,5 @@ export class UnifiedHousekeepingReports implements OnInit {
       summaryData,
       extraTables
     );
-  }
-
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'COMPLETED': return 'bg-green-100 text-green-800';
-      case 'ASSIGNED': return 'bg-blue-100 text-blue-800';
-      case 'IN_PROGRESS': return 'bg-yellow-100 text-yellow-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
   }
 }

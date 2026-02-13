@@ -87,12 +87,9 @@ export class MarketingInsights implements OnInit {
     this.reportData = [];
     this.pdfPreviewUrl = null;
 
-    console.log('Applying filters:', this.filters);
-
     this.reportService.getMarketingInsights(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;

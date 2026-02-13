@@ -69,7 +69,6 @@ export class OperationalReports implements OnInit {
     this.filters.reportDate = dateString;
     this.filters.dateFrom = dateString;
 
-    // Set dateTo to 30 days from now for group reservations
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 30);
     this.filters.dateTo = futureDate.toISOString().split('T')[0];
@@ -111,7 +110,6 @@ export class OperationalReports implements OnInit {
       return;
     }
 
-    // Validate filters based on report type
     if (this.showReportDateFilter() && !this.filters.reportDate) {
       this.error = 'Please select a report date';
       return;
@@ -131,9 +129,6 @@ export class OperationalReports implements OnInit {
     this.error = '';
     this.pdfPreviewUrl = null;
 
-    console.log('Applying filters:', this.filters);
-    console.log('Selected report:', this.selectedReport);
-
     this.reportService.getOperationalReport(this.selectedReport, this.filters)
       .subscribe({
         next: (data) => {
@@ -148,7 +143,6 @@ export class OperationalReports implements OnInit {
           this.loading = false;
         },
         error: (err) => {
-          console.error('API Error:', err);
           this.error = 'Failed to load report data: ' + (err.error?.message || err.message);
           this.loading = false;
         }

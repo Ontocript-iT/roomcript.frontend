@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
 import { FormsModule } from '@angular/forms';
@@ -28,7 +28,6 @@ export class DemographicReports implements OnInit {
   error: string = '';
   guestId: number | null = null;
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: DemographicFilters = {
@@ -45,7 +44,7 @@ export class DemographicReports implements OnInit {
   constructor(
     private pdfService: PdfService,
     private reportService: GuestReportService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -67,7 +66,7 @@ export class DemographicReports implements OnInit {
     this.reportSummary = null;
     this.error = '';
     this.guestId = null;
-    this.pdfPreviewUrl = null; // Clear preview
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -101,29 +100,21 @@ export class DemographicReports implements OnInit {
     this.reportSummary = null;
     this.reportData = [];
     this.singleRecordData = null;
-    this.pdfPreviewUrl = null; // Clear previous preview
-
-    console.log('Applying filters:', this.filters);
-    console.log('Selected report:', this.selectedReport);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getDemographicReport(this.selectedReport, this.filters, this.guestId)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
-
-          // Handle array vs object responses
           if (this.selectedReport === 'guest-demographics') {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
           } else {
-            // For Overview/Profile, response might be the object itself or nested in data
             this.singleRecordData = response.data || response || null;
           }
 
           if ((!this.reportData.length && !this.singleRecordData)) {
             this.error = 'No data found for the selected filters';
           } else {
-            // Logic Update: Generate preview immediately
             this.generatePreview();
           }
 
@@ -147,7 +138,6 @@ export class DemographicReports implements OnInit {
     this.error = '';
   }
 
-  // Helper: Prepare consistent data for both Preview and Export
   private preparePdfData(): { title: string, columns: string[], data: any[] } | null {
     if (!this.reportData.length && !this.singleRecordData) {
       return null;
@@ -161,7 +151,6 @@ export class DemographicReports implements OnInit {
       columns = this.getColumnsForReport();
       data = this.reportData;
     } else {
-      // Transform Single Record Object into a Key-Value List for the PDF Table
       if (this.selectedReport === 'guest-overview') {
         columns = ['Metric', 'Value'];
         data = this.getOverviewItems().map(item => ({
@@ -169,7 +158,6 @@ export class DemographicReports implements OnInit {
           value: item.value
         }));
       } else {
-        // Guest Profile
         columns = ['Property', 'Value'];
         data = Object.keys(this.singleRecordData)
           .filter(k => k !== 'recentReservations')
@@ -183,7 +171,6 @@ export class DemographicReports implements OnInit {
     return { title, columns, data };
   }
 
-  // Method 1: Generate Preview
   generatePreview(): void {
     const pdfConfig = this.preparePdfData();
     if (!pdfConfig) return;
@@ -193,14 +180,13 @@ export class DemographicReports implements OnInit {
       pdfConfig.columns,
       pdfConfig.data,
       this.filters,
-      this.reportSummary // Pass summary if it exists (e.g. for demographics)
+      this.reportSummary
     );
 
     const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
     this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
-  // Method 2: Export PDF
   exportReport(): void {
     const pdfConfig = this.preparePdfData();
     if (!pdfConfig) {
@@ -231,11 +217,10 @@ export class DemographicReports implements OnInit {
       .toLowerCase()
       .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
 
-    if (column === 'Total Revenue') return row.totalRevenue; // Handle specific key case
+    if (column === 'Total Revenue') return row.totalRevenue;
     return row[key] !== undefined ? row[key] : '-';
   }
 
-  // Helper for Guest Profile
   getProfileKeys(): string[] {
     if (!this.singleRecordData) return [];
     return Object.keys(this.singleRecordData).filter(k =>
@@ -247,7 +232,6 @@ export class DemographicReports implements OnInit {
     return key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
   }
 
-  // Helper for Guest Overview
   getOverviewItems(): any[] {
     if (!this.singleRecordData) return [];
 

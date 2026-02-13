@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 import { PdfService } from '../../../../core/services/pdf.service';
 
@@ -25,7 +25,6 @@ export class MarketingReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: MarketingFilters = {
@@ -42,7 +41,7 @@ export class MarketingReports implements OnInit {
   constructor(
     private reportService: ReservationReportService,
     private pdfService: PdfService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -62,7 +61,7 @@ export class MarketingReports implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
-    this.pdfPreviewUrl = null; // Clear preview on report change
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -90,12 +89,11 @@ export class MarketingReports implements OnInit {
     this.error = '';
     this.reportData = [];
     this.reportSummary = null;
-    this.pdfPreviewUrl = null; // Clear previous preview
+    this.pdfPreviewUrl = null;
 
     this.reportService.getMarketingReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Marketing report response:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;
@@ -103,7 +101,6 @@ export class MarketingReports implements OnInit {
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
           } else if (this.reportData.length > 0) {
-            // Logic Update: Generate preview immediately if we have data
             this.generatePreview();
           }
 

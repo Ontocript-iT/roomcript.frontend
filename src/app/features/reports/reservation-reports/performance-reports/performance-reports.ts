@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 import { FormsModule } from '@angular/forms';
@@ -30,7 +30,6 @@ export class PerformanceReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
-  // Property 1: Store the safe URL for the iframe
   pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: PerformanceFilters = {
@@ -77,9 +76,8 @@ export class PerformanceReports implements OnInit {
   constructor(
     private pdfService: PdfService,
     private reportService: ReservationReportService,
-    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
+    private sanitizer: DomSanitizer
   ) {
-    // Generate year options (current year - 5 to current year + 2)
     const currentYear = new Date().getFullYear();
     for (let i = currentYear - 5; i <= currentYear + 2; i++) {
       this.yearOptions.push(i);
@@ -105,7 +103,7 @@ export class PerformanceReports implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
-    this.pdfPreviewUrl = null; // Clear preview on report change
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -147,15 +145,11 @@ export class PerformanceReports implements OnInit {
     this.error = '';
     this.reportSummary = null;
     this.reportData = [];
-    this.pdfPreviewUrl = null; // Clear previous preview
-
-    console.log('Applying filters:', this.filters);
-    console.log('Selected report:', this.selectedReport);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getPerformanceReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;
@@ -163,7 +157,6 @@ export class PerformanceReports implements OnInit {
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
           } else if (this.reportData.length > 0) {
-            // Logic Update: Generate preview immediately if we have data
             this.generatePreview();
           }
 
@@ -178,7 +171,6 @@ export class PerformanceReports implements OnInit {
       });
   }
 
-  // Method 1: Generate the preview URL
   generatePreview(): void {
     if (this.reportData.length === 0) {
       return;
@@ -187,7 +179,6 @@ export class PerformanceReports implements OnInit {
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
 
-    // Get Blob URL from service
     const url = this.pdfService.getReportPreviewUrl(
       reportTitle,
       columns,
@@ -195,10 +186,7 @@ export class PerformanceReports implements OnInit {
       this.filters
     );
 
-    // Append config to hide toolbar, navpanes and scrollbars for cleaner look
     const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
-
-    // Trust the URL so Angular allows it in iframe
     this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
@@ -207,7 +195,7 @@ export class PerformanceReports implements OnInit {
     this.filters.status = 'CONFIRMED';
     this.reportData = [];
     this.reportSummary = null;
-    this.pdfPreviewUrl = null; // Clear preview
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
