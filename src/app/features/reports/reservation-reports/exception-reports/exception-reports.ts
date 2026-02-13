@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 import { PdfService } from '../../../../core/services/pdf.service';
-
 
 interface ExceptionFilters {
   startDate: string;
@@ -24,6 +24,8 @@ export class ExceptionReports implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: ExceptionFilters = {
     startDate: '',
     endDate: '',
@@ -37,7 +39,8 @@ export class ExceptionReports implements OnInit {
 
   constructor(
     private reportService: ReservationReportService,
-    private pdfService: PdfService
+    private pdfService: PdfService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +61,7 @@ export class ExceptionReports implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null; // Clear preview
   }
 
   getReportTitle(): string {
@@ -93,17 +97,19 @@ export class ExceptionReports implements OnInit {
     this.error = '';
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
 
     this.reportService.getExceptionReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Exception report response:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;
 
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
+          } else if (this.reportData.length > 0) {
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -117,10 +123,53 @@ export class ExceptionReports implements OnInit {
       });
   }
 
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const s = this.reportSummary;
+    const formatted: any = {};
+
+    if (this.selectedReport === 'cancellations') {
+      if (s.totalCancellations !== undefined) formatted['Total Cancellations'] = s.totalCancellations;
+      if (s.totalRefundedAmount !== undefined) formatted['Total Refunded'] = `$${s.totalRefundedAmount.toFixed(2)}`;
+      if (s.totalLostRevenue !== undefined) formatted['Lost Revenue'] = `$${s.totalLostRevenue.toFixed(2)}`;
+
+      if (s.cancellationsByGuest !== undefined) formatted['Cancelled by Guest'] = s.cancellationsByGuest;
+      if (s.cancellationsByHotel !== undefined) formatted['Cancelled by Hotel'] = s.cancellationsByHotel;
+    }
+
+    if (this.selectedReport === 'no-shows') {
+      if (s.totalNoShows !== undefined) formatted['Total No-Shows'] = s.totalNoShows;
+      if (s.totalLostRevenue !== undefined) formatted['Lost Revenue'] = `$${s.totalLostRevenue.toFixed(2)}`;
+    }
+
+    return formatted;
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary(); // Get summary
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
@@ -132,12 +181,14 @@ export class ExceptionReports implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       this.reportData,
-      this.filters
+      this.filters,
+      summaryData
     );
   }
 

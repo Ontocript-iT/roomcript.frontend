@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
-import { PdfService} from '../../../../core/services/pdf.service';
-import { ReservationReportService} from '../../../../core/services/reservation-report.service';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { PdfService } from '../../../../core/services/pdf.service';
+import { ReservationReportService } from '../../../../core/services/reservation-report.service';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface PerformanceFilters {
   startDate: string;
@@ -28,6 +29,8 @@ export class PerformanceReports implements OnInit {
   reportSummary: any = null;
   loading: boolean = false;
   error: string = '';
+
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: PerformanceFilters = {
     startDate: '',
@@ -72,9 +75,9 @@ export class PerformanceReports implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: ReservationReportService
+    private reportService: ReservationReportService,
+    private sanitizer: DomSanitizer
   ) {
-    // Generate year options (current year - 5 to current year + 2)
     const currentYear = new Date().getFullYear();
     for (let i = currentYear - 5; i <= currentYear + 2; i++) {
       this.yearOptions.push(i);
@@ -98,7 +101,9 @@ export class PerformanceReports implements OnInit {
 
   onReportChange(): void {
     this.reportData = [];
+    this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -140,20 +145,19 @@ export class PerformanceReports implements OnInit {
     this.error = '';
     this.reportSummary = null;
     this.reportData = [];
-
-    console.log('Applying filters:', this.filters);
-    console.log('Selected report:', this.selectedReport);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getPerformanceReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
           this.reportData = response.data || [];
           this.reportSummary = response.summary || null;
 
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
+          } else if (this.reportData.length > 0) {
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -167,10 +171,31 @@ export class PerformanceReports implements OnInit {
       });
   }
 
+  generatePreview(): void {
+    if (this.reportData.length === 0) {
+      return;
+    }
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.filters.status = 'CONFIRMED';
     this.reportData = [];
+    this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 

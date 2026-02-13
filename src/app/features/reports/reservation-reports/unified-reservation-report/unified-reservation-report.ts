@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { ReservationReportService } from '../../../../core/services/reservation-report.service';
 
@@ -31,15 +32,16 @@ export class UnifiedReservationReport implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: UnifiedReportFilters = {
-    propertyCode: 'PROP0005',
+    propertyCode: '',
     startDate: '',
     endDate: '',
     sections: ['CANCELLATION', 'DETAILS'],
     statuses: ['CANCELLED', 'NO_SHOW']
   };
 
-  // Section Options
   sectionOptions = [
     { value: 'SUMMARY', label: 'Summary' },
     { value: 'ARRIVALS_DEPARTURES', label: 'Arrivals & Departures' },
@@ -51,7 +53,6 @@ export class UnifiedReservationReport implements OnInit {
     { value: 'BOOKING_SOURCE', label: 'Booking Source' }
   ];
 
-  // Status Options
   statusOptions = [
     { value: 'CONFIRMED', label: 'Confirmed' },
     { value: 'CANCELLED', label: 'Cancelled' },
@@ -61,16 +62,23 @@ export class UnifiedReservationReport implements OnInit {
     { value: 'PENDING', label: 'Pending' }
   ];
 
-  // Dropdown States
   showSectionsDropdown = false;
   showStatusDropdown = false;
 
   constructor(
     private pdfService: PdfService,
-    private reportService: ReservationReportService
+    private reportService: ReservationReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
+    const storedProp = localStorage.getItem('propertyCode');
+    if (storedProp) {
+      this.filters.propertyCode = storedProp;
+    } else {
+      this.error = 'No Property Code found. Please login again.';
+    }
+
     this.setDefaultDates();
   }
 
@@ -83,7 +91,6 @@ export class UnifiedReservationReport implements OnInit {
     this.filters.endDate = today.toISOString().split('T')[0];
   }
 
-  // Close dropdowns when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -163,17 +170,25 @@ export class UnifiedReservationReport implements OnInit {
     this.error = '';
     this.reportSummary = null;
     this.reportData = [];
+    this.pdfPreviewUrl = null;
 
     this.reportService.getUnifiedReport(this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
           this.reportData = response.data?.reservationDetails || [];
-          this.reportSummary = response.data?.cancellations || null;
 
-          if (this.reportData.length === 0 && !this.reportSummary) {
+          this.reportSummary = {
+            cancellations: response.data?.cancellations,
+            occupancy: response.data?.occupancy,
+            revenue: response.data?.revenueBreakdown,
+            general: response.data?.summary
+          };
+
+          if (this.reportData.length === 0 && !this.isSummaryAvailable()) {
             this.error = 'No data found for the selected filters';
+          } else {
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -187,6 +202,60 @@ export class UnifiedReservationReport implements OnInit {
       });
   }
 
+  private isSummaryAvailable(): boolean {
+    if (!this.reportSummary) return false;
+    return !!(this.reportSummary.cancellations || this.reportSummary.occupancy || this.reportSummary.revenue || this.reportSummary.general);
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const formatted: any = {};
+    const s = this.reportSummary;
+
+    if (s.general) {
+      if (s.general.totalReservations !== undefined) formatted['Total Reservations'] = s.general.totalReservations;
+      if (s.general.totalRevenue !== undefined) formatted['Total Revenue'] = `$${s.general.totalRevenue.toFixed(2)}`;
+    }
+
+    if (s.cancellations) {
+      if (s.cancellations.totalCancellations !== undefined) formatted['Total Cancellations'] = s.cancellations.totalCancellations;
+      if (s.cancellations.totalLostRevenue !== undefined) formatted['Lost Revenue (Cancellations)'] = `$${s.cancellations.totalLostRevenue.toFixed(2)}`;
+    }
+
+    if (s.occupancy) {
+      if (s.occupancy.occupancyPercentage !== undefined) formatted['Occupancy Rate'] = `${s.occupancy.occupancyPercentage}%`;
+      if (s.occupancy.averageDailyRate !== undefined) formatted['ADR'] = `$${s.occupancy.averageDailyRate.toFixed(2)}`;
+      if (s.occupancy.revPAR !== undefined) formatted['RevPAR'] = `$${s.occupancy.revPAR.toFixed(2)}`;
+    }
+
+    if (s.revenue) {
+      if (s.revenue.roomRevenue !== undefined) formatted['Room Revenue'] = `$${s.revenue.roomRevenue.toFixed(2)}`;
+      if (s.revenue.serviceRevenue !== undefined) formatted['Service Revenue'] = `$${s.revenue.serviceRevenue.toFixed(2)}`;
+    }
+
+    return Object.keys(formatted).length > 0 ? formatted : null;
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0 && !this.isSummaryAvailable()) return;
+
+    const reportTitle = 'Unified Reservation Report';
+    const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      this.reportData,
+      this.filters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
   resetFilters(): void {
     this.setDefaultDates();
     this.filters.propertyCode = 'PROP0005';
@@ -194,23 +263,26 @@ export class UnifiedReservationReport implements OnInit {
     this.filters.statuses = ['CANCELLED', 'NO_SHOW'];
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
   exportReport(): void {
-    if (this.reportData.length === 0) {
+    if (this.reportData.length === 0 && !this.isSummaryAvailable()) {
       alert('No data available to export');
       return;
     }
 
     const reportTitle = 'Unified Reservation Report';
     const columns = this.getColumnsForReport();
+    const summaryData = this.getFormattedSummary();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
       this.reportData,
-      this.filters
+      this.filters,
+      summaryData // Pass summary
     );
   }
 
@@ -235,7 +307,6 @@ export class UnifiedReservationReport implements OnInit {
       .toLowerCase()
       .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
 
-    // Handle special cases for mapped fields
     if (key === 'roomType') return row['roomTypes'] || '-';
     if (key === 'cancelledDate') {
       return row['cancelledAt'] ? new Date(row['cancelledAt']).toLocaleDateString() : '-';
