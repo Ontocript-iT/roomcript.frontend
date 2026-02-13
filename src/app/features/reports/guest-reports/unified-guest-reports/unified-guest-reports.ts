@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
 
@@ -28,8 +29,10 @@ export class UnifiedGuestReport implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: UnifiedGuestFilters = {
-    propertyCode: 'PROP0005',
+    propertyCode: '',
     startDate: '',
     endDate: '',
     guestTier: '',
@@ -52,10 +55,18 @@ export class UnifiedGuestReport implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: GuestReportService
+    private reportService: GuestReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
+    const storedProp = localStorage.getItem('propertyCode');
+    if (storedProp) {
+      this.filters.propertyCode = storedProp;
+    } else {
+      this.error = 'No Property Code found. Please login again.';
+    }
+
     this.setDefaultDates();
   }
 
@@ -68,7 +79,6 @@ export class UnifiedGuestReport implements OnInit {
     this.filters.endDate = endOfYear.toISOString().split('T')[0];
   }
 
-  // Close dropdown when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
@@ -113,15 +123,17 @@ export class UnifiedGuestReport implements OnInit {
     this.loading = true;
     this.error = '';
     this.reportData = null;
+    this.pdfPreviewUrl = null;
 
     this.reportService.getUnifiedGuestReport(this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Unified Data received:', response);
           this.reportData = response.data || null;
 
           if (!this.reportData) {
             this.error = 'No data found for the selected filters';
+          } else {
+            this.generatePreview();
           }
           this.loading = false;
         },
@@ -138,7 +150,66 @@ export class UnifiedGuestReport implements OnInit {
     this.filters.guestTier = '';
     this.filters.sections = ['OVERVIEW', 'TOP_GUESTS', 'BEHAVIOR', 'REVENUE_ANALYSIS'];
     this.reportData = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportData) return null;
+
+    const summary: any = {};
+
+    if (this.reportData.overview) {
+      if (this.reportData.overview.totalGuests !== undefined) summary['Total Guests'] = this.reportData.overview.totalGuests;
+      if (this.reportData.overview.newGuests !== undefined) summary['New Guests'] = this.reportData.overview.newGuests;
+      if (this.reportData.overview.returningGuests !== undefined) summary['Returning Guests'] = this.reportData.overview.returningGuests;
+      if (this.reportData.overview.returnRate !== undefined) summary['Return Rate'] = `${this.reportData.overview.returnRate}%`;
+    }
+
+    if (this.reportData.revenueAnalysis) {
+      const r = this.reportData.revenueAnalysis;
+      if (r.totalRevenue !== undefined) summary['Total Revenue'] = `$${r.totalRevenue.toLocaleString()}`;
+      if (r.averageRevenuePerGuest !== undefined) summary['Avg Revenue/Guest'] = `$${r.averageRevenuePerGuest.toFixed(2)}`;
+    }
+
+    if (this.reportData.behavior) {
+      const b = this.reportData.behavior;
+      if (b.averageLeadTimeDays !== undefined) summary['Avg Lead Time'] = `${b.averageLeadTimeDays.toFixed(1)} days`;
+      if (b.averageLengthOfStay !== undefined) summary['Avg Stay'] = `${b.averageLengthOfStay.toFixed(1)} nights`;
+    }
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  prepareTableData(): any[] {
+    if (!this.reportData || !Array.isArray(this.reportData.topGuests)) return [];
+
+    return this.reportData.topGuests.map((guest: any) => ({
+      guestName: guest.guestName || 'Unknown',
+      totalRevenue: `$${(guest.totalRevenue || 0).toLocaleString()}`,
+      nights: guest.totalNights || 0,
+      stays: guest.totalReservations || 0
+    }));
+  }
+
+  generatePreview(): void {
+    if (!this.reportData) return;
+
+    const reportTitle = 'Unified Guest Analytics Report';
+    const columns = ['Guest Name', 'Total Revenue', 'Nights', 'Stays'];
+    const tableData = this.prepareTableData();
+    const summaryData = this.getFormattedSummary();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      tableData,
+      this.filters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -148,59 +219,16 @@ export class UnifiedGuestReport implements OnInit {
     }
 
     const reportTitle = 'Unified Guest Analytics Report';
-
-    // 1. Prepare Export Filters (Header Data)
-    const exportFilters: any = {
-      'Start Date': this.filters.startDate,
-      'End Date': this.filters.endDate,
-      'Guest Tier': this.filters.guestTier || 'All'
-    };
-
-    // Inject Overview Data (Safe Access)
-    if (this.reportData.overview) {
-      exportFilters['Total Guests'] = this.reportData.overview.totalGuests || 0;
-      exportFilters['New / Returning'] = `${this.reportData.overview.newGuests || 0} / ${this.reportData.overview.returningGuests || 0}`;
-      exportFilters['Return Rate'] = `${this.reportData.overview.returnRate || 0}%`;
-    }
-
-    // Inject Revenue Data (Safe Access)
-    if (this.reportData.revenueAnalysis) {
-      // FIX: Check if value exists before calling toLocaleString()
-      const totalRev = this.reportData.revenueAnalysis.totalRevenue || 0;
-      const avgRev = this.reportData.revenueAnalysis.averageRevenuePerGuest || 0;
-
-      exportFilters['Total Revenue'] = `$${totalRev.toLocaleString()}`;
-      exportFilters['Avg Rev/Guest'] = `$${avgRev.toFixed(2)}`;
-    }
-
-    // Inject Behavior Data (Safe Access)
-    if (this.reportData.behavior) {
-      const leadTime = this.reportData.behavior.averageLeadTimeDays || 0;
-      const stayLen = this.reportData.behavior.averageLengthOfStay || 0;
-
-      exportFilters['Avg Lead Time'] = `${leadTime.toFixed(1)} days`;
-      exportFilters['Avg Stay'] = `${stayLen.toFixed(1)} nights`;
-    }
-
-    // 2. Prepare Main Table Data
     const columns = ['Guest Name', 'Total Revenue', 'Nights', 'Stays'];
+    const tableData = this.prepareTableData();
+    const summaryData = this.getFormattedSummary();
 
-    // FIX: Ensure topGuests is an array and handle missing revenue properties inside the map
-    const guests = Array.isArray(this.reportData.topGuests) ? this.reportData.topGuests : [];
-
-    const dataToExport = guests.map((guest: any) => {
-      const revenue = guest.totalRevenue || 0; // Fallback to 0 if undefined
-      return {
-        guestName: guest.guestName || 'Unknown',
-        totalRevenue: `$${revenue.toLocaleString()}`, // Safe call
-        nights: guest.totalNights || 0,
-        stays: guest.totalReservations || 0
-      };
-    });
-
-    this.pdfService.generateReport(reportTitle, columns, dataToExport, exportFilters);
+    this.pdfService.generateReport(
+      reportTitle,
+      columns,
+      tableData,
+      this.filters,
+      summaryData
+    );
   }
-}
-
-export class UnifiedGuestReports {
 }

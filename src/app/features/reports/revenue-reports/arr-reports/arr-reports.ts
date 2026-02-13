@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RevenueReportService} from '../../../../core/services/revenue-report.service';
 import { ArrReportResult, DailyStat} from '../../../../core/models/report.models';
 import { PdfService} from '../../../../core/services/pdf.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 
 interface ReportFilters {
@@ -26,7 +27,7 @@ interface ReportFilters {
   styleUrl: './arr-reports.scss'
 })
 export class ArrReports implements OnInit {
-  propertyCode: string = ''; // Will be loaded from Local Storage
+  propertyCode: string = '';
   selectedReport: string = 'last-30-days';
 
   reportData: ArrReportResult | null = null;
@@ -35,6 +36,8 @@ export class ArrReports implements OnInit {
 
   loading: boolean = false;
   error: string = '';
+
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: any = {
     startDate: '',
@@ -61,7 +64,8 @@ export class ArrReports implements OnInit {
     private datePipe: DatePipe,
     private currencyPipe: CurrencyPipe,
     private pdfService: PdfService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -92,6 +96,7 @@ export class ArrReports implements OnInit {
     this.reportData = null;
     this.tableData = [];
     this.error = '';
+    this.pdfPreviewUrl = null;
 
     const today = new Date();
 
@@ -149,6 +154,7 @@ export class ArrReports implements OnInit {
     this.error = '';
     this.reportData = null;
     this.tableData = [];
+    this.pdfPreviewUrl = null;
 
     this.revenueService.getArrReport(
       this.propertyCode,
@@ -159,13 +165,14 @@ export class ArrReports implements OnInit {
         if (response.status === 200 && response.result) {
           this.reportData = response.result;
           this.tableData = response.result.dailyStats || [];
+
+          this.generatePreview();
         } else {
           this.error = response.message || 'No data returned';
         }
         this.loading = false;
       },
       error: (err) => {
-        console.error('API Error:', err);
         this.error = 'Failed to load report data';
         this.loading = false;
       }
@@ -177,12 +184,79 @@ export class ArrReports implements OnInit {
     this.onReportChange();
     this.reportData = null;
     this.tableData = [];
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
   getReportTitle(): string {
     const report = this.reportOptions.find(r => r.value === this.selectedReport);
     return report ? `Financial ARR Report - ${report.label}` : 'Financial ARR Report';
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportData) return null;
+
+    const summary: any = {};
+    const d = this.reportData;
+
+    if (d.totalRoomRevenue !== undefined) {
+      summary['Total Revenue'] = this.currencyPipe.transform(d.totalRoomRevenue, 'USD');
+    }
+    if (d.overallArr !== undefined) {
+      summary['Overall ARR'] = this.currencyPipe.transform(d.overallArr, 'USD');
+    }
+    if (d.totalRoomNightsSold !== undefined) {
+      summary['Room Nights Sold'] = d.totalRoomNightsSold;
+    }
+    if (d.propertyCode) {
+      summary['Property Code'] = d.propertyCode;
+    }
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  preparePdfData(): any[] {
+    if (!this.tableData || this.tableData.length === 0) return [];
+
+    return this.tableData.map(row => ({
+      date: this.datePipe.transform(row.date, 'mediumDate') || '-',
+      roomsSold: row.roomsSold.toString(),
+      dailyRevenue: this.currencyPipe.transform(row.dailyRevenue, 'USD') || '$0.00',
+      arr: this.currencyPipe.transform(row.arr, 'USD') || '$0.00'
+    }));
+  }
+
+  getRelevantFilters(): any {
+    const cleanFilters: any = {};
+    if (this.showDateRangeFilter()) {
+      cleanFilters['From'] = this.filters.startDate;
+      cleanFilters['To'] = this.filters.endDate;
+    }
+    if (this.showMonthFilter()) {
+      const monthName = this.months[this.filters.month - 1] || this.filters.month;
+      cleanFilters['Month'] = `${monthName} ${this.filters.year}`;
+    }
+    return cleanFilters;
+  }
+
+  generatePreview(): void {
+    if (!this.reportData) return;
+
+    const reportTitle = this.getReportTitle();
+    const formattedData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      this.columns,
+      formattedData,
+      cleanFilters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -192,21 +266,16 @@ export class ArrReports implements OnInit {
     }
 
     const reportTitle = this.getReportTitle();
-    const formattedData = this.tableData.map(row => ({
-
-      date: this.datePipe.transform(row.date, 'mediumDate') || '-',
-
-      roomsSold: row.roomsSold.toString(),
-
-      dailyRevenue: this.currencyPipe.transform(row.dailyRevenue, 'USD') || '$0.00',
-      arr: this.currencyPipe.transform(row.arr, 'USD') || '$0.00'
-    }));
+    const formattedData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
       this.columns,
       formattedData,
-      this.filters
+      cleanFilters,
+      summaryData
     );
   }
 

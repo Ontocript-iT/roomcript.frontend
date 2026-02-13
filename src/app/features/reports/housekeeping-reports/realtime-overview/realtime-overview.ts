@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
 
@@ -26,6 +27,8 @@ export class RealtimeOverview implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: ReportFilters = {
     dateFrom: '',
     dateTo: ''
@@ -38,7 +41,8 @@ export class RealtimeOverview implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: HousekeepingReportService
+    private reportService: HousekeepingReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -47,7 +51,6 @@ export class RealtimeOverview implements OnInit {
 
   setDefaultDates(): void {
     const today = new Date();
-    // Default to last 7 days for lost and found context
     const lastWeek = new Date();
     lastWeek.setDate(today.getDate() - 7);
 
@@ -59,6 +62,7 @@ export class RealtimeOverview implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -76,7 +80,6 @@ export class RealtimeOverview implements OnInit {
       return;
     }
 
-    // Validation for date range if it is visible
     if (this.showDateRangeFilter() && (!this.filters.dateFrom || !this.filters.dateTo)) {
       this.error = 'Please select a valid date range';
       return;
@@ -84,27 +87,26 @@ export class RealtimeOverview implements OnInit {
 
     this.loading = true;
     this.error = '';
-
-    console.log('Applying filters:', this.filters);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getHousekeepingReport(this.selectedReport, this.filters)
       .subscribe({
         next: (response) => {
-          console.log('Data received:', response);
 
           if (!response || (!response.data.length && !response.summary)) {
             this.error = 'No data found for the selected filters';
             this.reportData = [];
             this.reportSummary = null;
           } else {
-            this.reportData = response.data;
-            this.reportSummary = response.summary;
+            this.reportData = response.data || [];
+            this.reportSummary = response.summary || null;
+
+            this.generatePreview();
           }
 
           this.loading = false;
         },
         error: (err) => {
-          console.error('API Error:', err);
           this.error = 'Failed to load report data: ' + (err.error?.message || err.message);
           this.loading = false;
         }
@@ -115,7 +117,88 @@ export class RealtimeOverview implements OnInit {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const summary: any = {};
+    const s = this.reportSummary;
+
+    if (this.selectedReport === 'room-status') {
+      if (s.totalRooms !== undefined) summary['Total Rooms'] = s.totalRooms;
+      if (s.occupiedRooms !== undefined) summary['Occupied'] = s.occupiedRooms;
+      if (s.availableRooms !== undefined) summary['Available'] = s.availableRooms;
+      if (s.dirtyRooms !== undefined) summary['Dirty'] = s.dirtyRooms;
+      if (s.outOfOrderRooms !== undefined) summary['Out of Order'] = s.outOfOrderRooms;
+    }
+    else if (this.selectedReport === 'lost-and-found') {
+      if (s.totalItems !== undefined) summary['Total Items'] = s.totalItems;
+      if (s.claimedItems !== undefined) summary['Claimed'] = s.claimedItems;
+      if (s.unclaimedItems !== undefined) summary['Unclaimed'] = s.unclaimedItems;
+    }
+
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  preparePdfData(): any[] {
+    if (!this.reportData || this.reportData.length === 0) return [];
+
+    return this.reportData.map(row => {
+      if (this.selectedReport === 'room-status') {
+        return {
+          roomNumber: row.roomNumber,
+          roomType: row.roomType,
+          currentStatus: row.currentStatus,
+          lastStatusChange: row.lastStatusChange ? new Date(row.lastStatusChange).toLocaleString() : '-'
+        };
+      }
+      else if (this.selectedReport === 'lost-and-found') {
+        return {
+          category: row.category,
+          count: row.count,
+          claimed: row.claimed,
+          unclaimed: row.unclaimed
+        };
+      }
+      return row;
+    });
+  }
+
+  getRelevantFilters(): any {
+    if (this.selectedReport === 'room-status') {
+      return null;
+    }
+
+    const cleanFilters: any = {};
+    if (this.showDateRangeFilter()) {
+      cleanFilters['From'] = this.filters.dateFrom;
+      cleanFilters['To'] = this.filters.dateTo;
+    }
+    return cleanFilters;
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0 && !this.reportSummary) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      pdfData,
+      cleanFilters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -126,12 +209,16 @@ export class RealtimeOverview implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
     this.pdfService.generateReport(
       reportTitle,
       columns,
-      this.reportData,
-      { ...this.filters, ...this.reportSummary }
+      pdfData,
+      cleanFilters,
+      summaryData
     );
   }
 
@@ -146,7 +233,6 @@ export class RealtimeOverview implements OnInit {
     }
   }
 
-  // Helper to get raw key for coloring logic
   getColumnKey(column: string): string {
     return column.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
   }
@@ -161,18 +247,4 @@ export class RealtimeOverview implements OnInit {
     return row[key] !== undefined && row[key] !== null ? row[key] : '-';
   }
 
-  // Helper for UI badges in the table
-  getStatusColor(status: string): string {
-    if (!status) return 'bg-gray-100 text-gray-800';
-
-    switch (status.toUpperCase()) {
-      case 'AVAILABLE': return 'bg-green-100 text-green-800';
-      case 'OCCUPIED': return 'bg-blue-100 text-blue-800';
-      case 'CLEANING': return 'bg-yellow-100 text-yellow-800';
-      case 'MAINTENANCE':
-      case 'OUT_OF_ORDER': return 'bg-red-100 text-red-800';
-      case 'RESERVED': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  }
 }

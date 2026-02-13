@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface AnalyticsFilters {
   startDate: string;
@@ -26,6 +27,8 @@ export class PerformanceAnalytics implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: AnalyticsFilters = {
     startDate: '',
     endDate: ''
@@ -39,7 +42,8 @@ export class PerformanceAnalytics implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: GuestReportService
+    private reportService: GuestReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +64,7 @@ export class PerformanceAnalytics implements OnInit {
     this.singleRecordData = null;
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null; // Clear preview
   }
 
   getReportTitle(): string {
@@ -87,15 +92,12 @@ export class PerformanceAnalytics implements OnInit {
     this.reportSummary = null;
     this.reportData = [];
     this.singleRecordData = null;
-
-    console.log('Applying filters:', this.filters);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getPerformanceAnalytics(this.selectedReport, this.filters)
       .subscribe({
         next: (response: any) => {
-          console.log('Data received:', response);
 
-          // Handle different structure per report
           if (this.selectedReport === 'repeat-guest-analysis') {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
@@ -105,6 +107,8 @@ export class PerformanceAnalytics implements OnInit {
 
           if ((!this.reportData.length && !this.singleRecordData)) {
             this.error = 'No data found for the selected filters';
+          } else {
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -122,52 +126,91 @@ export class PerformanceAnalytics implements OnInit {
     this.setDefaultDates();
     this.reportData = [];
     this.singleRecordData = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
-  exportReport(): void {
+  private preparePdfData(): { title: string, columns: string[], data: any[] } | null {
     if (!this.reportData.length && !this.singleRecordData) {
-      alert('No data available to export');
-      return;
+      return null;
     }
-    const reportTitle = this.getReportTitle();
+
+    const title = this.getReportTitle();
+    let columns: string[] = [];
+    let data: any[] = [];
 
     if (this.selectedReport === 'repeat-guest-analysis') {
-      const columns = this.getColumnsForReport();
-      this.pdfService.generateReport(reportTitle, columns, this.reportData, this.filters);
+      columns = this.getColumnsForReport();
+      data = this.reportData;
 
     } else if (this.selectedReport === 'guest-behavior') {
-      const dataToExport = this.getBehaviorItems().map(item => ({
+      columns = ['Metric', 'Value'];
+      data = this.getBehaviorItems().map(item => ({
         metric: item.label,
         value: item.value
       }));
-      this.pdfService.generateReport(reportTitle, ['Metric', 'Value'], dataToExport, this.filters);
 
     } else if (this.selectedReport === 'guest-segmentation') {
-      const dataToExport = [
+      columns = ['Segment', 'Count', 'Revenue'];
+      const s = this.singleRecordData;
+      data = [
         {
           segment: 'VIP',
-          count: this.singleRecordData.vipGuests?.count,
-          revenue: this.singleRecordData.vipGuests?.totalRevenue
+          count: s.vipGuests?.count || 0,
+          revenue: s.vipGuests?.totalRevenue || 0
         },
         {
           segment: 'Regular',
-          count: this.singleRecordData.regularGuests?.count,
-          revenue: this.singleRecordData.regularGuests?.totalRevenue
+          count: s.regularGuests?.count || 0,
+          revenue: s.regularGuests?.totalRevenue || 0
         },
         {
           segment: 'Occasional',
-          count: this.singleRecordData.occasionalGuests?.count,
-          revenue: this.singleRecordData.occasionalGuests?.totalRevenue
+          count: s.occasionalGuests?.count || 0,
+          revenue: s.occasionalGuests?.totalRevenue || 0
         },
         {
           segment: 'Lapsed',
-          count: this.singleRecordData.lapsedGuests?.count,
+          count: s.lapsedGuests?.count || 0,
           revenue: '-'
         }
       ];
-      this.pdfService.generateReport(reportTitle, ['Segment', 'Count', 'Revenue'], dataToExport, this.filters);
     }
+
+    return { title, columns, data };
+  }
+
+  generatePreview(): void {
+    const pdfConfig = this.preparePdfData();
+    if (!pdfConfig) return;
+
+    const url = this.pdfService.getReportPreviewUrl(
+      pdfConfig.title,
+      pdfConfig.columns,
+      pdfConfig.data,
+      this.filters,
+      this.reportSummary
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
+  // Method 2: Export PDF
+  exportReport(): void {
+    const pdfConfig = this.preparePdfData();
+    if (!pdfConfig) {
+      alert('No data available to export');
+      return;
+    }
+
+    this.pdfService.generateReport(
+      pdfConfig.title,
+      pdfConfig.columns,
+      pdfConfig.data,
+      this.filters,
+      this.reportSummary
+    );
   }
 
   getColumnsForReport(): string[] {
@@ -185,6 +228,7 @@ export class PerformanceAnalytics implements OnInit {
       .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
     return row[key] !== undefined ? row[key] : '-';
   }
+
   getBehaviorItems(): any[] {
     if (!this.singleRecordData) return [];
     const d = this.singleRecordData;

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { HousekeepingReportService } from '../../../../core/services/housekeeping-report.service';
 import { FormsModule } from '@angular/forms';
@@ -18,20 +19,18 @@ interface ReportFilters {
     FormsModule,
     CommonModule
   ],
-  providers: [DatePipe], // Used for formatting table dates
+  providers: [DatePipe],
   templateUrl: './periodic-housekeeping-reports.html',
   styleUrls: ['./periodic-housekeeping-reports.scss']
 })
 export class PeriodicHousekeepingReports implements OnInit {
   selectedReport: string = 'daily-summary';
 
-  // reportResult holds the full hierarchical JSON response (Summaries + Lists)
   reportResult: any = null;
-  // tableData holds the specific array extracted from reportResult to show in the table
   tableData: any[] = [];
-
   loading: boolean = false;
   error: string = '';
+  pdfPreviewUrl: SafeResourceUrl | null = null;
 
   filters: ReportFilters = {
     reportDate: '',
@@ -59,7 +58,8 @@ export class PeriodicHousekeepingReports implements OnInit {
   constructor(
     private pdfService: PdfService,
     private reportService: HousekeepingReportService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -78,7 +78,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     const today = new Date();
     this.filters.reportDate = today.toISOString().split('T')[0];
 
-    // Default weekly range (Monday to Sunday)
     const day = today.getDay();
     const diff = today.getDate() - day + (day === 0 ? -6 : 1);
     const startOfWeek = new Date(today.setDate(diff));
@@ -92,8 +91,8 @@ export class PeriodicHousekeepingReports implements OnInit {
     this.reportResult = null;
     this.tableData = [];
     this.error = '';
+    this.pdfPreviewUrl = null;
 
-    // Auto-adjust filters based on selection if needed
     if (this.selectedReport === 'last-30-days') {
       const end = new Date();
       const start = new Date();
@@ -112,8 +111,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     return report ? report.label : '';
   }
 
-  // --- Filter Visibility Logic ---
-
   showReportDateFilter(): boolean {
     return this.selectedReport === 'daily-summary';
   }
@@ -129,8 +126,6 @@ export class PeriodicHousekeepingReports implements OnInit {
     return this.selectedReport === 'monthly-summary';
   }
 
-  // --- Actions ---
-
   applyFilters(): void {
     if (!this.selectedReport) {
       this.error = 'Please select a report type';
@@ -141,31 +136,21 @@ export class PeriodicHousekeepingReports implements OnInit {
     this.error = '';
     this.reportResult = null;
     this.tableData = [];
-
-    console.log('Applying filters:', this.filters);
+    this.pdfPreviewUrl = null;
 
     this.reportService.getReport(this.selectedReport, this.filters)
       .subscribe({
         next: (data) => {
-          console.log('Data received:', data);
           this.reportResult = data;
-
-          // Flatten logic: Extract the correct list for the table based on report type
           if (this.selectedReport === 'daily-summary') {
-            this.tableData = data.roomStatusSummary?.roomDetails || [];
+            this.tableData = data.roomStatusSummary?.roomDetails || data.roomDetails || [];
           } else {
-            // For periodic reports (weekly, monthly, etc.), show daily breakdown
-            this.tableData = data.dailyBreakdown || [];
+            this.tableData = data.dailyBreakdown || data.breakdown || [];
           }
-
-          if (!this.tableData || this.tableData.length === 0) {
-            // We don't error here, just show empty table, because summary cards might still have data
-          }
-
+          this.generatePreview();
           this.loading = false;
         },
         error: (err) => {
-          console.error('API Error:', err);
           this.error = 'Failed to load report data: ' + (err.error?.message || err.message);
           this.loading = false;
         }
@@ -178,7 +163,92 @@ export class PeriodicHousekeepingReports implements OnInit {
     this.filters.month = new Date().getMonth() + 1;
     this.reportResult = null;
     this.tableData = [];
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportResult) return null;
+    const summary: any = {};
+    const data = this.reportResult;
+
+    if (this.selectedReport === 'daily-summary') {
+      const s = data.roomStatusSummary || data;
+      if (s.totalRooms !== undefined) summary['Total Rooms'] = s.totalRooms;
+      if (s.cleanRooms !== undefined) summary['Clean'] = s.cleanRooms;
+      if (s.dirtyRooms !== undefined) summary['Dirty'] = s.dirtyRooms;
+      if (s.inspectedRooms !== undefined) summary['Inspected'] = s.inspectedRooms;
+      if (s.maintenanceRooms !== undefined) summary['Maintenance'] = s.maintenanceRooms;
+    } else {
+      const s = data.periodSummary || data.summary || data;
+      if (s.totalTasks !== undefined) summary['Total Tasks'] = s.totalTasks;
+      if (s.totalRoomsCleaned !== undefined) summary['Rooms Cleaned'] = s.totalRoomsCleaned;
+      if (s.averageCompletionTime !== undefined) summary['Avg Time (min)'] = s.averageCompletionTime;
+    }
+    return Object.keys(summary).length > 0 ? summary : null;
+  }
+
+  preparePdfData(): any[] {
+    if (!this.tableData || this.tableData.length === 0) return [];
+    return this.tableData.map(row => {
+      if (this.selectedReport === 'daily-summary') {
+        return {
+          roomNumber: row.roomNumber,
+          roomType: row.roomType,
+          currentStatus: row.currentStatus,
+          lastStatusChange: this.datePipe.transform(row.lastStatusChange, 'medium') || '-'
+        };
+      } else {
+        return {
+          date: this.datePipe.transform(row.date, 'mediumDate') || '-',
+          tasksCompleted: row.tasksCompleted,
+          roomsCleaned: row.roomsCleaned,
+          maintenanceCompleted: row.maintenanceCompleted,
+          lostItemsFound: row.lostItemsFound
+        };
+      }
+    });
+  }
+
+  getRelevantFilters(): any {
+    const cleanFilters: any = {};
+
+    if (this.showReportDateFilter()) {
+      cleanFilters['Report Date'] = this.filters.reportDate;
+    }
+
+    if (this.showDateRangeFilter()) {
+      cleanFilters['Start Date'] = this.filters.startDate;
+      cleanFilters['End Date'] = this.filters.endDate;
+    }
+
+    if (this.showMonthFilter()) {
+      const monthName = this.months[this.filters.month - 1] || this.filters.month;
+      cleanFilters['Month'] = `${monthName} ${this.filters.year}`;
+    }
+
+    return cleanFilters;
+  }
+
+  generatePreview(): void {
+    if (!this.reportResult) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      pdfData,
+      cleanFilters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -189,31 +259,28 @@ export class PeriodicHousekeepingReports implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const pdfData = this.preparePdfData();
+    const summaryData = this.getFormattedSummary();
+    const cleanFilters = this.getRelevantFilters();
 
-    // Pass the flattened tableData to the PDF service
     this.pdfService.generateReport(
       reportTitle,
       columns,
-      this.tableData,
-      this.filters
+      pdfData,
+      cleanFilters,
+      summaryData
     );
   }
-
-  // --- Table Column Logic ---
 
   getColumnsForReport(): string[] {
     if (this.selectedReport === 'daily-summary') {
       return ['Room Number', 'Room Type', 'Current Status', 'Last Status Change'];
     } else {
-      // Weekly, Monthly, Range reports show breakdown by Date
       return ['Date', 'Tasks Completed', 'Rooms Cleaned', 'Maintenance Completed', 'Lost Items Found'];
     }
   }
 
   getColumnValue(row: any, column: string): string {
-    // Helper to map Column Header -> JSON Property safely
-
-    // Daily Summary Mapping (Row = RoomDetails)
     if (this.selectedReport === 'daily-summary') {
       switch (column) {
         case 'Room Number': return row.roomNumber;
@@ -222,9 +289,7 @@ export class PeriodicHousekeepingReports implements OnInit {
         case 'Last Status Change': return this.datePipe.transform(row.lastStatusChange, 'medium') || '-';
         default: return '-';
       }
-    }
-    // Periodic Summary Mapping (Row = DailyBreakdown)
-    else {
+    } else {
       switch (column) {
         case 'Date': return this.datePipe.transform(row.date, 'mediumDate') || '-';
         case 'Tasks Completed': return row.tasksCompleted;

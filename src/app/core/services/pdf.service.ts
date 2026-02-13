@@ -10,6 +10,12 @@ interface HotelInfo {
   logo?: string;
 }
 
+export interface PdfTableSection {
+  title: string;
+  columns: string[];
+  data: any[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -22,64 +28,6 @@ export class PdfService {
   };
 
   constructor() {}
-
-  generateReport(
-    reportTitle: string,
-    columns: string[],
-    data: any[],
-    filters?: any
-  ): void {
-    const doc = new jsPDF('p', 'mm', 'a4');
-
-    // Add header to first page only
-    this.addHeader(doc, reportTitle);
-
-    // Add filter information
-    let startY = 60;
-    if (filters) {
-      startY = this.addFilterInfo(doc, filters, startY);
-    }
-
-    // Prepare table data
-    const tableData = data.map(row => {
-      return columns.map(col => {
-        // Convert "Guest Name" to "guestName" (camelCase)
-        const key = col
-          .toLowerCase()
-          .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
-        return row[key] || '-';
-      });
-    });
-
-    // Add table with autoTable
-    autoTable(doc, {
-      head: [columns],
-      body: tableData,
-      startY: startY,
-      theme: 'grid',
-      styles: {
-        fontSize: 9,
-        cellPadding: 3
-      },
-      headStyles: {
-        fillColor: [59, 130, 246],
-        textColor: 255,
-        fontStyle: 'bold',
-        halign: 'left'
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251]
-      },
-      margin: { top: 20, bottom: 30, left: 10, right: 10 },
-      didDrawPage: (data) => {
-        this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
-      }
-    });
-
-    // Save the PDF
-    const fileName = `${reportTitle.replace(/\s/g, '_')}_${this.getFormattedDate()}.pdf`;
-    doc.save(fileName);
-  }
 
   private addHeader(doc: jsPDF, reportTitle: string): void {
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -102,7 +50,6 @@ export class PdfService {
       { align: 'center' }
     );
 
-    // Line separator
     doc.setLineWidth(0.5);
     doc.line(10, 30, pageWidth - 10, 30);
 
@@ -121,7 +68,6 @@ export class PdfService {
       { align: 'center' }
     );
 
-    // Line separator
     doc.setLineWidth(0.3);
     doc.line(10, 48, pageWidth - 10, 48);
   }
@@ -191,7 +137,133 @@ export class PdfService {
     });
   }
 
-  setHotelInfo(info: HotelInfo): void {
-    this.hotelInfo = { ...this.hotelInfo, ...info };
+  private constructPdfDocument(
+    reportTitle: string,
+    columns: string[],
+    data: any[],
+    filters?: any,
+    summary?: any,
+    additionalTables?: PdfTableSection[] // <--- NEW PARAMETER
+  ): jsPDF {
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    this.addHeader(doc, reportTitle);
+
+    let startY = 60;
+
+    // Filters
+    if (filters) {
+      startY = this.addFilterInfo(doc, filters, startY);
+    }
+
+    // Summary
+    if (summary) {
+      startY = this.addSummarySection(doc, summary, startY);
+    }
+
+    // MAIN TABLE
+    if (data && data.length > 0) {
+      if (additionalTables && additionalTables.length > 0) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text('Detailed List', 10, startY + 5);
+        startY += 8;
+      }
+
+      const tableData = this.mapDataToColumns(columns, data);
+
+      autoTable(doc, {
+        head: [columns],
+        body: tableData,
+        startY: startY,
+        theme: 'grid',
+        styles: { fontSize: 9, cellPadding: 3 },
+        headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold', halign: 'left' },
+        alternateRowStyles: { fillColor: [249, 250, 251] },
+        margin: { top: 20, bottom: 30, left: 10, right: 10 },
+        didDrawPage: (data) => this.addFooter(doc, data.pageNumber, doc.getNumberOfPages())
+      });
+
+      startY = (doc as any).lastAutoTable.finalY + 10;
+    }
+
+    // Additional Tables
+    if (additionalTables && additionalTables.length > 0) {
+      additionalTables.forEach(table => {
+        // Check if we need a new page
+        const pageHeight = doc.internal.pageSize.height;
+        if (startY + 30 > pageHeight) {
+          doc.addPage();
+          startY = 20;
+          this.addFooter(doc, doc.getNumberOfPages(), doc.getNumberOfPages()); // Update footer for new page
+        }
+
+        // Table Title
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(0, 0, 0);
+        doc.text(table.title, 10, startY);
+        startY += 5;
+
+        // Draw Table
+        const extraTableData = this.mapDataToColumns(table.columns, table.data);
+
+        autoTable(doc, {
+          head: [table.columns],
+          body: extraTableData,
+          startY: startY,
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 3 },
+          headStyles: { fillColor: [75, 85, 99], textColor: 255, fontStyle: 'bold', halign: 'left' }, // Grey header for secondary tables
+          margin: { top: 20, bottom: 30, left: 10, right: 10 },
+          didDrawPage: (data) => this.addFooter(doc, data.pageNumber, doc.getNumberOfPages())
+        });
+
+        startY = (doc as any).lastAutoTable.finalY + 10;
+      });
+    }
+
+    return doc;
+  }
+
+  private mapDataToColumns(columns: string[], data: any[]): any[] {
+    return data.map(row => {
+      return columns.map(col => {
+        const key = col.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
+        // Simple mapping, can be enhanced
+        return row[key] !== undefined && row[key] !== null ? row[key] : '-';
+      });
+    });
+  }
+
+  private addSummarySection(doc: jsPDF, summary: any, startY: number): number {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Key Metrics:', 10, startY);
+    startY += 6;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(50, 50, 50);
+
+    Object.entries(summary).forEach(([key, value]) => {
+      const displayValue = value !== null && value !== undefined ? value.toString() : '-';
+      doc.text(`${key}: ${displayValue}`, 10, startY);
+      startY += 5;
+    });
+
+    return startY + 5;
+  }
+
+  getReportPreviewUrl(title: string, cols: string[], data: any[], filters?: any, summary?: any, extraTables?: PdfTableSection[]): string {
+    const doc = this.constructPdfDocument(title, cols, data, filters, summary, extraTables);
+    return doc.output('bloburl').toString();
+  }
+
+  generateReport(title: string, cols: string[], data: any[], filters?: any, summary?: any, extraTables?: PdfTableSection[]): void {
+    const doc = this.constructPdfDocument(title, cols, data, filters, summary, extraTables);
+    doc.save(`${title.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   }
 }
