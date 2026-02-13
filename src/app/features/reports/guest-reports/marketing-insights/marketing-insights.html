@@ -71,102 +71,24 @@
   <div *ngIf="loading" class="flex items-center justify-center p-12">
     <div class="flex flex-col items-center">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      <p class="mt-4 text-gray-600">Loading report data...</p>
+      <p class="mt-4 text-gray-600">Generating Report Preview...</p>
     </div>
   </div>
 
-  <div *ngIf="!loading && !error && selectedReport === 'top-guests' && reportData.length > 0" class="bg-white border border-gray-200 rounded-md overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th *ngFor="let column of getColumnsForReport()"
-              class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            {{ column }}
-          </th>
-        </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let row of reportData; let i = index" [class.bg-gray-50]="i % 2 === 1">
-          <td *ngFor="let column of getColumnsForReport()" class="px-4 py-3 text-xs text-gray-900">
-            {{ getColumnValue(row, column) }}
-          </td>
-        </tr>
-        </tbody>
-      </table>
+  <div *ngIf="!loading && !error && pdfPreviewUrl" class="bg-white border border-gray-200 rounded-md shadow-sm h-[800px] flex flex-col">
+
+    <div class="flex-1 w-full bg-white">
+      <iframe
+        [src]="pdfPreviewUrl"
+        class="w-full h-full border border-gray-300 rounded bg-white shadow-md"
+        type="application/pdf">
+      </iframe>
     </div>
   </div>
 
-  <div *ngIf="!loading && !error && selectedReport === 'revenue-analysis'" class="space-y-4">
-    <div *ngIf="reportSummary" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
-        <div class="text-xs text-gray-500 uppercase">Total Revenue</div>
-        <div class="text-2xl font-bold text-green-600">{{ reportSummary.totalRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
-      </div>
-      <div class="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
-        <div class="text-xs text-gray-500 uppercase">Avg Revenue / Guest</div>
-        <div class="text-2xl font-bold text-blue-600">{{ reportSummary.averageRevenuePerGuest | currency:'USD':'symbol':'1.2-2' }}</div>
-      </div>
-      <div class="bg-white p-4 rounded-md border border-gray-200 shadow-sm">
-        <div class="text-xs text-gray-500 uppercase">Highest Spender</div>
-        <div class="text-lg font-bold text-gray-800 truncate" title="{{ reportSummary.highestSpendingGuestName }}">
-          {{ reportSummary.highestSpendingGuestName }}
-        </div>
-        <div class="text-sm text-gray-500">{{ reportSummary.highestSpendingGuestRevenue | currency:'USD':'symbol':'1.0-0' }}</div>
-      </div>
-    </div>
-
-    <div *ngIf="reportData.length > 0" class="bg-white border border-gray-200 rounded-md overflow-hidden">
-      <div class="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <h4 class="text-sm font-semibold text-gray-700">Revenue Distribution by Segment</h4>
-      </div>
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th *ngFor="let column of getColumnsForReport()" class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            {{ column }}
-          </th>
-        </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let row of reportData; let i = index" [class.bg-gray-50]="i % 2 === 1">
-          <td *ngFor="let column of getColumnsForReport()" class="px-4 py-3 text-xs text-gray-900">
-            {{ getColumnValue(row, column) }}
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div *ngIf="!loading && !error && selectedReport === 'acquisition-trends' && reportData.length > 0" class="bg-white border border-gray-200 rounded-md overflow-hidden">
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-        <tr>
-          <th *ngFor="let column of getColumnsForReport()"
-              class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            {{ column }}
-          </th>
-        </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-        <tr *ngFor="let row of reportData; let i = index" [class.bg-gray-50]="i % 2 === 1">
-          <td *ngFor="let column of getColumnsForReport()" class="px-4 py-3 text-xs text-gray-900">
-            {{ getColumnValue(row, column) }}
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div *ngIf="!loading && !error && reportData.length === 0 && selectedReport"
+  <div *ngIf="!loading && !error && !pdfPreviewUrl && selectedReport"
        class="text-center py-12 bg-gray-50 rounded-md border border-gray-200">
-    <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-    </svg>
-    <p class="mt-4 text-lg font-medium text-gray-900">No data available</p>
-    <p class="mt-2 text-sm text-gray-600">Apply filters to load report data</p>
+    <p class="mt-4 text-lg font-medium text-gray-900">Ready to Generate</p>
+    <p class="mt-2 text-sm text-gray-600">Apply filters to view the PDF report</p>
   </div>
 </div>

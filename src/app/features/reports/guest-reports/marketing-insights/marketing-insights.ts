@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface MarketingFilters {
   startDate: string;
@@ -25,6 +26,8 @@ export class MarketingInsights implements OnInit {
   loading: boolean = false;
   error: string = '';
 
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: MarketingFilters = {
     startDate: '',
     endDate: ''
@@ -38,7 +41,8 @@ export class MarketingInsights implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: GuestReportService
+    private reportService: GuestReportService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +62,7 @@ export class MarketingInsights implements OnInit {
     this.reportData = [];
     this.reportSummary = null;
     this.error = '';
+    this.pdfPreviewUrl = null;
   }
 
   getReportTitle(): string {
@@ -80,6 +85,7 @@ export class MarketingInsights implements OnInit {
     this.error = '';
     this.reportSummary = null;
     this.reportData = [];
+    this.pdfPreviewUrl = null;
 
     console.log('Applying filters:', this.filters);
 
@@ -93,6 +99,8 @@ export class MarketingInsights implements OnInit {
 
           if (this.reportData.length === 0 && !this.reportSummary) {
             this.error = 'No data found for the selected filters';
+          } else if (this.reportData.length > 0) {
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -110,7 +118,74 @@ export class MarketingInsights implements OnInit {
     this.setDefaultDates();
     this.reportData = [];
     this.reportSummary = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
+  }
+
+  getFormattedSummary(): any {
+    if (!this.reportSummary) return null;
+
+    const s = this.reportSummary;
+    const formatted: any = {};
+
+    if (this.selectedReport === 'revenue-analysis') {
+      if (s.totalRevenue !== undefined) formatted['Total Revenue'] = `$${s.totalRevenue}`;
+      if (s.averageRevenuePerGuest !== undefined) formatted['Avg Revenue/Guest'] = `$${s.averageRevenuePerGuest.toFixed(2)}`;
+      if (s.highestSpendingGuestName) formatted['Highest Spender'] = `${s.highestSpendingGuestName} ($${s.highestSpendingGuestRevenue})`;
+    }
+
+    if (this.selectedReport === 'acquisition-trends') {
+      if (s.totalNewGuests !== undefined) formatted['Total New Guests'] = s.totalNewGuests;
+      if (s.acquisitionRate !== undefined) formatted['Acquisition Rate'] = `${s.acquisitionRate}%`;
+    }
+
+    return Object.keys(formatted).length > 0 ? formatted : null;
+  }
+
+  prepareTableData(): any[] {
+    if (!this.reportData || this.reportData.length === 0) return [];
+
+    if (this.selectedReport === 'top-guests') {
+      return this.reportData.map(row => ({
+        guestName: row.guestName,
+        country: row.country || 'N/A',
+        totalReservations: row.totalReservations,
+        totalNights: row.totalNights,
+        totalRevenue: row.totalRevenue,
+        lastVisit: row.lastVisit
+      }));
+    }
+
+    if (this.selectedReport === 'revenue-analysis') {
+      return this.reportData.map(row => ({
+        segment: row.segment,
+        guestCount: row.guestCount,
+        totalRevenue: row.totalRevenue,
+        percentage: row.percentage + '%'
+      }));
+    }
+
+    return this.reportData;
+  }
+
+  generatePreview(): void {
+    if (this.reportData.length === 0) return;
+
+    const reportTitle = this.getReportTitle();
+    const columns = this.getColumnsForReport();
+    const tableData = this.prepareTableData();
+    const summaryData = this.getFormattedSummary();
+
+    const url = this.pdfService.getReportPreviewUrl(
+      reportTitle,
+      columns,
+      tableData,
+      this.filters,
+      summaryData
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
   }
 
   exportReport(): void {
@@ -121,42 +196,16 @@ export class MarketingInsights implements OnInit {
 
     const reportTitle = this.getReportTitle();
     const columns = this.getColumnsForReport();
+    const tableData = this.prepareTableData();
+    const summaryData = this.getFormattedSummary();
 
-    // Map data based on specific report requirements
-    let dataToExport = this.reportData;
-
-    // Create a copy of filters so we can add summary info without affecting the UI
-    let exportFilters: any = { ...this.filters };
-
-    if (this.selectedReport === 'top-guests') {
-      dataToExport = this.reportData.map(row => ({
-        guestName: row.guestName,
-        country: row.country || 'N/A',
-        totalReservations: row.totalReservations,
-        totalNights: row.totalNights,
-        totalRevenue: row.totalRevenue,
-        lastVisit: row.lastVisit
-      }));
-    } else if (this.selectedReport === 'revenue-analysis') {
-      // 1. Prepare Table Data
-      dataToExport = this.reportData.map(row => ({
-        segment: row.segment,
-        guestCount: row.guestCount,
-        totalRevenue: row.totalRevenue,
-        percentage: row.percentage + '%'
-      }));
-
-      // 2. INJECT SUMMARY DATA: Add the card details to the export filters
-      // This forces them to print at the top of the PDF
-      if (this.reportSummary) {
-        exportFilters['Total Revenue'] = `$${this.reportSummary.totalRevenue}`;
-        exportFilters['Avg Revenue/Guest'] = `$${this.reportSummary.averageRevenuePerGuest.toFixed(2)}`;
-        exportFilters['Highest Spender'] = `${this.reportSummary.highestSpendingGuestName} ($${this.reportSummary.highestSpendingGuestRevenue})`;
-      }
-    }
-
-    // Pass the modified filters including the summary details
-    this.pdfService.generateReport(reportTitle, columns, dataToExport, exportFilters);
+    this.pdfService.generateReport(
+      reportTitle,
+      columns,
+      tableData,
+      this.filters,
+      summaryData
+    );
   }
 
   getColumnsForReport(): string[] {
@@ -177,7 +226,6 @@ export class MarketingInsights implements OnInit {
       .toLowerCase()
       .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
 
-    // Handle special cases matching the logic in export
     if (column === 'Percentage' || column === 'Acquisition Rate') {
       return row[key] ? row[key] + '%' : '0%';
     }

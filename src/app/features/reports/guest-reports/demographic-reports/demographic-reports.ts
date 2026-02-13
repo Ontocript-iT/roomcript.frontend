@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser'; // Import 1: Sanitizer
 import { PdfService } from '../../../../core/services/pdf.service';
 import { GuestReportService } from '../../../../core/services/guest-report.service';
-import {FormsModule} from '@angular/forms';
-import {CommonModule} from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 interface DemographicFilters {
   startDate: string;
@@ -27,6 +28,9 @@ export class DemographicReports implements OnInit {
   error: string = '';
   guestId: number | null = null;
 
+  // Property 1: Store the safe URL for the iframe
+  pdfPreviewUrl: SafeResourceUrl | null = null;
+
   filters: DemographicFilters = {
     startDate: '',
     endDate: ''
@@ -40,7 +44,8 @@ export class DemographicReports implements OnInit {
 
   constructor(
     private pdfService: PdfService,
-    private reportService: GuestReportService
+    private reportService: GuestReportService,
+    private sanitizer: DomSanitizer // Injection 1: Inject Sanitizer
   ) {}
 
   ngOnInit(): void {
@@ -62,6 +67,7 @@ export class DemographicReports implements OnInit {
     this.reportSummary = null;
     this.error = '';
     this.guestId = null;
+    this.pdfPreviewUrl = null; // Clear preview
   }
 
   getReportTitle(): string {
@@ -95,6 +101,7 @@ export class DemographicReports implements OnInit {
     this.reportSummary = null;
     this.reportData = [];
     this.singleRecordData = null;
+    this.pdfPreviewUrl = null; // Clear previous preview
 
     console.log('Applying filters:', this.filters);
     console.log('Selected report:', this.selectedReport);
@@ -109,11 +116,15 @@ export class DemographicReports implements OnInit {
             this.reportData = response.data || [];
             this.reportSummary = response.summary || null;
           } else {
-            this.singleRecordData = response.data || null;
+            // For Overview/Profile, response might be the object itself or nested in data
+            this.singleRecordData = response.data || response || null;
           }
 
           if ((!this.reportData.length && !this.singleRecordData)) {
             this.error = 'No data found for the selected filters';
+          } else {
+            // Logic Update: Generate preview immediately
+            this.generatePreview();
           }
 
           this.loading = false;
@@ -132,34 +143,78 @@ export class DemographicReports implements OnInit {
     this.guestId = null;
     this.reportData = [];
     this.singleRecordData = null;
+    this.pdfPreviewUrl = null;
     this.error = '';
   }
 
-  exportReport(): void {
+  // Helper: Prepare consistent data for both Preview and Export
+  private preparePdfData(): { title: string, columns: string[], data: any[] } | null {
     if (!this.reportData.length && !this.singleRecordData) {
+      return null;
+    }
+
+    const title = this.getReportTitle();
+    let columns: string[] = [];
+    let data: any[] = [];
+
+    if (this.selectedReport === 'guest-demographics') {
+      columns = this.getColumnsForReport();
+      data = this.reportData;
+    } else {
+      // Transform Single Record Object into a Key-Value List for the PDF Table
+      if (this.selectedReport === 'guest-overview') {
+        columns = ['Metric', 'Value'];
+        data = this.getOverviewItems().map(item => ({
+          metric: item.label,
+          value: item.value
+        }));
+      } else {
+        // Guest Profile
+        columns = ['Property', 'Value'];
+        data = Object.keys(this.singleRecordData)
+          .filter(k => k !== 'recentReservations')
+          .map(k => ({
+            property: this.formatLabel(k),
+            value: this.singleRecordData[k]
+          }));
+      }
+    }
+
+    return { title, columns, data };
+  }
+
+  // Method 1: Generate Preview
+  generatePreview(): void {
+    const pdfConfig = this.preparePdfData();
+    if (!pdfConfig) return;
+
+    const url = this.pdfService.getReportPreviewUrl(
+      pdfConfig.title,
+      pdfConfig.columns,
+      pdfConfig.data,
+      this.filters,
+      this.reportSummary // Pass summary if it exists (e.g. for demographics)
+    );
+
+    const viewerUrl = url + '#toolbar=0&navpanes=0&scrollbar=0';
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+  }
+
+  // Method 2: Export PDF
+  exportReport(): void {
+    const pdfConfig = this.preparePdfData();
+    if (!pdfConfig) {
       alert('No data available to export');
       return;
     }
 
-    const reportTitle = this.getReportTitle();
-
-    if (this.selectedReport === 'guest-demographics') {
-      const columns = this.getColumnsForReport();
-      this.pdfService.generateReport(reportTitle, columns, this.reportData, this.filters);
-    } else {
-      // For Profile/Overview, format as a list of Key-Values for the PDF
-      const dataToExport = this.selectedReport === 'guest-overview'
-        ? this.getOverviewItems().map(item => ({ metric: item.label, value: item.value }))
-        : Object.keys(this.singleRecordData)
-          .filter(k => k !== 'recentReservations')
-          .map(k => ({ property: this.formatLabel(k), value: this.singleRecordData[k] }));
-
-      const columns = this.selectedReport === 'guest-overview'
-        ? ['Metric', 'Value']
-        : ['Property', 'Value'];
-
-      this.pdfService.generateReport(reportTitle, columns, dataToExport, this.filters);
-    }
+    this.pdfService.generateReport(
+      pdfConfig.title,
+      pdfConfig.columns,
+      pdfConfig.data,
+      this.filters,
+      this.reportSummary
+    );
   }
 
   getColumnsForReport(): string[] {

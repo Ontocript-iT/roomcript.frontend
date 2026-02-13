@@ -208,26 +208,44 @@ export class PdfService {
       startY = this.addSummarySection(doc, summary, startY);
     }
 
-    const tableData = data.map(row => {
-      return columns.map(col => {
-        const key = col.toLowerCase().replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
-        return row[key] || '-';
+    if (data && data.length > 0) {
+      const tableData = data.map(row => {
+        return columns.map(col => {
+          // Convert "Guest Name" to "guestName" (camelCase)
+          const key = col
+            .toLowerCase()
+            .replace(/\s(.)/g, (match, group1) => group1.toUpperCase());
+          return row[key] || '-';
+        });
       });
-    });
 
-    autoTable(doc, {
-      head: [columns],
-      body: tableData,
-      startY: startY, // Table starts after summary
-      theme: 'grid',
-      styles: { fontSize: 9, cellPadding: 3 },
-      headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: 'bold', halign: 'left' },
-      alternateRowStyles: { fillColor: [249, 250, 251] },
-      margin: { top: 20, bottom: 30, left: 10, right: 10 },
-      didDrawPage: (data) => {
-        this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
-      }
-    });
+      autoTable(doc, {
+        head: [columns],
+        body: tableData,
+        startY: startY,
+        theme: 'grid',
+        styles: {
+          fontSize: 9,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [59, 130, 246],
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'left'
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251]
+        },
+        margin: { top: 20, bottom: 30, left: 10, right: 10 },
+        didDrawPage: (data) => {
+          this.addFooter(doc, data.pageNumber, doc.getNumberOfPages());
+        }
+      });
+    } else {
+      // If no table, just add the footer to the single page
+      this.addFooter(doc, 1, 1);
+    }
 
     return doc;
   }
