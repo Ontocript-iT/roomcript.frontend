@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FolioDetails } from '../../../core/models/folio.model';
@@ -12,8 +12,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   templateUrl: './add-folio-payment.html',
   styleUrl: './add-folio-payment.scss'
 })
-export class AddFolioPayment implements OnInit {
+export class AddFolioPayment implements OnInit, OnChanges {
   @Input() selectedFolio: FolioDetails | null = null;
+  // NEW: Receive the balance limit
+  @Input() maxPayableAmount: number = 0;
+
   @Output() cancel = new EventEmitter<void>();
   @Output() paymentAdded = new EventEmitter<any>();
 
@@ -33,6 +36,20 @@ export class AddFolioPayment implements OnInit {
 
   ngOnInit(): void {
     this.paymentData.createdBy = localStorage.getItem('username') || 'Unknown';
+    // Autofill on init
+    this.autofillAmount();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // If the max amount changes (or loads late), update the form
+    if (changes['maxPayableAmount']) {
+      this.autofillAmount();
+    }
+  }
+
+  autofillAmount(): void {
+    // Set amount to the balance, but ensure it's not negative
+    this.paymentData.amount = this.maxPayableAmount > 0 ? this.maxPayableAmount : 0;
   }
 
   onCancel(): void {
@@ -41,7 +58,7 @@ export class AddFolioPayment implements OnInit {
 
   async onSubmit(): Promise<void> {
     if (!this.isFormValid() || !this.selectedFolio?.id) {
-      this.showError('Please fill all required fields');
+      this.showError('Please check the form for errors');
       return;
     }
 
@@ -49,13 +66,9 @@ export class AddFolioPayment implements OnInit {
 
     try {
       const result = await this.folioService.addFolioPayment(this.selectedFolio.id, this.paymentData).toPromise();
-
-      // Emit success to parent (closes form + refreshes folio)
       this.paymentAdded.emit(result);
-
       this.showSuccess('Payment added successfully');
       this.resetForm();
-
     } catch (error: any) {
       console.error('Error adding payment:', error);
       const errorMsg = error.error?.message || 'Failed to add payment. Please try again.';
@@ -68,7 +81,9 @@ export class AddFolioPayment implements OnInit {
   isFormValid(): boolean {
     return !!(
       this.paymentData.paymentMethod &&
-      this.paymentData.amount > 0
+      this.paymentData.amount > 0 &&
+      // NEW: Ensure amount does not exceed balance
+      this.paymentData.amount <= this.maxPayableAmount
     );
   }
 
@@ -79,6 +94,8 @@ export class AddFolioPayment implements OnInit {
       remarks: '',
       createdBy: localStorage.getItem('username') || 'Unknown'
     };
+    // Re-autofill after reset
+    this.autofillAmount();
   }
 
   private showSuccess(message: string): void {

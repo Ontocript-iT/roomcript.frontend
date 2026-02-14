@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxTurnstileModule } from 'ngx-turnstile';
+import { environment } from '../../../../environments/environment';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { IdleService } from '../../../core/services/idle.service';
@@ -39,7 +40,7 @@ export class LoginComponent implements OnInit {
   hidePassword = true;
   errorMessage = '';
   isLoading = false;
-  siteKey = '3x00000000000000000000FF';
+  siteKey = environment.turnstileSiteKey;
 
   constructor(
     private fb: FormBuilder,

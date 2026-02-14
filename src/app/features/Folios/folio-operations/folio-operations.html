@@ -353,6 +353,7 @@
     <app-add-folio-payment
       *ngIf="selectedFolio && !loading && showPaymentForm && !showChargeForm"
       [selectedFolio]="selectedFolio"
+      [maxPayableAmount]="getRealBalance()"
       (cancel)="closeAllForms()"
       (paymentAdded)="onPaymentAdded($event)">
     </app-add-folio-payment>
