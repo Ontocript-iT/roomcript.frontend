@@ -25,7 +25,6 @@ import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
     AddFolioCharge,
     AddFolioPayment,
     DragDropModule,
-    AddFolioPayment
   ],
   templateUrl: './folio-operations.html',
   styleUrl: './folio-operations.scss'
@@ -153,6 +152,31 @@ export class FolioOperations implements OnInit, OnChanges {
     });
   }
 
+  loadAllFolios(): void {
+    if (!this.reservationId) return;
+
+    this.loading = true;
+    this.folioService.getFoliosByReservationId(this.reservationId, this.propertyCode)
+      .subscribe({
+        next: (folios) => {
+          this.loading = false;
+          this.folios = folios;
+
+          if (this.folios.length > 0) {
+            // Find the folio with the highest ID (assuming it's the new one)
+            const newestFolio = this.folios.reduce((prev, current) =>
+              (prev.id > current.id) ? prev : current
+            );
+            this.selectFolio(newestFolio);
+          }
+        },
+        error: (err) => {
+          this.loading = false;
+          console.error('Error refreshing folio list:', err);
+        }
+      });
+  }
+
   private createFolio(createdBy: string): void {
     this.loading = true;
     const folioType = 'GUEST';
@@ -166,13 +190,8 @@ export class FolioOperations implements OnInit, OnChanges {
       this.propertyCode
     ).subscribe({
       next: (newFolio) => {
-        this.loading = false;
-        if (newFolio) {
-          this.folios.push(newFolio);
-          this.selectedFolio = newFolio;
-          this.loadFolioDetails(newFolio.id);
-          this.showSuccess('New folio created successfully');
-        }
+        this.showSuccess('New folio created successfully');
+        this.loadAllFolios();
       },
       error: (error) => {
         this.loading = false;

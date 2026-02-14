@@ -69,14 +69,23 @@
               name="amount"
               required
               min="0.01"
+              [max]="maxPayableAmount"
               step="0.01"
               placeholder="0.00"
-              class="peer block w-full pl-12 pr-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-colors">
+              class="peer block w-full pl-12 pr-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 transition-colors"
+              [class.border-red-500]="paymentData.amount > maxPayableAmount"
+              [class.focus:border-red-500]="paymentData.amount > maxPayableAmount">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none z-10">Rs.</span>
-            <label
-              class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
+            <label class="absolute left-3 -top-1.5 px-1 bg-white text-xs text-gray-500 transition-all peer-focus:text-gray-500 peer-valid:text-blue-600 pointer-events-none origin-top-left scale-75">
               Amount <span class="text-red-500">*</span>
             </label>
+
+            <div *ngIf="paymentData.amount > maxPayableAmount" class="absolute left-0 -bottom-5 text-xs text-red-500 font-medium">
+              Cannot exceed balance: Rs. {{maxPayableAmount}}
+            </div>
+            <div *ngIf="paymentData.amount <= maxPayableAmount" class="absolute left-0 -bottom-5 text-xs text-gray-400">
+              Max Payable: Rs. {{maxPayableAmount}}
+            </div>
           </div>
 
           <!-- Remarks -->
